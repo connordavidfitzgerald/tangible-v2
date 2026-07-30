@@ -1,0 +1,448 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Button from '@components/ui/Button.astro';
+import Image from '@components/ui/Image.astro';
+import FadeUp from '@components/ui/FadeUp.astro';
+import RevealHeader from '@components/sections/RevealHeader.astro';
+import ContactFooter from '@components/sections/ContactFooter.astro';
+import SplitReveal from '@components/sections/SplitReveal.astro';
+import MuxVideo from '@components/ui/MuxVideo.astro';
+import { Picture } from 'astro:assets';
+import LottieAnimation from 'astro-integration-lottie/Lottie.astro';
+import plantAnimationUrl from '@images/plant.json?url';
+
+import chalkboard from '@images/Home_about.jpg';
+import img1 from '@images/tangible1.jpg';
+import img2 from '@images/tangible2.jpg';
+import img3 from '@images/tangible3.jpg';
+import img4 from '@images/tangible4.jpg';
+import img5 from '@images/tangible5.jpg';
+import img6 from '@images/Tangible0797.jpg';
+import img7 from '@images/LEADER.jpg';
+import mob1 from '@images/mob_tang1.jpg';
+import mob2 from '@images/mob_tang2.jpg';
+import mob3 from '@images/mob_tang3.jpg';
+import mob4 from '@images/mob_tang4.jpg';
+import mob5 from '@images/mob_tang5.jpg';
+
+import { localizedPath } from '@lib/i18n/utils';
+import { pick, type I18nField } from '@lib/sanity/i18n';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { muxPlaybackId } from '@lib/sanity/video';
+import type { LocaleId } from '@lib/i18n/locales';
+
+interface Props {
+    data: Record<string, I18nField> | null;
+    locale: LocaleId;
+}
+
+const { data, locale } = Astro.props;
+const t = (key: string) => pick(data?.[key], locale);
+
+/** The film is global (Site Settings), not home-page content. */
+const settings = await getSiteSettings();
+const videoPlaybackId = muxPlaybackId(settings);
+const videoTitle = pick(settings?.videoTitle, locale);
+
+const heroFonts = ['formula', 'editorial', 'editorial'] as const;
+const entreprisesTitleFonts = ['formula', 'editorial'] as const;
+const leadersTitleFonts = ['formula', 'editorial'] as const;
+
+/**
+ * Every section below is a single markup tree that re-lays out at `md` (810px):
+ * mobile-first classes describe the stacked layout, `md:` classes describe the
+ * wide one. The hero is the one exception — its mobile crops are separate image
+ * assets, so both sets stay in the DOM and swap at `sm` (700px).
+ */
+const heroSlides = [
+    { desktop: img1, mobile: mob1 },
+    { desktop: img2, mobile: mob2 },
+    { desktop: img3, mobile: mob3 },
+    { desktop: img4, mobile: mob4 },
+    { desktop: img5, mobile: mob5 }
+];
+
+/** Copy is authored as "Label: body" — the label renders bold + bronze. */
+const splitHighlight = (value: string) => {
+    const [label, ...rest] = value.split(':');
+    return { label, body: rest.join(':') };
+};
+
+const programs = [
+    {
+        image: img6,
+        titleLines: [t('entreprisesTitle1'), t('entreprisesTitle2')],
+        titleFonts: entreprisesTitleFonts,
+        body: t('entreprisesBody'),
+        highlight: splitHighlight(t('entreprisesResult')),
+        buttonLabel: t('entreprisesButton'),
+        href: localizedPath('/services/entreprises', locale),
+        side: 'left' as const
+    },
+    {
+        image: img7,
+        titleLines: [t('leadersTitle1'), t('leadersTitle2')],
+        titleFonts: leadersTitleFonts,
+        body: t('leadersBody'),
+        highlight: splitHighlight(t('leadersAmbition')),
+        buttonLabel: t('leadersButton'),
+        href: localizedPath('/services/leaders', locale),
+        side: 'right' as const
+    }
+];
+
+/**
+ * Program blocks alternate which side the image sits on at `md`. Mobile always
+ * stacks header → image → text, so only the wide layout needs placement.
+ * Class strings are spelled out in full so Tailwind's scanner can find them.
+ */
+const programSide = {
+    left: {
+        image: 'md:col-start-1 md:pr-fluid-twenty',
+        column: 'md:col-start-5 md:pr-fluid-sixty md:pl-fluid-sixty'
+    },
+    right: {
+        image: 'md:col-start-9 md:pl-fluid-twenty',
+        column: 'md:col-start-1 md:pr-fluid-sixty md:pl-fluid-sixty'
+    }
+};
+---
+
+<BaseLayout>
+    <!-- ===================================================================
+         Hero
+         =================================================================== -->
+    <div
+        class="hero-section relative flex aspect-393/852 w-full max-md:max-h-dvh flex-col justify-end overflow-hidden px-mob-16 pb-mob-64 md:aspect-auto md:min-h-200 md:px-main-40 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
+    >
+        <div class="hero-slideshow hidden brightness-80 md:flex">
+            {
+                heroSlides.map(({ desktop }, i) => (
+                    <div
+                        class="hero-slide"
+                        style={`z-index: ${5 - i}; animation-delay: ${i * 4}s`}
+                        aria-hidden="true"
+                    >
+                        <Picture
+                            src={desktop}
+                            alt=""
+                            layout="full-width"
+                            loading={i === 0 ? 'eager' : 'lazy'}
+                        />
+                    </div>
+                ))
+            }
+        </div>
+        <div class="hero-slideshow flex brightness-80 md:hidden">
+            {
+                heroSlides.map(({ mobile }, i) => (
+                    <div
+                        class="hero-slide"
+                        style={`z-index: ${5 - i}; animation-delay: ${i * 4}s`}
+                        aria-hidden="true"
+                    >
+                        <Picture
+                            src={mobile}
+                            alt=""
+                            layout="full-width"
+                            loading={i === 0 ? 'eager' : 'lazy'}
+                        />
+                    </div>
+                ))
+            }
+        </div>
+
+        <div class="relative z-10">
+            <RevealHeader
+                delay={0.25}
+                textColor={'#FFFFFF'}
+                lines={[t('heroLine1'), t('heroLine2'), t('heroLine3')].map((text, i) => ({
+                    text,
+                    font: heroFonts[i]
+                }))}
+            />
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         About
+         =================================================================== -->
+    <div
+        class="flex flex-col bg-offwhite px-mob-16 pb-mob-64 md:grid md:grid-cols-12 md:gap-gutter md:px-main-40 md:pt-main-80 md:pb-main-80"
+    >
+        {
+            /* The frame runs label → image → copy → button, but the desktop grid
+            keeps the label at the top of the text column. Rather than reorder a
+            working layout, the label is written twice and each copy shows at one
+            size only — it is a single line, and the alternative is moving a
+            desktop element for a mobile reason. */
+        }
+        <div
+            class="flex w-full flex-row items-center justify-center border-b border-b-perle pt-mob-64 pb-mob-16 font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase md:hidden"
+        >
+            {t('aboutSectionLabel')}
+        </div>
+
+        <div
+            class="about-media px-mob-inset-inner pt-mob-64 md:col-span-4 md:h-full md:px-0 md:pt-0 md:pr-gutter"
+        >
+            <FadeUp class="md:h-full">
+                <Picture
+                    src={chalkboard}
+                    class="aspect-267/343 object-cover md:aspect-auto"
+                    layout="full-width"
+                    alt="chalkboard"
+                    loading="lazy"
+                />
+            </FadeUp>
+        </div>
+
+        <div class="flex h-full flex-col md:col-span-8">
+            <div
+                class="hidden w-full flex-row items-center justify-center border-b border-b-perle pb-main-12 font-radio text-main-section leading-[1.2] tracking-[0.02em] uppercase md:flex"
+            >
+                {t('aboutSectionLabel')}
+            </div>
+
+            <div
+                class="flex grow flex-col justify-center gap-mob-32 pt-mob-64 md:gap-main-40 md:px-main-40 md:pt-main-80"
+            >
+                <p
+                    class="text-mob-body leading-[120%] font-light tracking-[3%] md:text-main md:leading-[1.2]"
+                >
+                    <span class="font-bold text-bronze">Tangible</span>
+                    {' '}{t('aboutBody')}
+                </p>
+                <p
+                    class="text-mob-caption leading-[120%] tracking-[3%] whitespace-pre-line md:text-main-body md:leading-[1.2] md:tracking-[0.03em]"
+                >
+                    {t('aboutBody2')}
+                </p>
+            </div>
+            <div
+                class="flex w-full flex-row items-center justify-center pt-mob-32 md:border-b md:border-b-perle md:pt-main-80 md:pb-main-40"
+            >
+                <Button
+                    class="text-mob-section tracking-[3%] uppercase md:text-main-section"
+                    href={localizedPath('/about', locale)}
+                >
+                    En savoir plus
+                </Button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         Mission
+         =================================================================== -->
+    {
+        /* Mobile stacks the plant over the quote and lets the band find its own
+        height; the drawn 1512/902 ratio only holds once the two sit side by
+        side, so it starts at md. */
+    }
+    <div
+        class="flex w-full flex-col gap-mob-64 bg-yellow px-mob-16 py-mob-64 md:grid md:aspect-[1512/902] md:h-auto md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-0"
+    >
+        <div
+            class="order-2 flex flex-col items-center justify-center px-mob-inset-inner leading-[110%] md:order-none md:col-span-5 md:col-start-2 md:px-0"
+        >
+            <SplitReveal
+                class="whitespace-line font-radio text-mob-md leading-[105%] font-normal md:text-quote md:leading-[110%]"
+            >
+                {t('missionQuote')}
+            </SplitReveal>
+        </div>
+        <div
+            class="order-1 flex w-full flex-col justify-center mix-blend-multiply md:order-none md:col-span-5 md:col-start-8 md:h-full md:px-0"
+        >
+            <LottieAnimation src={plantAnimationUrl} autoplay={true} loop={true} />
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         Programs — one block per program, image side alternates at md.
+         =================================================================== -->
+    <div class="flex h-fit flex-col bg-offwhite px-mob-16 pb-mob-64 md:p-main-40">
+        <div
+            class="flex w-full flex-row items-center justify-center border-b border-b-perle pt-mob-64 pb-mob-16 font-radio text-mob-section leading-[1.2] tracking-[0.03em] uppercase md:pt-0 md:pb-main-12 md:text-main-section"
+        >
+            {t('programsSectionLabel')}
+        </div>
+
+        {
+            /* The frame runs title → image → list → button, while the wide
+               layout nests all three text parts in one column beside the image.
+               Rather than move that column, its wrappers go `display: contents`
+               below md so every leaf becomes a direct flex child and `order`
+               can rearrange them. All of it is `max-md:`, so the grid above 810
+               never sees any of it. */
+            programs.map((program, index) => (
+                <div class="relative grid h-fit grid-cols-8 bg-offwhite pt-mob-64 max-md:flex max-md:flex-col md:grid-cols-12 md:gap-gutter md:pt-main-213">
+                    <div
+                        class:list={[
+                            'col-span-8 h-full w-full border-b border-perle max-md:contents md:row-start-1 md:overflow-hidden',
+                            programSide[program.side].column
+                        ]}
+                    >
+                        <div class="flex flex-col justify-start gap-main-40 max-md:contents">
+                            <div class="max-md:order-1">
+                                <RevealHeader
+                                    lines={program.titleLines.map((text, i) => ({
+                                        text,
+                                        font: program.titleFonts[i]
+                                    }))}
+                                />
+                            </div>
+                            <p class="text-mob-body leading-[120%] font-light tracking-[3%] whitespace-pre-line max-md:order-3 max-md:px-mob-inset-inner max-md:pt-mob-32 md:text-main">
+                                {program.body}
+                            </p>
+                        </div>
+
+                        <div
+                            class:list={[
+                                'flex w-full flex-row items-center justify-center py-mob-64 max-md:order-4 md:border-none md:pt-main-59',
+                                /* The rule divides one program block from the
+                                   next, so it belongs under the first only —
+                                   under the second there is nothing left to
+                                   divide and it just fences off the film. */
+                                index === 0 && 'border-b border-b-perle'
+                            ]}
+                        >
+                            <Button
+                                class="text-mob-section tracking-[3%] uppercase md:text-body-sm"
+                                href={program.href}
+                            >
+                                {program.buttonLabel}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Image
+                        src={program.image}
+                        class:list={[
+                            /* No aspect-ratio at md, deliberately. `h-full` gives
+                               this a definite height — the row's, which the text
+                               column sets — and a box with a definite height and
+                               `width: auto` takes its *width* from the ratio, not
+                               from its grid track. So as the viewport narrowed
+                               and the copy wrapped taller, the image grew wider
+                               with it and overflowed the page: +102px at 810,
+                               tapering to 0 around 1280. `min-width: 0` does not
+                               help, because the width is computed rather than
+                               merely floored. Dropping the ratio lets the track
+                               set the width and `h-full` set the height; the
+                               `object-fit: cover` in Image.astro does the rest. */
+                            'aspect-[267/367.43] h-fit max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4 md:row-start-1 md:aspect-auto md:h-full md:overflow-clip',
+                            programSide[program.side].image
+                        ]}
+                    />
+                </div>
+            ))
+        }
+    </div>
+
+    <!-- ===================================================================
+         Video — full-bleed, sits between the programs and the contact footer.
+         =================================================================== -->
+    <MuxVideo
+        playbackId={videoPlaybackId}
+        title={videoTitle}
+        autoplayInView
+        class="aspect-1512/902 w-full"
+    />
+
+    <!-- ===================================================================
+         Intro band — perle, between the film and the contact form. Its 948px
+         column is `col-start-3 col-span-8` of the page grid, which lands its
+         left edge on 282px at 1512, exactly as drawn.
+         =================================================================== -->
+    {
+        t('introBold') && (
+            <div class="grid grid-cols-8 gap-mob-16 bg-perle px-mob-16 py-mob-128 md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-fluid-160">
+                <div class="col-span-8 flex flex-col gap-mob-32 md:col-span-8 md:col-start-3 md:gap-main-40">
+                    <SplitReveal class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] md:text-main-lead md:leading-[120%] md:font-normal">
+                        {t('introBold')}
+                    </SplitReveal>
+                    <p class="font-radio text-mob-caption leading-[120%] font-light tracking-[0.03em] whitespace-pre-line md:text-main md:leading-[120%]">
+                        {t('introBody')}
+                    </p>
+                </div>
+            </div>
+        )
+    }
+
+    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+</BaseLayout>
+
+<style>
+    /* The about image runs the full height of the text column beside it — from
+       the top of the section label down to the perle rule under the button. So
+       the column sets the height and the image fills it, rather than the image
+       setting its own from an aspect ratio.
+
+       CSS and not utilities, for two reasons. Astro emits a `<picture>` between
+       the wrapper and the `<img>` that takes no class of ours and defaults to
+       `display: inline`, so it would collapse the chain on its own. And the
+       `[data-astro-image]` rules that come with `layout="full-width"` set
+       `height: auto` at single-class specificity — the same as a utility, which
+       leaves source order to decide it. The descendant selector here is one
+       step more specific, so it settles.
+
+       Below md the image keeps its drawn 267/343 ratio and none of this runs. */
+    @media (min-width: 810px) {
+        .about-media :global(picture) {
+            display: block;
+            height: 100%;
+        }
+
+        .about-media :global(img) {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .hero-section {
+        background: #1a1a1a;
+    }
+
+    .hero-slideshow {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+
+    .hero-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 1;
+        animation: hero-fade 20s ease-out infinite;
+    }
+
+    :global(.hero-slide picture),
+    :global(.hero-slide img) {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    @keyframes hero-fade {
+        0% {
+            opacity: 1;
+        }
+        15% {
+            opacity: 1;
+        }
+        20% {
+            opacity: 0;
+        }
+        95% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+</style>

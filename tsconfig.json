@@ -1,0 +1,21 @@
+{
+    "extends": "astro/tsconfigs/strict",
+    "compilerOptions": {
+        "moduleResolution": "Bundler",
+        "jsx": "react-jsx",
+        "jsxImportSource": "react",
+        "types": ["@sanity/astro/module"],
+        "paths": {
+            "@components/*": ["./src/components/*"],
+            "@layouts/*": ["./src/layouts/*"],
+            "@lib/*": ["./src/lib/*"],
+            "@scripts/*": ["./src/scripts/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@assets/*": ["./src/assets/*"],
+            "@images/*": ["./src/assets/images/*"],
+            "@sanity/schema/*": ["./sanity/*"]
+        }
+    },
+    "include": [".astro/types.d.ts", "**/*", "sanity/**/*"],
+    "exclude": ["dist", "node_modules"]
+}

@@ -1,0 +1,50 @@
+{
+    "fr": {
+        "heroLine1": "Coaching",
+        "heroLine2": "D'Entreprises",
+        "introParagraph": "Nos programmes dédiés aux entreprises accompagnent les dirigeants, gestionnaires et comités exécutifs des moyennes et grandes organisations. Nous proposons des services adaptés en format individuel, de groupe et immersif pour favoriser une culture de leadership stratégique, humain et durable. Nos programmes allient outils psychométriques, coaching exécutif individualisés et ateliers collaboratifs pour activer des dynamiques collectives puissantes, nourries par l'intelligence du groupe.",
+        "introResult": "L'objectif : incarner un leadership à la fois stratégique, humain et pérenne avec, à la clé, plus de clarté, plus de cohésion et un impact durable.",
+        "slides": [
+            {
+                "shapeTitle": "Programmes\nIndividuels",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Programmes\nDe Groupe",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Expériences\nImmersives",
+                "body": "",
+                "result": ""
+            }
+        ],
+        "contactFooterHeading": "Amorcez une transformation tangible."
+    },
+    "en": {
+        "heroLine1": "Corporate",
+        "heroLine2": "Coaching",
+        "introParagraph": "Our corporate programs support executives, managers, and executive committees of medium and large organizations. We offer tailored services in individual, group, and immersive formats to foster a culture of strategic, human, and sustainable leadership. Our programs combine psychometric tools, individualized executive coaching, and collaborative workshops to activate powerful collective dynamics, fueled by group intelligence.",
+        "introResult": "The Objective: embody leadership that is strategic, human, and lasting with, ultimately, more clarity, more cohesion, and a sustainable impact.",
+        "slides": [
+            {
+                "shapeTitle": "Individual\nPrograms",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Group\nPrograms",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Immersive\nExperiences",
+                "body": "",
+                "result": ""
+            }
+        ],
+        "contactFooterHeading": "Initiate a tangible transformation."
+    }
+}

@@ -1,0 +1,10 @@
+---
+import Programs from '@components/pages/Programs.astro';
+import { getPrograms } from '@lib/sanity/queries';
+import { getLocale } from '@lib/i18n/utils';
+
+const data = await getPrograms();
+const locale = getLocale(Astro.url);
+---
+
+<Programs {data} {locale} />

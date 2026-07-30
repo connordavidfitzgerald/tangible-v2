@@ -1,0 +1,377 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Slide {
+    shapeClass: string; // CSS class for the shape (e.g. 'hexagon', 'circle', 'diamond')
+    shapeTitle: string; // HTML string for the shape's heading (supports <br/>)
+    body: string; // Untitled paragraph, stretches to fill the slide
+    result: string; // Paragraph under the "Résultat" / "Result" heading
+}
+
+interface Props {
+    slides: Slide[];
+    /** Picks the fixed heading above the result paragraph. */
+    lang?: 'fr' | 'en';
+    class?: string;
+}
+
+const { slides, lang = 'fr', class: className } = Astro.props;
+
+/** Not authored per slide — the heading reads the same across the slider. */
+const resultLabel = lang === 'en' ? 'Result' : 'Résultat';
+
+const slidesJson = JSON.stringify(slides);
+const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
+---
+
+<service-slider
+    id={id}
+    class:list={[
+        'service-slider flex w-full flex-col gap-0 md:grid md:grid-cols-12 md:gap-fluid-twenty md:pr-fluid-forty md:pl-fluid-forty',
+        className
+    ]}
+    data-slides={slidesJson}
+>
+    <div
+        class="relative flex overflow-hidden bg-perle md:col-span-6 md:-ml-fluid-forty md:min-h-[500px]"
+    >
+        <div class="slider-left-track flex aspect-square w-full">
+            {
+                slides.map((slide, i) => (
+                    <div
+                        class="slider-left-slide flex w-full shrink-0 items-center justify-center px-10 md:px-0"
+                        data-index={i}
+                        style={i === 0 ? '' : 'position:absolute;left:100%;top:0;bottom:0;'}
+                    >
+                            <h2
+                                class="font-formula text-mob-display leading-[1.1] md:text-main-header tracking-[0.02em] text-bronze uppercase text-center whitespace-pre-line"
+                                set:html={slide.shapeTitle}
+                            />
+                        </div>
+                ))
+            }
+        </div>
+        <div
+            class="absolute right-mob-16 bottom-mob-16 left-mob-16 z-10 flex flex-row justify-between md:right-fluid-forty md:bottom-fluid-forty md:left-fluid-forty"
+        >
+            <button
+                class="slider-prev cursor-pointer border-0 bg-transparent p-0"
+                aria-label="Service précédent"
+            >
+                <Icon name="leftarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
+            </button>
+            <button
+                class="slider-next cursor-pointer border-0 bg-transparent p-0"
+                aria-label="Service suivant"
+            >
+                <Icon name="rightarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
+            </button>
+        </div>
+    </div>
+
+    <div class="col-span-6 overflow-hidden md:h-full">
+        <div class="slider-right-track grid h-full w-full">
+            {
+                slides.map((slide, i) => (
+                    <div
+                        class="slider-right-slide col-start-1 row-start-1 flex h-full w-full px-mob-16 py-mob-16 md:px-0 md:pt-fluid-forty md:pb-fluid-forty"
+                        data-index={i}
+                        style={i === 0 ? '' : 'opacity:0; pointer-events:none;'}
+                    >
+                        <div class="flex h-fit w-full grid-cols-6 gap-fluid-twenty md:grid md:h-full">
+                            <div class="col-span-6 col-start-1 flex flex-col md:justify-between lg:col-span-4 lg:col-start-2">
+                                {/* Takes the slack, so the result block below stays pinned to the bottom. */}
+                                <div class="flex grow flex-col gap-mob-8 border-t border-bronze pt-mob-8 pb-mob-16 md:gap-fluid-twenty md:pt-fluid-twenty md:pb-fluid-forty">
+                                    <p class="text-mob-caption leading-[120%] font-normal tracking-[3%] md:text-slider-caption">
+                                        {slide.body}
+                                    </p>
+                                </div>
+
+                                {slide.result && (
+                                    <div class="flex h-fit flex-col gap-mob-8 border-t border-b border-bronze pt-mob-8 pb-mob-16 md:gap-fluid-twenty md:pt-fluid-twenty md:pb-fluid-forty">
+                                        <h3 class="text-mob-body leading-[120%] font-light md:text-body-md">
+                                            {resultLabel}
+                                        </h3>
+                                        <p class="text-mob-caption leading-[120%] font-normal tracking-[3%] md:text-slider-caption">
+                                            {slide.result}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ))
+            }
+        </div>
+    </div>
+</service-slider>
+
+<script>
+    import gsap from 'gsap';
+    import { SplitText } from 'gsap/SplitText';
+
+    gsap.registerPlugin(SplitText);
+
+    class ServiceSlider extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+
+        connectedCallback() {
+            this.ctx = gsap.context(() => {
+                const slider = this;
+                const slides: any[] = JSON.parse(slider.dataset.slides || '[]');
+                const totalSlides = slides.length;
+                if (totalSlides === 0) return;
+
+                let currentIndex = 0;
+                let isAnimating = false;
+
+                const leftSlides = slider.querySelectorAll<HTMLElement>('.slider-left-slide');
+                const rightSlides = slider.querySelectorAll<HTMLElement>('.slider-right-slide');
+                const prevBtn = slider.querySelector<HTMLElement>('.slider-prev');
+                const nextBtn = slider.querySelector<HTMLElement>('.slider-next');
+
+                const splitInstances: SplitText[] = [];
+                leftSlides.forEach((slideEl) => {
+                    const h2 = slideEl.querySelector<HTMLElement>('h2');
+                    if (!h2) return;
+                    const split = new SplitText(h2, {
+                        type: 'words',
+                        mask: 'words',
+                        autoSplit: true
+                    });
+                    splitInstances.push(split);
+                    split.words.forEach((word) => {
+                        const mask = word.parentElement as HTMLElement | null;
+                        if (mask) {
+                            mask.style.paddingTop = '0.2em';
+                            mask.style.marginTop = '-0.2em';
+                        }
+                    });
+                    gsap.set(split.words, { yPercent: 130 });
+                });
+
+                function playTitleReveal(index: number) {
+                    const split = splitInstances[index];
+                    if (!split) return;
+                    gsap.fromTo(
+                        split.words,
+                        { yPercent: 130 },
+                        {
+                            yPercent: 0,
+                            duration: 0.8,
+                            ease: 'power3.out',
+                            stagger: 0.04
+                        }
+                    );
+                }
+
+                leftSlides.forEach((el, i) => {
+                    if (i === 0) {
+                        gsap.set(el, { position: 'relative', left: 0, top: 0 });
+                    } else {
+                        gsap.set(el, { position: 'absolute', left: '100%', top: 0, bottom: 0 });
+                    }
+                });
+
+                rightSlides.forEach((el, i) => {
+                    if (i === 0) {
+                        gsap.set(el, { opacity: 1, x: 0, pointerEvents: 'auto' });
+                    } else {
+                        gsap.set(el, { opacity: 0, x: 0, pointerEvents: 'none' });
+                    }
+                });
+
+                playTitleReveal(0);
+
+                function goTo(newIndex: number, direction: 'next' | 'prev') {
+                    if (isAnimating || newIndex === currentIndex) return;
+                    isAnimating = true;
+
+                    const currentLeft = leftSlides[currentIndex];
+                    const nextLeft = leftSlides[newIndex];
+                    const currentRight = rightSlides[currentIndex];
+                    const nextRight = rightSlides[newIndex];
+
+                    const slideOutX = direction === 'next' ? '-100%' : '100%';
+                    const slideInX = direction === 'next' ? '100%' : '-100%';
+
+                    const incomingSplit = splitInstances[newIndex];
+                    if (incomingSplit) gsap.set(incomingSplit.words, { yPercent: 130 });
+
+                    const tl = gsap.timeline({
+                        defaults: { ease: 'power3.inOut' },
+                        onComplete: () => {
+                            currentIndex = newIndex;
+                            isAnimating = false;
+                            playTitleReveal(newIndex);
+                        }
+                    });
+
+                    if (direction === 'next') {
+                        gsap.set(nextRight, { x: slideOutX, opacity: 1, pointerEvents: 'auto' });
+                        gsap.set(nextLeft, {
+                            position: 'absolute',
+                            left: slideOutX,
+                            top: 0,
+                            bottom: 0
+                        });
+
+                        tl.to(
+                            currentRight,
+                            { x: slideInX, opacity: 0, duration: 0.75, pointerEvents: 'none' },
+                            0
+                        )
+                            .to(nextRight, { x: 0, opacity: 1, duration: 0.75 }, 0)
+                            .to(currentLeft, { left: slideInX, duration: 0.75 }, 0.2)
+                            .to(nextLeft, { left: 0, duration: 0.75 }, 0.2)
+                            .call(() => {
+                                gsap.set(currentLeft, { position: 'absolute', left: slideInX });
+                                gsap.set(nextLeft, { position: 'relative', left: 0 });
+                                gsap.set(currentRight, { pointerEvents: 'none' });
+                            });
+                    } else {
+                        gsap.set(nextLeft, {
+                            position: 'absolute',
+                            left: slideOutX,
+                            top: 0,
+                            bottom: 0
+                        });
+                        gsap.set(nextRight, { x: slideOutX, opacity: 1, pointerEvents: 'auto' });
+
+                        tl.to(currentLeft, { left: slideInX, duration: 0.75 }, 0)
+                            .to(nextLeft, { left: 0, duration: 0.75 }, 0)
+                            .to(
+                                currentRight,
+                                { x: slideInX, opacity: 0, duration: 0.75, pointerEvents: 'none' },
+                                0.2
+                            )
+                            .to(nextRight, { x: 0, opacity: 1, duration: 0.75 }, 0.2)
+                            .call(() => {
+                                gsap.set(currentLeft, { position: 'absolute', left: slideInX });
+                                gsap.set(nextLeft, { position: 'relative', left: 0 });
+                                gsap.set(currentRight, { pointerEvents: 'none' });
+                            });
+                    }
+                }
+
+                prevBtn?.addEventListener('click', () => {
+                    const newIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                    goTo(newIndex, 'prev');
+                });
+
+                nextBtn?.addEventListener('click', () => {
+                    const newIndex = (currentIndex + 1) % totalSlides;
+                    goTo(newIndex, 'next');
+                });
+            }, this);
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('service-slider')) {
+        customElements.define('service-slider', ServiceSlider);
+    }
+</script>
+
+<style>
+    .hexagon {
+        width: 100%;
+
+        height: auto;
+
+        aspect-ratio: 1 / cos(30deg);
+
+        clip-path: polygon(50% -50%, 100% 50%, 50% 150%, 0 50%);
+    }
+
+    .circle {
+        width: 100%;
+
+        aspect-ratio: 1;
+
+        border-radius: 50%;
+    }
+
+    .diamond {
+        width: 100%;
+
+        aspect-ratio: 1;
+
+        max-height: 100%;
+
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+
+    .rounded-square {
+        width: 100%;
+
+        aspect-ratio: 1;
+
+        border-radius: 15%;
+    }
+
+    .octagon {
+        width: 100%;
+
+        aspect-ratio: 1;
+
+        clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    }
+
+    .starburst {
+        width: 100%; /* adjust to control the size */
+
+        aspect-ratio: 1;
+
+        clip-path: polygon(
+            100% 50%,
+
+            77.72% 61.48%,
+
+            85.36% 85.36%,
+
+            61.48% 77.72%,
+
+            50% 100%,
+
+            38.52% 77.72%,
+
+            14.64% 85.36%,
+
+            22.28% 61.48%,
+
+            0% 50%,
+
+            22.28% 38.52%,
+
+            14.64% 14.64%,
+
+            38.52% 22.28%,
+
+            50% 0%,
+
+            61.48% 22.28%,
+
+            85.36% 14.64%,
+
+            77.72% 38.52%
+        );
+    }
+
+    .sparkle {
+        aspect-ratio: 746 / 793;
+
+        width: 100%;
+
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 746 793'%3E%3Cpath d='M373.162 1.8249C373.162 215.955 539.083 390.255 746 396.334C539.083 402.414 373.162 576.713 373.162 790.843C373.162 791.563 373.164 792.282 373.168 793H372.833C372.836 792.282 372.839 791.563 372.839 790.843C372.839 576.713 206.917 402.413 0 396.334C206.917 390.255 372.839 215.955 372.839 1.8249C372.839 1.21626 372.836 0.607991 372.833 0H373.167C373.165 0.607978 373.162 1.21627 373.162 1.8249Z' fill='black'/%3E%3C/svg%3E");
+
+        mask-size: contain;
+
+        mask-repeat: no-repeat;
+
+        mask-position: center;
+    }
+</style>

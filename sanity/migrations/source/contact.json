@@ -1,0 +1,33 @@
+{
+    "fr": {
+        "heroLine1": "Donnez un nouvel élan",
+        "heroLine2": "à votre entreprises",
+        "heroLine3": "avec un suivi",
+        "heroLine4": "en temps réel",
+        "introBold": "Vous souhaitez créer un changement concret et durable pour vous, votre équipe ou votre organisation?",
+        "introBody": "Chez Tangible, nous croyons aux démarches qui créent un réel impact. Notre équipe est là pour vous guider, répondre à vos questions et bâtir avec vous une expérience adaptée à vos besoins. Consultation, programmes ou accompagnement personnalisé : chaque échange commence par une conversation.",
+        "email": "info@tangiblecoach.com",
+        "phone": "514-679-2312",
+        "fieldName": "Nom",
+        "fieldEmail": "Courriel",
+        "fieldPhone": "Téléphone",
+        "fieldMessage": "Message",
+        "checkboxLabel": "Je souhaite réserver une consultation gratuite avec un·e coach de Tangible.",
+        "submitButton": "Soumettre"
+    },
+    "en": {
+        "heroLine1": "A space to initiate",
+        "heroLine2": "a real",
+        "heroLine3": "movement",
+        "introBold": "Are you looking to create meaningful and lasting change for yourself, your team, or your organization?",
+        "introBody": "At Tangible, we believe in approaches that create real impact. Our team is here to guide you, answer your questions, and build an experience tailored to your needs. Whether through consulting, programs, or personalized support, every collaboration starts with a conversation.",
+        "email": "info@tangiblecoach.com",
+        "phone": "514-679-2312",
+        "fieldName": "Name",
+        "fieldEmail": "Email",
+        "fieldPhone": "Phone",
+        "fieldMessage": "Message",
+        "checkboxLabel": "I would like to book a free consultation with a Tangible coach.",
+        "submitButton": "Submit"
+    }
+}

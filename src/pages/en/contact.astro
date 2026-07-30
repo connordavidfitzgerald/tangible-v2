@@ -1,0 +1,10 @@
+---
+import Contact from '@components/pages/Contact.astro';
+import { getContact } from '@lib/sanity/queries';
+import { getLocale } from '@lib/i18n/utils';
+
+const data = await getContact();
+const locale = getLocale(Astro.url);
+---
+
+<Contact {data} {locale} />

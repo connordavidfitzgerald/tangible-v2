@@ -1,0 +1,277 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Button from '@components/ui/Button.astro';
+import { Picture } from 'astro:assets';
+import RevealHeader from '@components/sections/RevealHeader.astro';
+import ContactFooter from '@components/sections/ContactFooter.astro';
+import SplitReveal from '@components/sections/SplitReveal.astro';
+import VideoSlider from '@components/sections/VideoSlider.astro';
+
+import img6 from '@images/Tangible0797.jpg';
+import img7 from '@images/LEADER.jpg';
+
+import { localizedPath } from '@lib/i18n/utils';
+import { pick, type I18nField } from '@lib/sanity/i18n';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { muxSliderVideos } from '@lib/sanity/video';
+import type { LocaleId } from '@lib/i18n/locales';
+
+interface Props {
+    data: Record<string, I18nField> | null;
+    locale: LocaleId;
+}
+
+const { data, locale } = Astro.props;
+const t = (key: string) => pick(data?.[key], locale);
+
+/** The films are global (Site Settings), not page content. */
+const settings = await getSiteSettings();
+const sliderVideos = muxSliderVideos(settings).map((video) => ({
+    playbackId: video.playbackId,
+    title: pick(video.title as I18nField, locale)
+}));
+
+const entreprisesFonts = ['formula', 'editorial'] as const;
+const leadersFonts = ['formula', 'editorial'] as const;
+
+const entreprisesResult = t('entreprisesResult');
+const leadersAmbition = t('leadersAmbition');
+
+/**
+ * Both service bodies are authored in the Studio as one em-dash-prefixed line
+ * per service. The dash is drawn in the band's accent colour rather than in the
+ * text colour, so it is split off its line and given its own span — leaving the
+ * label to inherit. Copy without a leading dash falls through unchanged, so a
+ * prose paragraph still renders.
+ */
+const dashedLines = (value: string) =>
+    value
+        .split(/\r?\n/)
+        .map((line) => {
+            const match = line.match(/^\s*([—–-])\s*(.*)$/);
+            return match
+                ? { dash: match[1], text: match[2].trimEnd() }
+                : { dash: '', text: line.trim() };
+        })
+        .filter(({ dash, text }) => dash || text);
+
+const entreprisesLines = dashedLines(t('entreprisesBody'));
+const leadersLines = dashedLines(t('leadersBody'));
+
+const quote = t('quote');
+const quoteAuthor = t('quoteAuthor');
+---
+
+<BaseLayout title="Services">
+    <div
+        class="relative grid grid-cols-8 gap-mob-16 bg-offwhite px-mob-16 pt-nav-bottom md:grid-cols-12 md:gap-gutter md:px-main-40"
+    >
+        <div
+            class="col-span-8 flex flex-col gap-mob-16 py-mob-64 md:col-start-3 md:gap-main-40 md:px-main-60 md:py-main-80"
+        >
+            <h1
+                class="text-mob-body leading-[120%] font-light text-bronze md:text-main-circle md:leading-[1.2] md:font-normal"
+            >
+                {t('pageTitle')}
+            </h1>
+            <p
+                class="text-mob-caption leading-[120%] tracking-[0.03em] md:text-main-body md:leading-[1.2]"
+            >
+                Des accompagnements concrets, humains et stratégiques pensés pour transformer votre
+                vision en croissance durable. Grâce à une équipe chevronnée et un accompagnement
+                personnalisé, nous aidons les leaders et les organisations à générer un impact réel
+                et mobilisateur.
+            </p>
+        </div>
+    </div>
+
+    <programs-animation style="display: contents;">
+        <div class="programs-scroll-wrapper relative bg-offwhite">
+            {
+                /* Both bands stack title → list → button → image on mobile. Card 1
+                draws the image first for the wide layout, so it is pushed last
+                with `order`; card 2 is already in that order. The sticky scale
+                is a desktop effect (its matchMedia starts at 810), so the
+                positioning is scoped to md as well — otherwise the two cards
+                pin over each other on a phone. */
+            }
+            <div
+                class="programs-card programs-card-1 z-10 grid h-fit grid-cols-8 gap-mob-16 bg-perle px-mob-16 pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-main-80"
+            >
+                <div
+                    class="col-span-8 flex overflow-clip max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
+                >
+                    <Picture
+                        src={img6}
+                        class="aspect-[267/367.43] object-cover md:aspect-444/611"
+                        alt="Corporate Coaching"
+                    />
+                </div>
+                <div
+                    class="col-span-8 flex flex-col items-start gap-mob-32 max-md:order-1 md:gap-main-40 md:px-main-60"
+                >
+                    <div class="pt-mob-64 md:pt-0">
+                        <RevealHeader
+                            delay={0.25}
+                            lines={[t('entreprisesTitle1'), t('entreprisesTitle2')].map(
+                                (text, i) => ({
+                                    text,
+                                    font: entreprisesFonts[i]
+                                })
+                            )}
+                        />
+                    </div>
+
+                    <div class="flex w-full flex-col justify-start gap-mob-32 md:gap-main-100">
+                        <p
+                            class="text-mob-body leading-[120%] font-light tracking-[0.03em] max-md:px-mob-inset-inner md:text-main md:leading-[1.2]"
+                        >
+                            {
+                                entreprisesLines.map(({ dash, text }) => (
+                                    <span class="block">
+                                        {dash && <span class="text-bronze">{dash} </span>}
+                                        {text}
+                                    </span>
+                                ))
+                            }
+                        </p>
+                        <div class="flex w-full flex-row items-center justify-center">
+                            <Button
+                                class="font-sans text-mob-section tracking-[0.03em] uppercase md:text-main-section"
+                                href={localizedPath('/services/entreprises', locale)}
+                                >{t('entreprisesButton')}</Button
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="programs-card-2 z-20 grid h-fit grid-cols-8 gap-mob-16 bg-bronze px-mob-16 pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-main-80"
+            >
+                <div
+                    class="col-span-8 flex flex-col items-start gap-mob-32 md:gap-main-40 md:px-main-60"
+                >
+                    <div class="col-span-8 flex w-full flex-col pt-mob-64 md:pt-0">
+                        <RevealHeader
+                            textColor={'#e1e3d0'}
+                            lines={[t('leadersTitle1'), t('leadersTitle2')].map((text, i) => ({
+                                text,
+                                font: leadersFonts[i]
+                            }))}
+                        />
+                    </div>
+                    <div
+                        class="col-span-6 col-start-2 flex w-full flex-col justify-end gap-0 max-md:px-mob-inset-inner"
+                    >
+                        <p
+                            class="text-mob-body leading-[120%] font-light tracking-[0.03em] md:text-main md:leading-[1.2]"
+                        >
+                            {
+                                leadersLines.map(({ dash, text }) => (
+                                    <span class="block">
+                                        {dash && <span class="text-perle">{dash} </span>}
+                                        {text}
+                                    </span>
+                                ))
+                            }
+                        </p>
+                        <div
+                            class="flex w-full flex-row items-center justify-center pt-mob-32 md:pt-main-100"
+                        >
+                            <Button
+                                class="text-mob-section tracking-[0.03em] uppercase md:text-main-section"
+                                href={localizedPath('/services/leaders', locale)}
+                                >{t('leadersButton')}</Button
+                            >
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="col-span-8 overflow-clip max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
+                >
+                    <Picture
+                        src={img7}
+                        class="aspect-[267/367.43] object-cover md:aspect-444/611"
+                        alt="Leadership Coaching"
+                    />
+                </div>
+            </div>
+        </div>
+    </programs-animation>
+
+    <!-- ===================================================================
+         Films — a three-up slider, sitting between the programs and the quote.
+         =================================================================== -->
+    <VideoSlider videos={sliderVideos} lang={locale} />
+
+    <!-- ===================================================================
+         Quote — bronze on perle, ruled top and bottom. The lines after the
+         first hang 40px in, and the attribution starts just under halfway
+         across the column; both are drawn that way in the frame, so they are
+         expressed against the column rather than the page.
+         =================================================================== -->
+    {
+        quote && (
+            <div class="flex w-full flex-col justify-center bg-perle px-mob-16 py-mob-64 md:aspect-1512/902 md:px-main-40 md:py-main-40">
+                <div class="grid grid-cols-8 gap-mob-16 md:grid-cols-12 md:gap-gutter">
+                    <div class="col-span-8 flex flex-col gap-mob-32 border-y border-bronze py-mob-32 text-bronze md:col-span-10 md:col-start-2 md:gap-main-40 md:py-main-40">
+                        <SplitReveal
+                            hangingIndent="var(--hanging-indent)"
+                            class="font-radio text-mob-md leading-[110%] font-normal [--hanging-indent:1.5rem] md:text-main-lead md:leading-[120%] md:[--hanging-indent:var(--spacing-main-40)]"
+                        >
+                            {quote}
+                        </SplitReveal>
+
+                        {quoteAuthor && (
+                            <p class="pl-[45%] font-radio text-mob-body leading-[120%] font-light md:pl-[48%] md:text-main">
+                                {quoteAuthor}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    <script>
+        import { gsap } from 'gsap';
+        import { ScrollTrigger } from 'gsap/ScrollTrigger';
+        gsap.registerPlugin(ScrollTrigger);
+
+        class ProgramsAnimation extends HTMLElement {
+            private mm: gsap.MatchMedia | undefined;
+
+            connectedCallback() {
+                const card1 = this.querySelector('.programs-card-1') as HTMLElement | null;
+                const card2 = this.querySelector('.programs-card-2') as HTMLElement | null;
+
+                if (card1 && card2) {
+                    this.mm = gsap.matchMedia();
+
+                    this.mm.add('(min-width: 810px)', () => {
+                        gsap.to(card1, {
+                            scale: 0.8,
+                            ease: 'none',
+                            scrollTrigger: {
+                                trigger: card2,
+                                start: 'top bottom',
+                                end: 'top 50%',
+                                scrub: true
+                            }
+                        });
+                    });
+                }
+            }
+
+            disconnectedCallback() {
+                this.mm?.revert();
+            }
+        }
+
+        if (!customElements.get('programs-animation')) {
+            customElements.define('programs-animation', ProgramsAnimation);
+        }
+    </script>
+    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+</BaseLayout>

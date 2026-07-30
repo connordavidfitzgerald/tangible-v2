@@ -1,0 +1,23 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# generated Sanity types + schema extract
+sanity/extract.json
+
+# content migration output
+sanity/migrations/*.ndjson
+
+# environment variables
+.env
+.env.production
+.env.local
+
+# macOS
+.DS_Store
+
+# logs
+npm-debug.log*

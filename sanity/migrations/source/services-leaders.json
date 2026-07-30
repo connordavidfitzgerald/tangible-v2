@@ -1,0 +1,48 @@
+{
+    "fr": {
+        "heroLine1": "Coaching",
+        "heroLine2": "Des Leaders",
+        "introParagraph": "Nos programmes dédiés au leaders accompagnent les entrepreneur·es, coach·es et professionnel·les en transition ou en croissance. Ils sont conçus pour soutenir un leadership aligné, humain et durable à travers des parcours individuels, de groupe et immersifs.",
+        "slides": [
+            {
+                "shapeTitle": "Programmes\nIndividuels",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Programmes\nDe Groupe",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Expériences\nImmersives",
+                "body": "",
+                "result": ""
+            }
+        ],
+        "contactFooterHeading": "Amorcez une transformation tangible."
+    },
+    "en": {
+        "heroLine1": "Leader",
+        "heroLine2": "Coaching",
+        "introParagraph": "Our programs dedicated to leaders support entrepreneurs, coaches, and professionals in transition or growth. They are designed to support aligned, human, and sustainable leadership through individual, group, and immersive paths.",
+        "slides": [
+            {
+                "shapeTitle": "Individual\nPrograms",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Group\nPrograms",
+                "body": "",
+                "result": ""
+            },
+            {
+                "shapeTitle": "Immersive\nExperiences",
+                "body": "",
+                "result": ""
+            }
+        ],
+        "contactFooterHeading": "Initiate a tangible transformation."
+    }
+}

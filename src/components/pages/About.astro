@@ -1,0 +1,600 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Picture } from 'astro:assets';
+import RevealHeader from '@components/sections/RevealHeader.astro';
+import SplitReveal from '@components/sections/SplitReveal.astro';
+import ContactFooter from '@components/sections/ContactFooter.astro';
+import LottieAnimation from 'astro-integration-lottie/Lottie.astro';
+import facesAnimationUrl from '@images/faces.json?url';
+import ronCherilus from '@images/roncherilus.jpg';
+import handsSvgRaw from '@assets/svgs/HandsNew.svg?raw';
+
+import { pick, type I18nField } from '@lib/sanity/i18n';
+import type { LocaleId } from '@lib/i18n/locales';
+
+interface Props {
+    data: Record<string, any> | null;
+    locale: LocaleId;
+}
+
+const { data, locale } = Astro.props;
+const t = (key: string) => pick(data?.[key] as I18nField, locale);
+
+const heroFonts = ['formula', 'formula', 'formula', 'formula'] as const;
+
+const promiseItems: string[] = (data?.promiseItems ?? []).map((item: { text: I18nField }) =>
+    pick(item.text, locale)
+);
+
+const ronTitle = t('ronTitle');
+const ronBio = t('ronBio');
+
+// Strip the outer <svg> wrapper so its contents can be injected into the styled <svg>.
+const handsInnerPaths = handsSvgRaw
+    .replace(/<svg[^>]*>/, '')
+    .replace(/<\/svg>/, '')
+    .trim();
+---
+
+<BaseLayout title="À Propos">
+    <div
+        class="flex aspect-393/852 h-auto max-h-dvh w-full flex-col justify-start overflow-hidden bg-bronze px-mob-16 pb-mob-64 md:aspect-1512/902 md:p-main-40"
+    >
+        <div
+            class="flex flex-row items-center justify-center border-b border-b-perle pt-nav-bottom pb-mob-16 font-radio text-mob-section text-perle uppercase md:pb-main-12 md:text-main-section"
+        >
+            {t('heroSectionLabel')}
+        </div>
+
+        <div class="flex w-full grow flex-col justify-center">
+            <div
+                class="z-0 -mt-20 flex w-full grow px-main-40 md:absolute md:right-0 md:mt-0 md:w-[50%] md:flex-col md:justify-center"
+            >
+                <hands-animation class="block h-full w-full">
+                    <svg
+                        class="h-full w-full overflow-visible mix-blend-multiply"
+                        viewBox="0 0 671 423"
+                        fill="black"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <Fragment set:html={handsInnerPaths} />
+                    </svg>
+                </hands-animation>
+            </div>
+            <div class="z-10 pb-fluid-twenty md:pb-0"></div>
+            <RevealHeader
+                delay={0.25}
+                textColor={'#E1E3D0'}
+                lines={[t('heroLine1'), t('heroLine2'), t('heroLine3'), t('heroLine4')]
+                    .filter((text): text is string => Boolean(text))
+                    .map((text, i) => ({ text, font: heroFonts[i] }))}
+            />
+        </div>
+    </div>
+
+    <div
+        class="grid h-fit grid-cols-12 gap-gutter bg-perle px-mob-16 py-mob-128 md:px-main-40 md:py-main-160"
+    >
+        <div
+            class="col-span-12 flex h-full flex-col justify-center gap-fluid-eighty md:col-span-8 md:col-start-3"
+        >
+            <p class="text-mob-body leading-[120%] font-light tracking-[3%] md:text-main">
+                <span class="font-bold text-bronze">Tangible</span>
+                {' '}{t('introParagraph1')}
+            </p>
+        </div>
+    </div>
+
+    {
+        /* `.circles-pin` is the whole section, and it is what pins. Sized to the
+        viewport, so the composition sits in the space between the navbar and the
+        bottom of the screen rather than wherever a stack of paddings happens to
+        leave it, and so pinning it fills the screen exactly. `min-h` and not `h`,
+        so a short viewport grows instead of cropping. Everything the timeline
+        touches is inside it and therefore on screen together — a title and its
+        paragraph included, which is the one thing `pinSpacing` makes impossible if
+        the paragraphs live outside the pin.
+
+        It has to be this inner div and never `<circles-animation>` itself.
+        ScrollTrigger pins by wrapping the element in a `.pin-spacer`, which means
+        taking it out of the DOM and putting it back. Do that to the custom element
+        and the removal fires `disconnectedCallback`, the re-insertion fires
+        `connectedCallback`, that rebuilds the timeline, and the new pin wraps it
+        again — recursing until the stack blows. A plain div has no lifecycle
+        callbacks to trip. */
+    }
+    {
+        /* `variant` picks which assembly runs: `settle` (the circles close into
+        register from a wider spread) or `grow` (hairlines, then fills, then type).
+        This attribute is the committed choice and what ships; `?circles=grow` on
+        the URL overrides it for one load, which is how to compare them without a
+        rebuild. Both read the same markup below, so nothing here changes with it.
+        See CirclesAnimation.ts. */
+    }
+    <circles-animation class="block" variant="settle">
+        {
+            /* The top padding clears the fixed navbar rather than matching the sides:
+            the pin locks this section's top to the top of the viewport, which is
+            behind the bar, so `p-main-40` up here put the section label underneath
+            it. `--spacing-nav-bottom` is the token for exactly this. Split into
+            px/pb/pt rather than `p-main-40 pt-nav-bottom` so nothing depends on
+            Tailwind's utility ordering to resolve the conflict. */
+        }
+        <div
+            class="circles-pin flex min-h-dvh flex-col gap-main-160 bg-offwhite px-mob-16 pt-nav-bottom pb-mob-64 md:px-main-40 md:pb-main-160"
+        >
+            <div class="grid grid-cols-12 gap-gutter pt-main-20">
+                <div class="col-span-8 md:col-span-12">
+                    <div
+                        class="flex flex-row items-center justify-center border-b border-b-perle pb-mob-16 font-radio text-mob-section tracking-[3%] uppercase md:pb-main-12 md:text-main-section"
+                    >
+                        {t('approachSectionLabel')}
+                    </div>
+                </div>
+            </div>
+            {
+                /* The circles and their captions are one unit: they animate together,
+                they are sized from one another, and they are centred as a group in
+                what the section label leaves. The group is also the size container
+                the two rows measure themselves against — see the note over it in
+                the stylesheet. */
+            }
+            <div class="circles-group">
+                <div class="circles-wrapper">
+                    {
+                        /* The destinations, stated as hairlines before anything fills
+                        them. Positioned identically to the discs below.
+
+                        Only the `grow` variant uses these. They stay in the markup
+                        for every variant because they are hidden in CSS and cost
+                        nothing when unused — which is what keeps switching variants
+                        a one-word change rather than a markup change. */
+                    }
+                    <div class="circle-ghost cg1" aria-hidden="true"></div>
+                    <div class="circle-ghost cg2" aria-hidden="true"></div>
+                    <div class="circle-ghost cg3" aria-hidden="true"></div>
+                    <div class="circle c1">
+                        <div class="yellow y1"></div>
+                        <div class="circle-label">
+                            <p
+                                class="circle-label-inner text-main-circle leading-[120%] text-black"
+                            >
+                                <Fragment set:html={t('circleLabel1').replace('\n', '<br/>')} />
+                            </p>
+                        </div>
+                    </div>
+                    <div class="circle c2">
+                        <div class="circle-label">
+                            <p
+                                class="circle-label-inner text-main-circle leading-[120%] text-black"
+                            >
+                                <Fragment set:html={t('circleLabel2').replace('\n', '<br/>')} />
+                            </p>
+                        </div>
+                    </div>
+                    <div class="circle c3">
+                        <div class="yellow y3"></div>
+                        <div class="circle-label">
+                            <p
+                                class="circle-label-inner text-main-circle leading-[120%] text-black"
+                            >
+                                <Fragment set:html={t('circleLabel3').replace('\n', '<br/>')} />
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {
+                    /* One line per circle, in the same order, so each can animate on
+                    the same beat as the title above it — and, now, so each sits
+                    directly under the circle it belongs to. The row is the circles'
+                    own width and each line is placed exactly where its disc is, so
+                    the two stay registered at every size. */
+                }
+                <div class="approach-lines pt-main-60">
+                    <p class="approach-line text-mob-caption md:text-main-body">
+                        Instaurer un leadership de confiance et renforcer les équipes.
+                    </p>
+                    <p class="approach-line text-mob-caption md:text-main-body">
+                        Aligner la stratégie, la communication et la mise en action.
+                    </p>
+                    <p class="approach-line text-mob-caption md:text-main-body">
+                        Libérer le potentiel collectif et favoriser une croissance durable.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </circles-animation>
+
+    <div
+        class="relative flex h-auto w-full flex-col justify-start gap-0 bg-bronze px-mob-16 pb-mob-128 text-offwhite md:aspect-1512/913 md:px-main-40 md:pb-0"
+    >
+        <div
+            class="col-span-12 flex flex-row items-center justify-center gap-gutter border-b border-b-perle pt-mob-32 pb-mob-16 font-radio text-mob-section tracking-[3%] uppercase md:pt-main-40 md:pb-main-12 md:text-main-section"
+        >
+            {t('visionSectionLabel')}
+        </div>
+        <div
+            class="relative grid h-auto grid-cols-12 gap-gutter max-md:flex max-md:flex-col max-md:gap-mob-64"
+        >
+            <div class="col-span-7 h-fit px-main-40 text-black max-md:px-0 max-md:pt-mob-64">
+                <div class="h-auto w-full mix-blend-multiply">
+                    <LottieAnimation src={facesAnimationUrl} autoplay={true} loop={true} />
+                </div>
+            </div>
+            <SplitReveal
+                class="col-span-4 flex w-full flex-col items-start justify-center font-radio text-mob-body leading-[120%] font-light tracking-[3%] md:text-main"
+            >
+                <span class="text-left">{t('visionQuote')}</span>
+            </SplitReveal>
+        </div>
+    </div>
+
+    <div class="relative grid grid-cols-12 gap-gutter bg-perle px-mob-16 pt-mob-32 md:p-main-40">
+        <div
+            class="relative col-span-12 flex flex-col items-center justify-start text-mob-md md:col-span-8 md:col-start-3 md:text-main-circle"
+        >
+            <div
+                class="relative grid w-full grid-cols-8 pt-mob-32 pb-mob-128 md:pt-main-80 md:pb-main-270"
+            >
+                <p
+                    class="col-span-8 pt-gutter pb-mob-32 text-mob-sub text-bronze md:col-span-7 md:col-start-2 md:pb-main-80 md:text-main-circle"
+                >
+                    Notre engagement
+                </p>
+                {
+                    promiseItems.map((item, i) => (
+                        <div class="col-span-8 grid grid-cols-8 gap-gutter border-t border-offwhite py-gutter pr-gutter">
+                            <div class="col-span-1 pt-1 font-formula text-main-num text-bronze md:pt-0">
+                                <h4>{i + 1}</h4>
+                            </div>
+                            <SplitReveal class="col-span-7 pt-1 leading-[1.2]">{item}</SplitReveal>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="grid grid-cols-12 gap-gutter bg-offwhite px-mob-16 py-mob-64 md:px-main-40 md:py-main-160"
+    >
+        <div class="col-span-12 flex flex-col md:col-span-7 md:col-start-2 md:hidden">
+            <h1
+                class="pb-gutter font-radio text-mob-md leading-[1.2] md:pb-fluid-twenty md:text-main-circle"
+            >
+                {t('ronName')}
+            </h1>
+            <h2
+                class="border-t border-b border-bronze py-gutter font-radio text-mob-sub leading-[120%] md:text-main-sub"
+            >
+                <Fragment set:html={ronTitle.replace('\n', '<br/>')} />
+            </h2>
+        </div>
+
+        <div
+            class="col-span-12 px-mob-inset-inner pt-mob-64 md:col-span-5 md:col-start-0 md:px-0 md:pt-0"
+        >
+            <Picture
+                src={ronCherilus}
+                alt="Ron Cherilus"
+                class="aspect-585/628 h-auto w-full object-cover object-bottom"
+            />
+        </div>
+
+        <div
+            class="col-span-12 grid grid-cols-6 gap-mob-16 border-b border-bronze px-mob-inset-inner pt-mob-64 pb-16 md:col-span-6 md:col-start-2 md:hidden md:gap-gutter md:px-0 md:pt-0 md:pb-0"
+        >
+            <p
+                class="col-span-6 py-mob-32 text-main-body text-mob-caption leading-[120%] tracking-[0.03em] md:py-main-60"
+            >
+                <Fragment
+                    set:html={ronBio
+                        .split('\n\n')
+                        .map((p) => `<span>${p}</span>`)
+                        .join('<br/><br/>')}
+                />
+            </p>
+        </div>
+
+        <div class="col-span-6 col-start-7 hidden flex-col md:flex">
+            <h1 class="pb-fluid-twenty font-radio text-circles-text leading-[120%]">
+                {t('ronName')}
+            </h1>
+            <h2
+                class="border-t border-b border-bronze pt-fluid-twenty pb-fluid-twenty font-radio text-header-two leading-[120%]"
+            >
+                <Fragment set:html={ronTitle.replace('\n', '<br/>')} />
+            </h2>
+            <div class="grid grid-cols-6 gap-fluid-twenty border-b border-bronze">
+                <p
+                    class="col-span-6 pt-fluid-sixty pb-fluid-sixty text-body-caption leading-[120%] tracking-[3%] xl:col-span-4"
+                >
+                    <Fragment
+                        set:html={ronBio
+                            .split('\n\n')
+                            .map((p) => `<span>${p}</span>`)
+                            .join('<br/><br/>')}
+                    />
+                </p>
+            </div>
+        </div>
+    </div>
+    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+</BaseLayout>
+
+<style>
+    /* The circles and their captions, and the one place the whole composition is
+       sized from.
+
+       It takes whatever the section label leaves (`flex: 1 1 0` with `min-height:
+       0`, so the share is decided by the flex line and not by what is inside it)
+       and `container-type: size` publishes that as `cqw`/`cqh`. Both rows below
+       then measure themselves against it, which is what keeps them registered:
+       one diameter, derived once, used by the circles and by the captions.
+
+       Size containment is what makes the height term non-circular — the group's
+       height cannot depend on its contents, so its contents are free to depend on
+       it. Note that `cq` units resolve against the nearest *ancestor* container,
+       so these values are only correct when read by a descendant; the group must
+       never use them itself. */
+    .circles-group {
+        flex: 1 1 0;
+        min-height: 0;
+        container-type: size;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        /* The distance between the circles and their captions — the dial to nudge
+           if the two read too far apart. Subtracted from the height budget below,
+           so widening it takes room from the circles rather than from the page. */
+        --circles-gap: var(--spacing-main-20);
+        gap: var(--circles-gap);
+
+        /* What the captions are assumed to need. Three lines at their own leading,
+           which is one more than the longest of them currently wraps to, so there
+           is a line in hand before anything is pushed off a pinned screen. */
+        --lines-reserve: calc(3 * 1.2 * var(--text-main-body));
+
+        /* The diameter is the primary quantity and everything else is derived from
+           it, because it is the thing with three separate limits on it.
+
+           Width: the composed row is 12 columns across and a circle spans 5 of
+           them — 5 column widths + the 4 gutters between them, where a column is
+           (100% - 11 gutters) / 12. That reduces to 0.4166667·W - 0.5833333·G.
+
+           Height: what is left after the captions and the gap. This is the limit
+           the section actually needed — it is what keeps a title inside a circle
+           and the line under it on screen together.
+
+           Ceiling: a flat maximum, so the circles stop growing on a display wide
+           and tall enough that neither of the other two ever bites. 36rem is just
+           above where the row stops being the binding constraint, around a 1600px
+           viewport, so on the 1512 design it never engages. */
+        --circle-fit-width: calc(0.4166667 * 100cqw - 0.5833333 * var(--spacing-gutter));
+        --circle-fit-height: calc(100cqh - var(--circles-gap) - var(--lines-reserve));
+        --circle-max: 36rem;
+
+        --circle-size: min(var(--circle-fit-width), var(--circle-fit-height), var(--circle-max));
+
+        /* The inverse of the width formula: W = 2.4·D + 1.4·G. When the width is
+           the binding limit this returns exactly 100cqw, so the row is flush to
+           the page's 12-column grid and each circle lands on a column boundary.
+           When the height or the ceiling binds instead, the row narrows and
+           centres, keeping the same 12-column subdivision inside itself — the
+           circles stay in proportion, they just no longer reach the margins.
+           There is no way to have both: the diameter *is* five twelfths of the
+           row, so capping one caps the other. */
+        --circles-row: calc(2.4 * var(--circle-size) + 1.4 * var(--spacing-gutter));
+    }
+
+    /* Phones never pin, the section is free to grow, and the three captions are
+       tall enough there that a leftover-height cap would crush the circles to
+       nothing. The group goes back to being as tall as its contents and the
+       diameter back to being decided by the width alone.
+
+       Overriding `--circle-size` here and not on the rows below is deliberate:
+       `--circles-row` is substituted where it is *declared*, so it only follows a
+       diameter that changes on this same element. */
+    @media (max-width: 809px) {
+        .circles-group {
+            container-type: inline-size;
+            flex: 0 0 auto;
+            --circle-size: min(var(--circle-fit-width), var(--circle-max));
+        }
+    }
+
+    .circles-wrapper {
+        position: relative;
+        width: var(--circles-row);
+        height: var(--circle-size);
+        margin-inline: auto;
+    }
+
+    /* The captions, one under each circle. All three occupy the same grid cell and
+       are then placed start / centre / end at exactly one circle's width — which
+       are the circles' own three positions, so each line is centred on its disc
+       for free and stays that way as the row is capped. Sharing one cell also
+       means the row is as tall as the tallest caption, with the other two
+       vertically aligned to it rather than to themselves.
+
+       The boxes overlap each other, exactly as the circles do, so the text has to
+       be held in from their edges or neighbours would collide. Two adjacent discs
+       are 0.7·D + 0.7·G apart centre to centre, and each caption is centred in its
+       box, so that spacing is the widest two neighbouring lines can be before they
+       touch. The padding below leaves the text at 0.66·D + 0.7·G — just inside it,
+       with about a twentieth of a diameter of clear air between columns.
+
+       That padding must be an absolute length and never a percentage. Percentage
+       padding resolves against the *containing block*, which for these is the grid
+       area — the full row, 2.4 diameters wide — and not the box's own width. A
+       plausible-looking `padding-inline: 18%` therefore ate 86% of each caption and
+       left room for one word per line. */
+    .approach-lines {
+        display: grid;
+        width: var(--circles-row);
+        margin-inline: auto;
+        line-height: 1.2;
+        letter-spacing: 0.03em;
+    }
+
+    .approach-line {
+        grid-area: 1 / 1;
+        width: var(--circle-size);
+        padding-inline: calc(0.17 * var(--circle-size) - 0.35 * var(--spacing-gutter));
+        text-align: center;
+    }
+
+    .approach-line:nth-child(1) {
+        justify-self: start;
+    }
+    .approach-line:nth-child(2) {
+        justify-self: center;
+    }
+    .approach-line:nth-child(3) {
+        justify-self: end;
+    }
+
+    /* The destination skeleton. Hairlines at all three landing positions, stated
+       before any disc fills them. Purely transient: the timeline is the only
+       thing that ever raises the opacity and every beat resolves back to 0, so
+       they are absent from the resting composition — and from the reduced-motion
+       and pre-animation states, which need no JS to stay clean. This is the one
+       hidden initial state that lives in CSS; every other one is a from-value on
+       the timeline, so a JS failure lands on the composed image.
+
+       Not named `.ring`: Tailwind generates a `.ring` utility from any such
+       candidate it finds in the markup, and its 1px currentcolor box-shadow
+       would double the hairline in black. */
+    .circle-ghost {
+        position: absolute;
+        top: 0;
+        width: var(--circle-size);
+        aspect-ratio: 1;
+        border: 1px solid var(--color-bronze);
+        border-radius: 100%;
+        opacity: 0;
+        pointer-events: none;
+        /* Under the discs, so each one buries its own hairline as it fills. */
+        z-index: 0;
+    }
+
+    /* Same landing positions as .c1/.c2/.c3 below. */
+    .cg1 {
+        left: 0;
+    }
+    .cg2 {
+        left: calc((100% - var(--circle-size)) / 2);
+    }
+    .cg3 {
+        left: calc(100% - var(--circle-size));
+    }
+
+    .circle {
+        position: absolute;
+        top: 0;
+        width: var(--circle-size);
+        aspect-ratio: 1;
+        border-radius: 100%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transform: translateZ(0);
+        -webkit-mask-image: -webkit-radial-gradient(white, black);
+    }
+
+    /* The circles' composed positions, spread across the full 12 columns, and the
+       resting layout for every variant. `grow` never leaves them — it only opens
+       each disc into the position it already holds; `settle` starts the outer two
+       further out and closes them in. Either way this is where they end up, so a
+       JS failure lands on the finished composition. */
+    .c1 {
+        left: 0;
+        background: var(--color-bronze);
+        color: white;
+        z-index: 2;
+    }
+    .c2 {
+        left: calc((100% - var(--circle-size)) / 2);
+        background: #e1e3d0;
+        color: #333;
+        z-index: 1;
+    }
+    .c3 {
+        left: calc(100% - var(--circle-size));
+        background: #a29a93;
+        color: white;
+        z-index: 2;
+    }
+
+    /* The mask the label rises out of on the last beat. The padding/margin pair
+       gives descenders room without opening a gap above the line.
+
+       The width is the band no lens reaches. A neighbouring circle cuts
+       0.3·D - 0.7·G into this one from either side, so what is left clear across
+       the middle — where the label sits — is 0.4·D + 1.4·G. Stated as geometry
+       rather than as a percentage because it is one: at 80% the label ran straight
+       through both yellows. */
+    .circle-label {
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        max-width: calc(0.4 * var(--circle-size) + 1.4 * var(--spacing-gutter));
+        padding: 0.14em 0;
+        margin: -0.14em 0;
+        text-align: center;
+    }
+
+    .circle-label-inner {
+        /* `--text-main-circle` sizes these — the `text-main-circle` utility on the
+           element is where that is declared — but a viewport-driven clamp cannot
+           know that the circle it is sitting in has been capped by the section's
+           height. The second term is that knowledge: 0.085·D is the largest size
+           at which the longest label still clears the band above. The token wins
+           whenever the circles are at full width, so on a normal desktop the type
+           grows with the viewport exactly as the scale says; the diameter only
+           takes over once the height cap has made the circles smaller than the
+           width alone would.
+
+           The floor is a legibility backstop for phones, where the circles are a
+           fraction of this size and 0.085·D would land in single digits. It is a
+           symptom of the row being far too small on a narrow screen, which is a
+           layout question this section has not answered yet. */
+        font-size: max(0.75rem, min(var(--text-main-circle), calc(0.085 * var(--circle-size))));
+
+        /* SplitText's kerning workaround, kept for parity with the old labels. */
+        font-kerning: none;
+        text-rendering: optimizeSpeed;
+    }
+
+    .yellow {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 100%;
+        background: #f4e727;
+        pointer-events: none;
+    }
+
+    /* Each lens sits where the neighbouring circle lands, clipped to the lens
+       shape by the parent circle's overflow. For a 5-column circle in a
+       12-column row that distance works out to 0.7 × (diameter + gutter),
+       and inside a circle 100% is the diameter. Keeping this in CSS rather
+       than pixels means it tracks the viewport live while resizing.
+
+       Full opacity at rest, and no variant ever fades one. A lens is only ever
+       correct where *both* circles have arrived, and the parent's overflow can
+       only vouch for one of them, so each variant keeps the other half honest in
+       its own way: `grow` gives the lens a clip-path matching `.c2`'s reveal,
+       `settle` counter-translates it so it stays pinned over `.c2` while its
+       parent slides. */
+    .y1 {
+        left: calc(70% + 0.7 * var(--spacing-gutter));
+    }
+    .y3 {
+        left: calc(-70% - 0.7 * var(--spacing-gutter));
+    }
+</style>

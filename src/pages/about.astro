@@ -1,0 +1,10 @@
+---
+import About from '@components/pages/About.astro';
+import { getAbout } from '@lib/sanity/queries';
+import { getLocale } from '@lib/i18n/utils';
+
+const data = await getAbout();
+const locale = getLocale(Astro.url);
+---
+
+<About {data} {locale} />

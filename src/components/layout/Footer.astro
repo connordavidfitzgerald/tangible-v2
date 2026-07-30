@@ -1,0 +1,99 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getLocale, localizedPath, otherLocale } from '@lib/i18n/utils';
+import { pick, type I18nField } from '@lib/sanity/i18n';
+
+interface Props {
+    settings: Record<string, I18nField | string> | null;
+}
+
+const { settings } = Astro.props;
+const locale = getLocale(Astro.url);
+const other = otherLocale(locale);
+const path = Astro.url.pathname;
+
+const t = (key: string) => pick(settings?.[key] as I18nField, locale);
+const address = (settings?.address as string) || '';
+const phone = (settings?.phone as string) || '';
+const email = (settings?.email as string) || '';
+const membersUrl = (settings?.membersUrl as string) || '#';
+const bookingUrl = (settings?.bookingUrl as string) || '#';
+const telHref = `tel:${phone.replace(/[^0-9+]/g, '')}`;
+---
+
+<footer id="footer">
+    <div
+        class="desktop-version grid grid-cols-12 gap-fluid-twenty bg-black p-fluid-forty leading-[120%] tracking-[3%] text-offwhite"
+    >
+        <div class="col-span-3 flex flex-col items-start justify-between">
+            <Icon name="logo" class="h-fluid-thirty w-auto" />
+            <a href={localizedPath(path, other)} class="w-fit font-sans text-body-sm"
+                >{other.toUpperCase()}</a
+            >
+        </div>
+        <div class="col-span-5 flex flex-col items-start gap-10">
+            <h6
+                class="font-sans text-body-sm leading-[120%]"
+                set:html={address.replace(/\n/g, '<br />')}
+            />
+            <h6 class="font-sans text-body-sm leading-[120%]">
+                {phone && <a href={telHref}>{phone}</a>}<br />
+                {email && <a href={`mailto:${email}`}>{email}</a>}
+            </h6>
+        </div>
+        <div class="col-span-2 flex flex-col justify-between font-sans text-body-sm uppercase">
+            <a href={localizedPath('/about', locale)} class="hover-underline w-fit"
+                >{t('navAbout')}</a
+            >
+            <a href={localizedPath('/services', locale)} class="hover-underline w-fit"
+                >{t('navPrograms')}</a
+            >
+            <a href={membersUrl} target="_blank" class="hover-underline w-fit">{t('navMembers')}</a>
+        </div>
+        <div class="col-span-2 flex flex-col justify-between font-sans text-body-sm uppercase">
+            <a href={localizedPath('/contact', locale)} class="hover-underline w-fit"
+                >{t('navContact')}</a
+            >
+            <a href={localizedPath('/centre-iam', locale)} class="hover-underline w-fit"
+                >{t('navIam')}</a
+            >
+            <a href={bookingUrl} target="_blank" class="hover-underline w-fit whitespace-pre-line"
+                >{t('navBook')}</a
+            >
+        </div>
+    </div>
+
+    <!-- Full-height black panel: logo pinned to the top, the address / links /
+         language stack settling against the bottom. -->
+    <div
+        class="mob-version flex h-dvh flex-col items-start justify-between bg-black px-mob-16 pt-nav-bottom pb-mob-32 text-white"
+    >
+        <Icon name="logo" class="mt-mob-8 h-[1.875rem] w-auto" />
+
+        <div class="flex flex-col gap-mob-32 text-mob-caption">
+            <div class="flex flex-col gap-mob-64 border-b border-b-white pb-mob-32">
+                <h6 class="font-radio leading-[120%] tracking-[3%]">
+                    <Fragment set:html={address.replace(/\n/g, '<br />')} /><br /><br />
+                    {phone && <a href={telHref}>{phone}</a>}<br />
+                    {email && <a href={`mailto:${email}`}>{email}</a>}
+                </h6>
+
+                <div class="grid grid-cols-2 gap-mob-16 tracking-[2%] uppercase">
+                    <div class="flex flex-col gap-mob-32">
+                        <a href={localizedPath('/about', locale)}>{t('navAbout')}</a>
+                        <a href={localizedPath('/services', locale)}>{t('navPrograms')}</a>
+                        <a href={localizedPath('/centre-iam', locale)}>{t('navIam')}</a>
+                    </div>
+                    <div class="flex flex-col gap-mob-32">
+                        <a href={membersUrl} target="_blank">{t('navMembers')}</a>
+                        <a href={localizedPath('/contact', locale)}>{t('navContact')}</a>
+                        <a href={bookingUrl} target="_blank">{t('navBook')}</a>
+                    </div>
+                </div>
+            </div>
+            <a href={localizedPath(path, other)} class="w-fit tracking-[2%] uppercase"
+                >{other.toUpperCase()}</a
+            >
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,64 @@
+---
+interface Props {
+    tag?: 'div' | 'section' | 'article' | 'span' | 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+    class?: string;
+}
+
+const { tag: Tag = 'div', class: className = '' } = Astro.props;
+---
+
+<fade-up style="display: contents;">
+    <Tag data-fade-up class={className}>
+        <slot />
+    </Tag>
+</fade-up>
+
+<script>
+    import gsap from 'gsap';
+    import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    class FadeUp extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+
+        connectedCallback() {
+            const el = this.querySelector('[data-fade-up]');
+            if (!el) return;
+
+            document.fonts.ready.then(() => {
+                requestAnimationFrame(() => {
+                    this.ctx = gsap.context(() => {
+                        gsap.set(el, { willChange: 'transform, opacity' });
+
+                        gsap.from(el, {
+                            yPercent: 10,
+                            opacity: 0,
+                            duration: 1.2,
+                            ease: 'power3.out',
+                            force3D: true,
+                            onComplete: () => {
+                                gsap.set(el, { clearProps: 'transform,opacity,willChange' });
+                            },
+                            scrollTrigger: {
+                                trigger: el,
+                                start: 'top 80%',
+                                once: true
+                            }
+                        });
+
+                        ScrollTrigger.refresh();
+                    }, this);
+                });
+            });
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('fade-up')) {
+        customElements.define('fade-up', FadeUp);
+    }
+</script>

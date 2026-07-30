@@ -1,0 +1,56 @@
+---
+import '@styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import { SEO } from 'astro-seo';
+import { buildSeo, type SeoProps } from '@lib/seo';
+import { getLocale } from '@lib/i18n/utils';
+import { getSiteSettings } from '@lib/sanity/queries';
+import Navbar from '@components/layout/Navbar.astro';
+import Footer from '@components/layout/Footer.astro';
+
+interface Props extends SeoProps {}
+
+const locale = getLocale(Astro.url);
+const seo = buildSeo(Astro.props);
+const settings = await getSiteSettings();
+---
+
+<!doctype html>
+<html lang={locale}>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, viewport-fit=cover" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+
+        <SEO {...seo} />
+
+        <link
+            rel="preload"
+            href="/fonts/PPRadioGrotesk-Regular.woff"
+            as="font"
+            type="font/woff"
+            crossorigin
+        />
+        <link
+            rel="preload"
+            href="/fonts/PPFormula-CondensedBold.woff"
+            as="font"
+            type="font/woff"
+            crossorigin
+        />
+
+        <ClientRouter />
+    </head>
+    <body>
+        <Navbar {settings} />
+        <main id="content" class="bg-offwhite">
+            <slot />
+        </main>
+        <Footer {settings} />
+
+        <script>
+            import '@scripts/motion.ts';
+        </script>
+    </body>
+</html>

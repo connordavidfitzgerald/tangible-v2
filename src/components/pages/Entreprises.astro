@@ -1,0 +1,98 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Picture } from 'astro:assets';
+import RevealHeader from '@components/sections/RevealHeader.astro';
+import ContactFooter from '@components/sections/ContactFooter.astro';
+import ServiceSlider from '@components/sections/ServiceSlider.astro';
+import MuxVideo from '@components/ui/MuxVideo.astro';
+
+import entreprises from '@images/entreprises.jpg';
+import mob from '@images/entreprises-mob.jpg';
+
+import { pick, type I18nField } from '@lib/sanity/i18n';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { muxPlaybackId } from '@lib/sanity/video';
+import type { LocaleId } from '@lib/i18n/locales';
+
+interface Slide {
+    shapeTitle: I18nField;
+    body: I18nField;
+    result: I18nField;
+}
+
+interface Props {
+    data: Record<string, any> | null;
+    locale: LocaleId;
+}
+
+const { data, locale } = Astro.props;
+const t = (key: string) => pick(data?.[key] as I18nField, locale);
+
+const shapeClasses = ['hexagon', 'circle', 'diamond'] as const;
+
+const slides = (data?.slides ?? []).map((slide: Slide, i: number) => ({
+    shapeClass: shapeClasses[i] ?? 'circle',
+    // Every line break the editor typed, not just the first — the heading is
+    // rendered with `set:html`, so raw newlines would otherwise collapse away.
+    shapeTitle: pick(slide.shapeTitle, locale).replace(/\r?\n/g, '<br/>'),
+    body: pick(slide.body, locale),
+    result: pick(slide.result, locale)
+}));
+
+/** The film is global (Site Settings), not page content. */
+const settings = await getSiteSettings();
+const videoPlaybackId = muxPlaybackId(settings);
+const videoTitle = pick(settings?.videoTitle, locale);
+
+const introResult = t('introResult');
+const title = locale === 'en' ? 'Services — Corporate' : 'Services — Entreprises';
+---
+
+<BaseLayout title={title}>
+    <div
+        class="relative flex aspect-393/852 max-h-dvh flex-col justify-end overflow-hidden bg-offwhite px-mob-16 md:aspect-1512/902 md:px-fluid-forty md:justify-center md:pb-0"
+    >
+        <div class="absolute inset-0 z-0">
+            <Picture
+                alt="Corporate Coaching"
+                src={entreprises}
+                layout="full-width"
+                class="hidden h-full w-full object-cover md:flex"
+            />
+            <Picture
+                alt="Corporate Coaching"
+                src={mob}
+                layout="full-width"
+                class="flex h-full w-full object-cover md:hidden"
+            />
+        </div>
+        <div class="pb-mob-64 md:pb-0">
+            <RevealHeader
+                delay={0.25}
+                textColor="#FFFFFF"
+                lines={[
+                    { text: t('heroLine1'), font: 'formula' },
+                    { text: t('heroLine2'), font: 'editorial' }
+                ]}
+            />
+        </div>
+    </div>
+
+
+
+    <div class="z-10 h-fit w-full bg-offwhite">
+        <ServiceSlider {slides} lang={locale} />
+    </div>
+
+    <!-- ===================================================================
+         Video — full-bleed, sits between the slider and the contact footer.
+         =================================================================== -->
+    <MuxVideo
+        playbackId={videoPlaybackId}
+        title={videoTitle}
+        autoplayInView
+        class="aspect-video w-full md:aspect-1512/902"
+    />
+
+    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+</BaseLayout>

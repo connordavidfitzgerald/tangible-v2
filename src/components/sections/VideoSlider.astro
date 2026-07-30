@@ -1,0 +1,140 @@
+---
+/**
+ * A horizontal run of films, one visible at a time, paged by the arrows beneath
+ * it. Drawn on DSK-Services_VideoSlider / MOB-Services_VideoSlider.
+ *
+ * The 1190px track in the frame is not an arbitrary inset — it is `col-start-2
+ * col-span-10` of the page's 12-column grid at `px-main-40`, which resolves to
+ * 1190.3px at 1512 with its left edge at 161.3px. So the column is expressed as
+ * grid placement rather than a hard-coded percentage, and it stays locked to
+ * every other section's gutters as the viewport moves.
+ *
+ * Slides are 16:9 at both breakpoints (1190×669 and 267×150), so one aspect
+ * ratio covers the lot.
+ */
+import { Icon } from 'astro-icon/components';
+import MuxVideo from '@components/ui/MuxVideo.astro';
+
+interface Props {
+    videos: { playbackId: string; title?: string }[];
+    class?: string;
+    /** Labels the arrow buttons; the films themselves carry their own titles. */
+    lang?: 'fr' | 'en';
+}
+
+const { videos, class: className, lang = 'fr' } = Astro.props;
+
+const labels =
+    lang === 'en'
+        ? { prev: 'Previous film', next: 'Next film' }
+        : { prev: 'Film précédent', next: 'Film suivant' };
+---
+
+{
+    videos.length > 0 && (
+        <video-slider
+            class:list={[
+                'video-slider block w-full overflow-hidden bg-offwhite py-mob-64 md:py-main-100',
+                className
+            ]}
+        >
+            <div class="grid grid-cols-8 gap-mob-16 px-mob-inset md:grid-cols-12 md:gap-gutter md:px-main-40">
+                {/* The column sizes the current film — 8 of 8 on mobile, the
+                    middle 10 of 12 at md — but does not clip. The track spills
+                    past it so the next film shows from column 12 onward, cut
+                    off by the section's own overflow at the page edge. Which
+                    means the gap has to be the grid's own gutter: anything else
+                    and the next film stops landing on a column boundary. */}
+                <div class="col-span-8 md:col-span-10 md:col-start-2">
+                    {/* Paged by translating the track, so the slides stay in flow
+                        and keep their own height rather than being absolutely
+                        positioned against a guessed one. */}
+                    <div class="vs-track flex w-full flex-row gap-mob-16 md:gap-gutter">
+                        {videos.map((video, i) => (
+                            <div class="vs-slide w-full shrink-0" data-index={i}>
+                                <MuxVideo
+                                    playbackId={video.playbackId}
+                                    title={video.title}
+                                    class="aspect-video w-full"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {videos.length > 1 && (
+                    <div class="col-span-8 flex flex-row justify-between pt-mob-32 md:col-span-10 md:col-start-2 md:pt-main-40">
+                        <button
+                            type="button"
+                            class="vs-prev cursor-pointer border-0 bg-transparent p-0"
+                            aria-label={labels.prev}
+                        >
+                            <Icon name="leftarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
+                        </button>
+                        <button
+                            type="button"
+                            class="vs-next cursor-pointer border-0 bg-transparent p-0"
+                            aria-label={labels.next}
+                        >
+                            <Icon name="rightarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
+                        </button>
+                    </div>
+                )}
+            </div>
+        </video-slider>
+    )
+}
+
+<script>
+    import gsap from 'gsap';
+
+    class VideoSlider extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+
+        connectedCallback() {
+            this.ctx = gsap.context(() => {
+                const track = this.querySelector<HTMLElement>('.vs-track');
+                const slides = [...this.querySelectorAll<HTMLElement>('.vs-slide')];
+                const prev = this.querySelector<HTMLElement>('.vs-prev');
+                const next = this.querySelector<HTMLElement>('.vs-next');
+                if (!track || slides.length < 2) return;
+
+                let index = 0;
+
+                /**
+                 * Read the offset off the DOM rather than computing slide width
+                 * plus gap: both are fluid tokens, so the browser's number is
+                 * the only one guaranteed to stay right through a resize.
+                 */
+                const offsetFor = (i: number) => -slides[i].offsetLeft;
+
+                const goTo = (i: number, animate = true) => {
+                    index = (i + slides.length) % slides.length;
+                    gsap.to(track, {
+                        x: offsetFor(index),
+                        duration: animate ? 0.75 : 0,
+                        ease: 'power3.inOut'
+                    });
+                };
+
+                prev?.addEventListener('click', () => goTo(index - 1));
+                next?.addEventListener('click', () => goTo(index + 1));
+
+                // Slide widths are viewport-derived, so a resize invalidates the
+                // current translation. Re-pin without animating.
+                const observer = new ResizeObserver(() => goTo(index, false));
+                observer.observe(this);
+
+                return () => observer.disconnect();
+            }, this);
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('video-slider')) {
+        customElements.define('video-slider', VideoSlider);
+    }
+</script>

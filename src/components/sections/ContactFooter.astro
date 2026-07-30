@@ -1,0 +1,359 @@
+---
+import SplitReveal from '@components/sections/SplitReveal.astro';
+import ContactFooterForm from '@components/sections/ContactFooterForm.astro';
+
+interface Props {
+    heading?: string;
+    lang?: 'fr' | 'en';
+}
+
+const {
+    lang = 'fr',
+    heading = lang === 'en'
+        ? 'Initiate a tangible transformation.'
+        : 'Amorcez une transformation tangible.'
+} = Astro.props;
+
+const dict = {
+    fr: {
+        nameLabel: 'Nom',
+        paragraph:
+            'Tissons des connexions authentiques et déclenchons un impact durable — pour vous, votre équipe et votre communauté.',
+        booking: 'Réservez une consultation',
+        bookingMob:
+            'Tissons des connexions authentiques et déclenchons un impact durable — pour vous, votre équipe et votre communauté.<br /><br />Réserver une consulation.',
+        emailLabel: 'Courriel',
+        phoneLabel: 'Téléphone',
+        siteLabel: "Site de l'entreprise",
+        nextText: 'Suivant',
+        prevText: 'Précédent',
+        submitText: 'Soumettre',
+        successText: 'Succès',
+        employesLabel: "Nombre d'employé.e.s",
+        employesOptions: ['0 à 10', '11 à 25', '25 à 100', '100+'],
+        budgetLabel: 'Budget',
+        budgetOptions: [
+            'Moins de 5 000 $',
+            '5 000 $ - 15 000 $',
+            '15 000 $ - 50 000 $',
+            'Ne sais pas'
+        ],
+        accompagnementLabel: "Type d'accompagnement recherché",
+        accompagnementOptions: [
+            'Ateliers',
+            'Expériences immersives',
+            'Formations/coaching',
+            'Retraites',
+            'Autres / Ne sais pas'
+        ],
+        consultationLabel:
+            'Je souhaite réserver une consultation gratuite avec un·e coach de Tangible.'
+    },
+    en: {
+        nameLabel: 'Name',
+        paragraph:
+            "Let's weave authentic connections and trigger lasting impact — for you, your team, and your community.",
+        booking: 'Book a consultation',
+        bookingMob:
+            "Let's weave authentic connections and trigger lasting impact — for you, your team, and your community.<br /><br />Book a consultation.",
+        emailLabel: 'Email',
+        phoneLabel: 'Phone',
+        siteLabel: 'Company website',
+        nextText: 'Next',
+        prevText: 'Previous',
+        submitText: 'Submit',
+        successText: 'Success',
+        employesLabel: 'Number of employees',
+        employesOptions: ['0 to 10', '11 to 25', '25 to 100', '100+'],
+        budgetLabel: 'Budget',
+        budgetOptions: [
+            'Under $5,000',
+            '$5,000 - $15,000',
+            '$15,000 - $50,000',
+            "Don't know"
+        ],
+        accompagnementLabel: 'Type of support sought',
+        accompagnementOptions: [
+            'Workshops',
+            'Immersive experiences',
+            'Training/coaching',
+            'Retreats',
+            "Other / Don't know"
+        ],
+        consultationLabel: 'I would like to book a free consultation with a Tangible coach.'
+    }
+};
+
+const t = dict[lang];
+
+/**
+ * Step two of the form: the last four field groups from the contact page, in
+ * the same order. Built as data because the whole set is rendered twice — once
+ * in the desktop layout and once in the mobile one.
+ */
+const step2Groups = [
+    { name: 'employes', label: t.employesLabel, options: t.employesOptions },
+    { name: 'budget', label: t.budgetLabel, options: t.budgetOptions },
+    { name: 'accompagnement', label: t.accompagnementLabel, options: t.accompagnementOptions }
+];
+
+const labelClass =
+    'block font-radio text-mob-section leading-[1.2] tracking-[0.02em] text-perle uppercase opacity-75 md:text-main-section';
+const inputClass = 'w-full border-b border-b-perle text-mob-body text-offwhite outline-0 md:text-main';
+const optionClass =
+    'flex cursor-pointer items-center gap-main-12 font-radio text-mob-section leading-[1.2] tracking-[0.02em] text-perle uppercase opacity-75 md:text-main-section';
+const radioClass =
+    'h-[calc(1.2em-4px)] w-[calc(1.2em-4px)] shrink-0 appearance-none rounded-full border border-perle bg-transparent outline-0 checked:bg-perle';
+---
+
+<contact-form
+    style="display: contents;"
+    data-btn-submit={t.submitText}
+    data-btn-success={t.successText}
+>
+    <div
+        class="desktop-version grid aspect-1512/902 grid-cols-12 gap-gutter bg-bronze pt-fluid-4xl pr-main-40 pb-fluid-4xl pl-main-40"
+    >
+        <div
+            class="col-span-10 col-start-2 flex flex-col justify-center gap-main-40 pt-fluid-lg pb-fluid-lg"
+        >
+            <SplitReveal
+                class="font-radio text-footer-header leading-[110%] font-normal text-perle"
+            >
+                {heading}
+            </SplitReveal>
+
+            <div class="grid grid-cols-2 gap-fluid-twenty">
+                <SplitReveal
+                    class="font-radio text-body-md leading-[120%] font-light tracking-[3%] text-perle"
+                    tag="p"
+                >
+                    {t.paragraph}
+                </SplitReveal>
+                <div class="flex flex-col gap-fluid-twenty">
+                    <h3
+                        class="font-radio text-body-md leading-[120%] font-light tracking-[3%] text-perle"
+                    >
+                        {t.booking}
+                    </h3>
+                    <ContactFooterForm
+                        {t}
+                        groups={step2Groups}
+                        {labelClass}
+                        {inputClass}
+                        {optionClass}
+                        {radioClass}
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mob-version flex flex-col gap-mob-64 bg-bronze px-mob-16 py-mob-64">
+        <SplitReveal
+            class="px-mob-inset font-radio text-mob-footer leading-[105%] font-normal text-perle"
+        >
+            {heading}
+        </SplitReveal>
+        <SplitReveal
+            class="font-radio text-mob-body leading-[120%] font-light tracking-[3%] text-perle"
+            tag="p"
+            set:html={t.bookingMob}
+        />
+                    <ContactFooterForm
+                        {t}
+                        groups={step2Groups}
+                        {labelClass}
+                        {inputClass}
+                        {optionClass}
+                        {radioClass}
+                    />
+    </div>
+
+    <script>
+        import gsap from 'gsap';
+        import { SplitText } from 'gsap/SplitText';
+        gsap.registerPlugin(SplitText);
+
+        class ContactForm extends HTMLElement {
+            private ctx: gsap.Context | undefined;
+
+            connectedCallback() {
+                const submitText = this.dataset.btnSubmit || 'Soumettre';
+                const successText = this.dataset.btnSuccess || 'Succès';
+
+                this.ctx = gsap.context(() => {
+                    const forms = this.querySelectorAll('form.contact-form-inner');
+
+                    forms.forEach((form) => {
+                        const btn = form.querySelector('.submit-btn');
+                        if (!btn) return;
+
+                        const labelDefault = btn.querySelector('.c-button_label_default');
+                        const labelHover = btn.querySelector('.c-button_label_hover');
+                        if (!labelDefault) return;
+
+                        /* ---- Two-step paging -------------------------------
+                           `required` is moved onto the visible step only. A
+                           hidden required control still blocks submission, and
+                           the browser cannot focus it to say why, so leaving
+                           step two's radios required would deadlock step one —
+                           the form would refuse to submit with no visible
+                           reason. The values still post either way: hidden
+                           fields are submitted, only disabled ones are not. */
+                        const panels =
+                            form.querySelectorAll<HTMLElement>('[data-step-panel]');
+                        const nextBtn = form.querySelector<HTMLElement>('.form-next');
+                        const prevBtn = form.querySelector<HTMLElement>('.form-prev');
+                        const buttonRow = form.querySelector<HTMLElement>('.form-buttons');
+
+                        const setStep = (step: number) => {
+                            (form as HTMLFormElement).dataset.step = String(step);
+
+                            // One button on step one, so it sits right; two on
+                            // step two, so they take an edge each and the submit
+                            // does not move.
+                            buttonRow?.classList.toggle('justify-end', step === 1);
+                            buttonRow?.classList.toggle('justify-between', step === 2);
+
+                            panels.forEach((panel) => {
+                                const active = panel.dataset.stepPanel === String(step);
+                                panel.classList.toggle('hidden', !active);
+                                panel.classList.toggle('flex', active);
+                                panel
+                                    .querySelectorAll<HTMLInputElement>('[data-required]')
+                                    .forEach((control) => {
+                                        control.required = active;
+                                    });
+                            });
+
+                            nextBtn?.classList.toggle('hidden', step !== 1);
+                            prevBtn?.classList.toggle('hidden', step !== 2);
+                            btn.classList.toggle('hidden', step !== 2);
+                        };
+
+                        setStep(1);
+
+                        nextBtn?.addEventListener('click', () => {
+                            // Step one has to be valid before it goes out of view.
+                            if (!(form as HTMLFormElement).reportValidity()) return;
+                            setStep(2);
+                        });
+
+                        prevBtn?.addEventListener('click', () => setStep(1));
+
+                        form.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+
+                            const inputs = form.querySelectorAll<HTMLInputElement>(
+                                'input[type="text"], input[type="email"]'
+                            );
+
+                            inputs.forEach((input) => {
+                                const overlay = document.createElement('div');
+                                overlay.textContent = input.value;
+                                overlay.style.cssText = `
+                                position: absolute;
+                                top: ${input.offsetTop}px;
+                                left: ${input.offsetLeft}px;
+                                width: ${input.offsetWidth}px;
+                                font-size: ${getComputedStyle(input).fontSize};
+                                font-family: ${getComputedStyle(input).fontFamily};
+                                color: ${getComputedStyle(input).color};
+                                pointer-events: none;
+                                overflow: hidden;
+                            `;
+                                if (input.parentElement) {
+                                    input.parentElement.style.position = 'relative';
+                                    input.parentElement.appendChild(overlay);
+                                }
+                                input.style.opacity = '0';
+
+                                const split = new SplitText(overlay, { type: 'chars' });
+
+                                gsap.to(split.chars, {
+                                    y: 10,
+                                    opacity: 0,
+                                    duration: 0.3,
+                                    stagger: 0.01,
+                                    ease: 'power2.out',
+                                    onComplete: () => overlay.remove()
+                                });
+                            });
+
+                            const btnSplit = new SplitText(labelDefault, { type: 'chars' });
+                            await gsap.to(btnSplit.chars, {
+                                y: 10,
+                                opacity: 0,
+                                duration: 0.3,
+                                stagger: 0.01,
+                                ease: 'power2.out'
+                            });
+
+                            const data = new FormData(form as HTMLFormElement);
+                            const response = await fetch('https://api.web3forms.com/submit', {
+                                method: 'POST',
+                                body: data
+                            });
+
+                            if (response.ok) {
+                                (form as HTMLFormElement).reset();
+                                inputs.forEach((input) => (input.style.opacity = ''));
+
+                                btnSplit.revert();
+                                labelDefault.textContent = successText;
+                                if (labelHover) labelHover.textContent = successText;
+
+                                const successSplit = new SplitText(labelDefault, { type: 'chars' });
+                                gsap.from(successSplit.chars, {
+                                    y: 10,
+                                    opacity: 0,
+                                    duration: 0.3,
+                                    stagger: 0.03,
+                                    ease: 'power2.out'
+                                });
+
+                                setTimeout(async () => {
+                                    await gsap.to(successSplit.chars, {
+                                        y: 10,
+                                        opacity: 0,
+                                        duration: 0.4,
+                                        stagger: 0.02,
+                                        ease: 'power2.out'
+                                    });
+
+                                    successSplit.revert();
+                                    labelDefault.textContent = submitText;
+                                    if (labelHover) labelHover.textContent = submitText;
+
+                                    const revertSplit = new SplitText(labelDefault, {
+                                        type: 'chars'
+                                    });
+                                    gsap.from(revertSplit.chars, {
+                                        y: 10,
+                                        opacity: 0,
+                                        duration: 0.5,
+                                        stagger: 0.03,
+                                        ease: 'power2.out',
+                                        onComplete: () => revertSplit.revert()
+                                    });
+
+                                    // Back to the identity fields, ready for the
+                                    // next visitor rather than stranded on step two.
+                                    setStep(1);
+                                }, 2000);
+                            }
+                        });
+                    });
+                }, this);
+            }
+
+            disconnectedCallback() {
+                this.ctx?.revert();
+            }
+        }
+
+        if (!customElements.get('contact-form')) {
+            customElements.define('contact-form', ContactForm);
+        }
+    </script>
+</contact-form>

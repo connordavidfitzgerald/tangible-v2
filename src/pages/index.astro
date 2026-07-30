@@ -1,0 +1,10 @@
+---
+import Home from '@components/pages/Home.astro';
+import { getHome } from '@lib/sanity/queries';
+import { getLocale } from '@lib/i18n/utils';
+
+const data = await getHome();
+const locale = getLocale(Astro.url);
+---
+
+<Home {data} {locale} />

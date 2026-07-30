@@ -1,0 +1,291 @@
+---
+/**
+ * Mux-hosted video, played by the `<mux-player>` web component behind a custom
+ * control bar (`VideoControls.ts`) — the player's own chrome is switched off.
+ *
+ * The element fills its wrapper and crops to it, so the caller owns the frame:
+ * pass the aspect ratio / sizing through `class` (e.g. `aspect-1512/902 w-full`).
+ * Renders nothing without a playback id, so a page is safe to build before the
+ * video has been uploaded in the Studio.
+ */
+import { muxPosterUrl } from '@lib/sanity/video';
+
+import iconPlay from '@assets/svgs/video-icons/ICON-PLAY.svg?raw';
+import iconPause from '@assets/svgs/video-icons/ICON-PAUSE.svg?raw';
+import iconFull from '@assets/svgs/video-icons/ICON-FULL.svg?raw';
+import iconSmall from '@assets/svgs/video-icons/ICON-SMALL.svg?raw';
+import iconMute from '@assets/svgs/video-icons/ICON-MUTE.svg?raw';
+import iconUnmute from '@assets/svgs/video-icons/ICON-UNMUTE.svg?raw';
+
+interface Props {
+    playbackId?: string | null;
+    /** Accessible label, also reported to Mux Data. */
+    title?: string;
+    class?: string;
+    /** Poster frame timestamp in seconds; defaults to Mux's own choice. */
+    thumbnailTime?: number | null;
+    autoplay?: boolean;
+    /** Play once scrolled into view, pause on the way out. Implies muted. */
+    autoplayInView?: boolean;
+    loop?: boolean;
+    /** Forced on when autoplaying — browsers block sound-on autoplay. */
+    muted?: boolean;
+    controls?: boolean;
+    /** `viewport` defers loading until the player scrolls into view. */
+    loading?: 'page' | 'viewport';
+}
+
+const {
+    playbackId,
+    title = '',
+    class: className,
+    thumbnailTime,
+    autoplay = false,
+    autoplayInView = false,
+    loop = false,
+    muted = false,
+    controls = true,
+    loading = 'viewport'
+} = Astro.props;
+
+const isMuted = muted || autoplay || autoplayInView;
+
+/**
+ * `<mux-player>` is a custom element, so Astro stringifies `false` into
+ * `autoplay="false"` — which the player reads as *present*, i.e. on. Boolean
+ * attributes therefore have to be omitted entirely when off.
+ */
+const flags = {
+    playsinline: '',
+    ...(autoplay && { autoplay: '' }),
+    ...(loop && { loop: '' }),
+    ...(isMuted && { muted: '' })
+};
+
+/**
+ * The icons are drawn with a hard-coded black fill at a fixed size. Swapping in
+ * `currentColor` and dropping the dimensions hands both over to the CSS below,
+ * so the whole bar is recoloured from one place.
+ */
+const inlineIcon = (raw: string) =>
+    raw
+        .replace(/fill="black"/g, 'fill="currentColor"')
+        .replace(/<svg\b[^>]*>/, (tag) => tag.replace(/\s(?:width|height)="[^"]*"/g, ''));
+
+/** Each pair renders both icons; the CSS shows whichever matches the state. */
+const icons = {
+    play: inlineIcon(iconPlay),
+    pause: inlineIcon(iconPause),
+    full: inlineIcon(iconFull),
+    small: inlineIcon(iconSmall),
+    mute: inlineIcon(iconMute),
+    unmute: inlineIcon(iconUnmute)
+};
+---
+
+{
+    playbackId && (
+        <video-controls
+            class:list={['c-video', !controls && '-no-controls', className]}
+            data-paused={String(!autoplay)}
+            data-muted={String(isMuted)}
+            data-fullscreen="false"
+            data-autoplay-in-view={String(autoplayInView)}
+        >
+            <mux-player
+                class="c-video-player"
+                playback-id={playbackId}
+                stream-type="on-demand"
+                loading={loading}
+                poster={muxPosterUrl(playbackId, thumbnailTime)}
+                metadata-video-title={title || undefined}
+                aria-label={title || undefined}
+                {...flags}
+            />
+
+            {controls && (
+                <div class="c-video-controls">
+                    <button
+                        type="button"
+                        class="c-video-button -toggle"
+                        data-role="playpause"
+                        aria-label="Play"
+                    >
+                        <span class="-icon-play" set:html={icons.play} />
+                        <span class="-icon-pause" set:html={icons.pause} />
+                    </button>
+
+                    <div
+                        class="c-video-timeline"
+                        data-role="timeline"
+                        role="slider"
+                        tabindex="0"
+                        aria-label="Seek"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="0"
+                    >
+                        <span class="c-video-track" />
+                        <span class="c-video-head" />
+                    </div>
+
+                    <button
+                        type="button"
+                        class="c-video-button -fullscreen"
+                        data-role="fullscreen"
+                        aria-label="Enter fullscreen"
+                    >
+                        <span class="-icon-full" set:html={icons.full} />
+                        <span class="-icon-small" set:html={icons.small} />
+                    </button>
+
+                    <button
+                        type="button"
+                        class="c-video-button -mute"
+                        data-role="mute"
+                        aria-label="Mute"
+                    >
+                        <span class="-icon-mute" set:html={icons.mute} />
+                        <span class="-icon-unmute" set:html={icons.unmute} />
+                    </button>
+                </div>
+            )}
+        </video-controls>
+    )
+}
+
+<script>
+    import '@mux/mux-player';
+    import '@components/ui/VideoControls';
+</script>
+
+<style>
+    .c-video {
+        position: relative;
+        display: block;
+        width: 100%;
+        background-color: var(--color-black);
+    }
+
+    .c-video-player {
+        display: block;
+        width: 100%;
+        height: 100%;
+
+        /* Crop to the frame the caller set rather than letterboxing inside it. */
+        --media-object-fit: cover;
+        --media-object-position: center;
+
+        /* The bar below replaces the player's own chrome entirely. */
+        --controls: none;
+    }
+
+    .c-video.-no-controls .c-video-player {
+        pointer-events: none;
+    }
+
+    .c-video-controls {
+        position: absolute;
+        right: var(--spacing-main-40);
+        bottom: var(--spacing-main-40);
+        left: var(--spacing-main-40);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-main-40);
+
+        /* Inherited by every icon and by the timeline, which draw in currentColor. */
+        color: var(--video-controls-color, #fff);
+
+        /* Revealed only as the pointer nears the bottom of the frame. */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    .c-video[data-controls-visible='true'] .c-video-controls,
+    .c-video-controls:focus-within {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Without a hovering pointer there is no way to summon them, so keep them out. */
+    @media (hover: none) {
+        .c-video-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+
+    .c-video-button {
+        display: block;
+        flex: none;
+        padding: 0;
+        border: 0;
+        background: none;
+        line-height: 0;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    .c-video-button span {
+        display: block;
+    }
+
+    /* The icons come in through `set:html`, so they never receive Astro's scope
+       attribute — these rules have to opt out of scoping to reach them. */
+    .c-video-button :global(svg) {
+        display: block;
+        width: auto;
+        height: 100%;
+    }
+
+    .-toggle span,
+    .-fullscreen span {
+        height: 50px;
+    }
+
+    /* Sized so the speaker matches the 50px width of the square icons. */
+    .-mute span {
+        height: 40.6px;
+    }
+
+    /* Each button holds both states; only the applicable action is shown. */
+    .c-video[data-paused='true'] .-icon-pause,
+    .c-video[data-paused='false'] .-icon-play,
+    .c-video[data-fullscreen='true'] .-icon-full,
+    .c-video[data-fullscreen='false'] .-icon-small,
+    .c-video[data-muted='true'] .-icon-mute,
+    .c-video[data-muted='false'] .-icon-unmute {
+        display: none;
+    }
+
+    .c-video-timeline {
+        position: relative;
+        /* Fills whatever the buttons leave, and is as tall as the indicator so
+           the whole stroke is a hit target. */
+        flex: 1 1 auto;
+        height: 50px;
+        cursor: pointer;
+        touch-action: none;
+    }
+
+    .c-video-track {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: currentColor;
+        transform: translateY(-50%);
+    }
+
+    .c-video-head {
+        position: absolute;
+        top: 50%;
+        left: var(--progress, 0%);
+        width: 3px;
+        height: 50px;
+        background: currentColor;
+        transform: translate(-50%, -50%);
+    }
+</style>

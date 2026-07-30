@@ -1,0 +1,10 @@
+---
+import Entreprises from '@components/pages/Entreprises.astro';
+import { getServicesEntreprises } from '@lib/sanity/queries';
+import { getLocale } from '@lib/i18n/utils';
+
+const data = await getServicesEntreprises();
+const locale = getLocale(Astro.url);
+---
+
+<Entreprises {data} {locale} />

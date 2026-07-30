@@ -1,0 +1,300 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface DescriptionItem {
+    title?: string;
+
+    text: string;
+}
+
+interface Slide {
+    shapeClass: string; // CSS class for the shape (e.g. 'hexagon', 'circle', 'diamond')
+
+    shapeTitle: string; // HTML string for the shape's heading (supports <br/>)
+
+    descriptions: DescriptionItem[];
+}
+
+interface Props {
+    slides: Slide[];
+
+    class?: string;
+}
+
+const { slides, class: className } = Astro.props;
+
+const slidesJson = JSON.stringify(slides);
+
+const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
+---
+
+<service-slider
+    id={id}
+    class:list={[
+        'service-slider w-full gap-gutter grid grid-cols-12  bg-offwhite',
+
+        className
+    ]}
+    data-slides={slidesJson}
+>
+    <!-- Left panel: shape + arrows -->
+
+    <div
+        class="relative flex overflow-hidden bg-perle col-span-6"
+    >
+        <div class="slider-left-track flex aspect-746/793 w-full">
+            {
+                slides.map((slide, i) => (
+                    <div
+                        class="slider-left-slide flex w-full shrink-0 items-center justify-center px-10 md:px-0"
+                        data-index={i}
+                        style={i === 0 ? '' : 'position:absolute;left:100%;top:0;bottom:0;'}
+                    >
+
+                            <h2
+                                class="font-formula text-mob-display leading-[1.1] md:text-main-header tracking-[0.02em] text-bronze uppercase text-center whitespace-pre-line"
+                                set:html={slide.shapeTitle}
+                            />
+                        </div>
+
+                ))
+            }
+        </div>
+
+        <div
+            class="absolute right-mob-16 bottom-mob-16 left-mob-16 z-10 flex flex-row justify-between md:right-main-40 md:bottom-main-40 md:left-main-40"
+        >
+            <button
+                class="slider-prev cursor-pointer border-0 bg-transparent p-0"
+                aria-label="Service précédent"
+            >
+                <Icon name="leftarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
+            </button>
+
+            <button
+                class="slider-next cursor-pointer border-0 bg-transparent p-0"
+                aria-label="Service suivant"
+            >
+                <Icon name="rightarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
+            </button>
+        </div>
+    </div>
+
+    <!-- Right panel: descriptions -->
+
+    <div class="col-span-6 overflow-hidden">
+        <div
+            class="slider-right-track relative aspect-746/793 w-full md:h-full md:px-0"
+        >
+            {
+                slides.map((slide, i) => (
+                    <div
+                        class="slider-right-slide absolute inset-0 flex px-main-40 py-main-40 md:px-0"
+                        data-index={i}
+                        style={i === 0 ? '' : 'opacity:0; pointer-events:none;'}
+                    >
+                        <div class="flex h-fit w-full md:grid-cols-6 md:gap-gutter md:grid md:h-full">
+                            <div class="col-span-4 col-start-2 flex flex-col md:justify-between">
+                                {slide.descriptions.map((desc, j) => {
+                                    const isLast = j === slide.descriptions.length - 1;
+
+
+                                    const borderClasses =
+                                        j === 0
+                                            ? 'border-t border-bronze'
+                                            : 'border-t border-bronze';
+
+                                    const lastBorder = isLast ? ' border-b border-bronze' : '';
+
+                                    const growClass = isLast ? ' grow' : '';
+
+                                    return (
+                                        <div
+                                            class={`flex h-fit flex-col gap-fluid-twenty ${borderClasses}${lastBorder}${growClass} pt-fluid-eighty pb-fluid-eighty md:py-main-40`}
+                                        >
+
+
+                                            <p class="pt-mob-8 pb-mob-16 text-black text-mob-caption leading-[120%] font-normal tracking-[3%] md:pt-0 md:pb-0 md:text-main-body">
+                                                {desc.text}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                ))
+            }
+        </div>
+    </div>
+</service-slider>
+
+<script>
+    import gsap from 'gsap';
+    import { SplitText } from 'gsap/SplitText';
+
+    gsap.registerPlugin(SplitText);
+
+    class ServiceSlider extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+
+        connectedCallback() {
+            this.ctx = gsap.context(() => {
+                const slider = this;
+                const slides: any[] = JSON.parse(slider.dataset.slides || '[]');
+                const totalSlides = slides.length;
+                if (totalSlides === 0) return;
+
+                let currentIndex = 0;
+                let isAnimating = false;
+
+                const leftSlides = slider.querySelectorAll<HTMLElement>('.slider-left-slide');
+                const rightSlides = slider.querySelectorAll<HTMLElement>('.slider-right-slide');
+                const prevBtn = slider.querySelector<HTMLElement>('.slider-prev');
+                const nextBtn = slider.querySelector<HTMLElement>('.slider-next');
+
+                const splitInstances: SplitText[] = [];
+                leftSlides.forEach((slideEl) => {
+                    const h2 = slideEl.querySelector<HTMLElement>('h2');
+                    if (!h2) return;
+                    const split = new SplitText(h2, {
+                        type: 'words',
+                        mask: 'words',
+                        autoSplit: true
+                    });
+                    splitInstances.push(split);
+                    split.words.forEach((word) => {
+                        const mask = word.parentElement as HTMLElement | null;
+                        if (mask) {
+                            mask.style.paddingTop = '0.2em';
+                            mask.style.marginTop = '-0.2em';
+                        }
+                    });
+                    gsap.set(split.words, { yPercent: 130 });
+                });
+
+                function playTitleReveal(index: number) {
+                    const split = splitInstances[index];
+                    if (!split) return;
+                    gsap.fromTo(
+                        split.words,
+                        { yPercent: 130 },
+                        {
+                            yPercent: 0,
+                            duration: 0.8,
+                            ease: 'power3.out',
+                            stagger: 0.04
+                        }
+                    );
+                }
+
+                leftSlides.forEach((el, i) => {
+                    if (i === 0) {
+                        gsap.set(el, { position: 'relative', left: 0, top: 0 });
+                    } else {
+                        gsap.set(el, { position: 'absolute', left: '100%', top: 0, bottom: 0 });
+                    }
+                });
+
+                rightSlides.forEach((el, i) => {
+                    if (i === 0) {
+                        gsap.set(el, { opacity: 1, x: 0, pointerEvents: 'auto' });
+                    } else {
+                        gsap.set(el, { opacity: 0, x: 0, pointerEvents: 'none' });
+                    }
+                });
+
+                playTitleReveal(0);
+
+                function goTo(newIndex: number, direction: 'next' | 'prev') {
+                    if (isAnimating || newIndex === currentIndex) return;
+                    isAnimating = true;
+
+                    const currentLeft = leftSlides[currentIndex];
+                    const nextLeft = leftSlides[newIndex];
+                    const currentRight = rightSlides[currentIndex];
+                    const nextRight = rightSlides[newIndex];
+
+                    const slideOutX = direction === 'next' ? '-100%' : '100%';
+                    const slideInX = direction === 'next' ? '100%' : '-100%';
+
+                    const incomingSplit = splitInstances[newIndex];
+                    if (incomingSplit) gsap.set(incomingSplit.words, { yPercent: 130 });
+
+                    const tl = gsap.timeline({
+                        defaults: { ease: 'power3.inOut' },
+                        onComplete: () => {
+                            currentIndex = newIndex;
+                            isAnimating = false;
+                            playTitleReveal(newIndex);
+                        }
+                    });
+
+                    if (direction === 'next') {
+                        gsap.set(nextRight, { x: slideOutX, opacity: 1, pointerEvents: 'auto' });
+                        gsap.set(nextLeft, {
+                            position: 'absolute',
+                            left: slideOutX,
+                            top: 0,
+                            bottom: 0
+                        });
+
+                        tl.to(
+                            currentRight,
+                            { x: slideInX, opacity: 0, duration: 0.75, pointerEvents: 'none' },
+                            0
+                        )
+                            .to(nextRight, { x: 0, opacity: 1, duration: 0.75 }, 0)
+                            .to(currentLeft, { left: slideInX, duration: 0.75 }, 0.2)
+                            .to(nextLeft, { left: 0, duration: 0.75 }, 0.2)
+                            .call(() => {
+                                gsap.set(currentLeft, { position: 'absolute', left: slideInX });
+                                gsap.set(nextLeft, { position: 'relative', left: 0 });
+                                gsap.set(currentRight, { pointerEvents: 'none' });
+                            });
+                    } else {
+                        gsap.set(nextLeft, {
+                            position: 'absolute',
+                            left: slideOutX,
+                            top: 0,
+                            bottom: 0
+                        });
+                        gsap.set(nextRight, { x: slideOutX, opacity: 1, pointerEvents: 'auto' });
+
+                        tl.to(currentLeft, { left: slideInX, duration: 0.75 }, 0)
+                            .to(nextLeft, { left: 0, duration: 0.75 }, 0)
+                            .to(
+                                currentRight,
+                                { x: slideInX, opacity: 0, duration: 0.75, pointerEvents: 'none' },
+                                0.2
+                            )
+                            .to(nextRight, { x: 0, opacity: 1, duration: 0.75 }, 0.2)
+                            .call(() => {
+                                gsap.set(currentLeft, { position: 'absolute', left: slideInX });
+                                gsap.set(nextLeft, { position: 'relative', left: 0 });
+                                gsap.set(currentRight, { pointerEvents: 'none' });
+                            });
+                    }
+                }
+
+                prevBtn?.addEventListener('click', () => {
+                    const newIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                    goTo(newIndex, 'prev');
+                });
+
+                nextBtn?.addEventListener('click', () => {
+                    const newIndex = (currentIndex + 1) % totalSlides;
+                    goTo(newIndex, 'next');
+                });
+            }, this);
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('service-slider')) {
+        customElements.define('service-slider', ServiceSlider);
+    }
+</script>

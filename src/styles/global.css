@@ -1,0 +1,430 @@
+@import 'tailwindcss';
+
+/* =============================================================================
+   Fonts (served from /public/fonts)
+   ========================================================================== */
+@font-face {
+    font-family: 'PP Radio Grotesk';
+    src: url('/fonts/PPRadioGrotesk-Ultralight.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Radio Grotesk';
+    src: url('/fonts/PPRadioGrotesk-Regular.woff') format('woff');
+    font-weight: 400 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Radio Grotesk';
+    src: url('/fonts/PPRadioGrotesk-Black.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Formula';
+    src: url('/fonts/FormulaCondensed-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Editorial New';
+    src: url('/fonts/PPEditorialNew-Ultralight.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --unit-sm: 10px;
+    --unit-md: 20px;
+}
+
+/* =============================================================================
+   Design tokens
+   Fluid values were authored with Utopia (viewport 320–2560px, root 16px) and
+   are baked here as literal clamp() so the build needs no PostCSS plugins.
+   ========================================================================== */
+@theme {
+    /* Fonts (see @font-face above) */
+    --font-sans: 'PP Radio Grotesk', sans-serif;
+    --font-radio: 'PP Radio Grotesk', sans-serif;
+    --font-formula: 'PP Formula', sans-serif;
+    --font-editorial: 'PP Editorial New', serif;
+
+    --spacing-s: clamp(0.9375rem, 0.4457rem + 2.1739vw, 2.5rem);
+
+    --text-subheading: clamp(1.375rem, 1.1783rem + 0.8696vw, 2rem);
+    --text-body: clamp(0.875rem, 0.757rem + 0.5217vw, 1.25rem);
+
+    /* ── The main scale ──────────────────────────────────────────────────────
+       Anchored at 1512, which is the Figma frame. Every size below is *exactly*
+       its drawn value at that width; only the response either side of it has
+       changed.
+
+       These were originally derived by scaling the 1512 frame to 1024 and 2560
+       and reading the sizes off. That is a defensible way to get endpoints, but
+       it forces the line through the origin — every token came out as a bare
+       `vw` value with an intercept of zero, which is to say the page was a
+       literal linear zoom of the frame. Type tracked the viewport 1:1, so 2560
+       rendered everything at 1.69× (110px headers became 186px, body copy 34px)
+       and 1024 at 0.68× (body copy 13.5px). The clamp endpoints were not the
+       problem so much as the slope between them: at 1:1 there is no width where
+       the design is merely *a bit* larger, only where it is a lot.
+
+       So the slope is now sub-proportional — type grows more slowly than the
+       viewport — and the ceiling comes down from 2560 to 2240. Three response
+       rates, because they are answering to different things:
+
+         ~0.85  display type (header, quote, num, slider). Nearly proportional,
+                because these are composed into the frame — the hero lines are
+                `w-fit` and drawn to span it, and damping them hard would leave
+                visible slack at the right-hand edge.
+         ~0.45  reading type (main, main-body, main-sub, main-circle). Damped
+                hardest, because these are read rather than composed, and their
+                growth is most of what made wide viewports feel blown up.
+         ~0.35  UI type (main-section). Labels and eyebrows want to stay small.
+
+       The floor stays at 1024. It looked too low before, but that was the slope
+       collapsing at the bottom of the range rather than the number being wrong:
+       at the damped rate 1024 now gives 17px body copy instead of 13.5px, and
+       keeping it there avoids a dead band between 1024 and 1280 where the layout
+       keeps shrinking but the type has stopped — which is what causes overflow
+       in tight spots.
+
+       To retune: pick the size at 1512 and the rate, and regenerate. Do not edit
+       one endpoint on its own; the intercept has to move with it or the anchor
+       drifts off the drawn design.
+
+       And note which knob does what, because they are not interchangeable. The
+       *ceiling* buys headroom for free — pushing it out lifts the top of the
+       range and leaves everything below 1920 where it was, to within a fraction
+       of a pixel. The *rate* does not: the line is pinned at 1512, so steepening
+       it to gain size at the top takes the same size off the bottom. Going from
+       0.45 to 0.6 on the reading rate would add ~0.8px at 1920 and cost ~0.9px at
+       1024. If the design wants to be bigger everywhere, that is a third thing
+       again — raise the size at 1512, which means redrawing the frame.  */
+    --text-main: clamp(1.7102rem, 1.1021rem + 0.9502vw, 2.4323rem);
+    /* 55px @1512 — the lead line that opens a band of copy: the services-page
+       pull-quote and the "Vous souhaitez créer un changement" block on Home.
+       Bigger than `main` but still read rather than composed, so it takes the
+       same ~0.45 reading rate. */
+    --text-main-lead: clamp(2.9382rem, 1.8906rem + 1.6371vw, 4.1826rem);
+    --text-main-body: clamp(0.875rem, 0.0179rem + 1.3393vw, 1.625rem);
+    --text-quote: clamp(3.625rem, 0.7398rem + 4.5082vw, 7.0512rem);
+    --text-main-header: clamp(4.9844rem, 1.0172rem + 6.1987vw, 9.6954rem);
+    --text-main-section: clamp(0.9099rem, 0.6684rem + 0.3773vw, 1.1967rem);
+    /* The labels inside the About page's three circles. Sized against the circles
+       rather than against the page: a circle is five twelfths of the content
+       width, and its neighbours cut into it from both sides, leaving only the
+       middle 0.4·D + 1.4·G clear for type. This scale holds the longest label
+       ("Confiance") inside that band with room to spare.
+
+       It takes the reading rate above, but its ceiling is 49px rather than the
+       ~52px that rate would reach at 1920 — the circles themselves stop growing
+       around a 1600px viewport, capped by the section's height and by a flat
+       maximum, and 49px is the largest size the resulting diameter still holds
+       clear of the yellow overlaps. About.astro caps it a second time against the
+       actual diameter, which is what catches the other case: a short viewport
+       making the circles smaller than the width alone would. */
+    --text-main-circle: clamp(2.3281rem, 0.0003rem + 3.6373vw, 4.365rem);
+    --text-main-num: clamp(2.7188rem, 0.5548rem + 3.3811vw, 5.2884rem);
+    --text-main-sub: clamp(1.8705rem, 1.2054rem + 1.0393vw, 2.6604rem);
+    --text-main-slider: clamp(6.1172rem, 1.2483rem + 7.6076vw, 11.8989rem);
+
+    --spacing-main-5: clamp(0.1875rem, 0.6042rem + -0.2604vw, 0.4375rem);
+    --spacing-main-10: clamp(0.4375rem, 0.0208rem + 0.651vw, 1.0625rem);
+    --spacing-main-12: clamp(0.5rem, -0.1667rem + 1.0417vw, 1.5rem);
+    --spacing-main-20: clamp(0.875rem, 0.0417rem + 1.3021vw, 2.125rem);
+    --spacing-main-40: clamp(1.6875rem, -0.0208rem + 2.6693vw, 4.25rem);
+    --spacing-main-59: clamp(2.4375rem, 0.0625rem + 3.7109vw, 6rem);
+    --spacing-main-60: clamp(2.5625rem, 0.0208rem + 3.9714vw, 6.375rem);
+    --spacing-main-80: clamp(3.375rem, 0rem + 5.2734vw, 8.4375rem);
+    --spacing-main-100: clamp(4.125rem, 0.0417rem + 6.3802vw, 10.25rem);
+    --spacing-main-160: clamp(6.7725rem, -3.4095rem + 15.9094vw, 16.875rem);
+    --spacing-main-270: clamp(10.1875rem, 0.0625rem + 15.8203vw, 25.375rem);
+    --spacing-main-213: clamp(9rem, 0rem + 14.0625vw, 22.5rem);
+
+    --spacing-main-logo: clamp(1.25rem, -0.0417rem + 2.0182vw, 3.1875rem);
+
+    /* Top of the page → bottom edge of the fixed navbar: its `top-main-40`
+       offset, its `py-main-5` padding (×2) and the logo, which is the bar's
+       tallest child at every viewport width. Use it to clear the navbar —
+       `pt-nav-bottom`, `mt-nav-bottom`, `top-nav-bottom`, `h-nav-bottom`. */
+    --spacing-nav-bottom: calc(
+        var(--spacing-main-40) + (2 * var(--spacing-main-5)) + var(--spacing-main-logo)
+    );
+
+    /* Type scale */
+    --text-heading-xl2: clamp(3.875rem, 3.2857rem + 2.9464vw, 8rem);
+    --text-heading-xl: clamp(3.75rem, 3.2143rem + 2.6786vw, 7.5rem);
+    --text-heading-lg: clamp(2.5rem, 2.0179rem + 2.4107vw, 5.875rem);
+
+    --text-body-sm: clamp(0.75rem, 0.5833rem + 0.5556vw, 1.25rem);
+    --text-body-caption: clamp(0.875rem, 0.75rem + 0.4167vw, 1.25rem);
+    --text-body-md: clamp(1.375rem, 1.1549rem + 0.7042vw, 2rem);
+    --text-body-lg: clamp(2rem, 1.9286rem + 0.3571vw, 2.5rem);
+    --text-circles-text: clamp(1.375rem, 0.7411rem + 3.1696vw, 5.8125rem);
+    --text-test: clamp(0.875rem, 0.5714rem + 1.5179vw, 3rem);
+    --text-list-lg: clamp(2.1875rem, 1.7708rem + 1.3889vw, 3.4375rem);
+    --text-list-num: clamp(1.7813rem, 1.1851rem + 2.9806vw, 4.7619rem);
+    --text-header-two: clamp(1.5rem, 1.2708rem + 0.7639vw, 2.1875rem);
+    --text-button: clamp(0.875rem, 0.8571rem + 0.0893vw, 1rem);
+    --text-nav: clamp(0.875rem, 0.8571rem + 0.0893vw, 1rem);
+    --text-header-service2: clamp(2.7481rem, 1.6518rem + 5.9819vw, 8.73rem);
+    --text-header-service: clamp(2.5444rem, 1.4866rem + 5.7888vw, 8.3331rem);
+    --text-footer-header: clamp(3.5rem, 3.1071rem + 1.9643vw, 6.25rem);
+    /* Mobile type. Authored against the 393px Figma frames and scaled 320→800px,
+       so each value below is quoted at the width it was drawn at. */
+    --text-mob-section: clamp(0.7125rem, -0.0208rem + 3.6667vw, 1.125rem);
+    /* 54px @393 — hero + section titles, the Formula Condensed display size.
+       Pure vw so the three-line hero keeps filling the frame edge to edge. */
+    --text-mob-display: clamp(2.75rem, 0rem + 13.75vw, 6.875rem);
+    /* 24px @393 — sub-headings ("Notre engagement", menu sub-links, Ron's role). */
+    --text-mob-sub: clamp(1.375rem, 0.9583rem + 2.0833vw, 2rem);
+    --text-mob-body: clamp(1.375rem, 1.1667rem + 0.6944vw, 2rem);
+    --text-mob-nav: clamp(1.7813rem, -0.0312rem + 9.0625vw, 4rem);
+    --text-mob-nav-sm: clamp(1.2213rem, 0.0354rem + 5.9292vw, 2.5rem);
+    --text-mob-md: clamp(1.7813rem, 0.0001rem + 8.9056vw, 2.7831rem);
+    --text-mob-caption: clamp(0.875rem, 0.75rem + 0.4167vw, 1.25rem);
+    --text-slider-caption: clamp(0.75rem, 0.5833rem + 0.5556vw, 1.25rem);
+    --text-button-mob: clamp(0.855rem, 0.1528rem + 3.5111vw, 1rem);
+    --text-mob-footer: clamp(1.7813rem, 0.0001rem + 8.9056vw, 2.7831rem);
+    --text-mob-footer-nav: clamp(0.6875rem, -0.0903rem + 3.8889vw, 1.125rem);
+    --text-mob-circles: clamp(1.25rem, 0.1389rem + 5.5556vw, 1.875rem);
+
+    /* Colors */
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-perle: #e1e3d0;
+    --color-bronze: #a29277;
+    --color-yellow: #f4e727;
+    --color-offwhite: #ededed;
+
+    /* =========================================================================
+       Spacing — mobile
+
+       Flat rem, not clamp(): each token is exactly the pixel value it is named
+       for, at every width below `md`. These were fluid, scaled 320→800px, which
+       meant the drawn 393px frame was the only width that got the spacing as
+       designed — everything else read as a proportional enlargement of it, and
+       the numbers in the frames stopped being the numbers on the screen.
+
+       Two consequences worth knowing. Padding no longer grows toward the 810px
+       breakpoint, so a wide phone or a small tablet gets 393px margins on a much
+       wider page; and mobile *type* is still fluid, so the ratio of type to
+       space now moves with the viewport instead of holding. Below ~500px, where
+       nearly all the traffic is, both are close to what they were.
+       ====================================================================== */
+    --spacing-mob-menu: 1.9425rem;
+    --spacing-mob-8: 0.5rem;
+    --spacing-mob-16: 1rem;
+    --spacing-mob-32: 2rem;
+    --spacing-mob-64: 4rem;
+    --spacing-mob-128: 8rem;
+    --spacing-mob-footer: clamp(17.1875rem, -1.1458rem + 91.6667vw, 27.5rem);
+
+    /* The mobile frames put every image and most body copy in a 267px column
+       centred in the 393px frame — 63px of air each side. */
+    --spacing-mob-inset: 3.9375rem;
+
+    /* The same 267px column, but measured from inside a parent that is already
+       held off the screen edge by `mob-16` — which is most of them, since the
+       frames put a 16px page margin on the section and the 63px inset on the
+       content within it. Reaching for `mob-inset` there stacks the two and the
+       column comes out 16px narrow on each side. 63 − 16 = 47px. */
+    --spacing-mob-inset-inner: 2.9375rem;
+
+    /* Spacing — fluid */
+    --spacing-fluid-twenty: clamp(0.625rem, 0.4196rem + 1.0268vw, 2.0625rem);
+    --spacing-fluid-thirty: clamp(1.5625rem, 1.4286rem + 0.6696vw, 2.5rem);
+    --spacing-fluid-forty: clamp(1.3125rem, 0.0057rem + 2.6136vw, 4.1875rem);
+    --spacing-fluid-sixty: clamp(1.25rem, 0.5357rem + 3.5714vw, 6.25rem);
+    --spacing-fluid-eighty: clamp(1.5625rem, 0.6696rem + 4.4643vw, 7.8125rem);
+    --spacing-fluid-160: clamp(2rem, -0.0714rem + 10.3571vw, 16.5rem);
+    --spacing-fluid-270: clamp(3.375rem, -0.1071rem + 17.4107vw, 27.75rem);
+    --spacing-fluid-nav: clamp(0.3125rem, 0.2679rem + 0.2232vw, 0.625rem);
+    --spacing-fluid-xs: clamp(0.5rem, 0.4821rem + 0.0893vw, 0.625rem);
+    --spacing-fluid-sm: clamp(1rem, 0.9286rem + 0.3571vw, 1.5rem);
+    --spacing-fluid-md: clamp(1.5rem, 1.4286rem + 0.3571vw, 2rem);
+    --spacing-fluid-lg: clamp(2rem, 1.9286rem + 0.3571vw, 2.5rem);
+    --spacing-fluid-xl: clamp(2.5rem, 2.3571rem + 0.7143vw, 3.5rem);
+    --spacing-fluid-2xl: clamp(3.5rem, 3.2857rem + 1.0714vw, 5rem);
+    --spacing-fluid-3xl: clamp(5rem, 4.5714rem + 2.1429vw, 8rem);
+    --spacing-fluid-4xl: clamp(8rem, 7.7143rem + 1.4286vw, 10rem);
+    --spacing-fluid-5xl: clamp(2.0625rem, -0.0536rem + 10.5804vw, 16.875rem);
+
+    /* Spacing — buttons + units */
+    --spacing-button-vert: 0.6rem;
+    --spacing-button-hor: 2.5rem;
+    --spacing-button-vert-mob: 0.6rem;
+    --spacing-button-hor-mob: 2.5rem;
+    --spacing-unit-sm: var(--unit-sm);
+    --spacing-unit-md: var(--unit-md);
+    --spacing-gutter: clamp(1rem, 0.4961rem + 0.7874vw, 1.5rem);
+
+    /* Breakpoints */
+    --breakpoint-2xs: 340px;
+    --breakpoint-xs: 500px;
+    --breakpoint-sm: 700px;
+    --breakpoint-md: 810px;
+    --breakpoint-lg: 1100px;
+    --breakpoint-xl: 1400px;
+    --breakpoint-2xl: 1600px;
+    --breakpoint-3xl: 1800px;
+    --breakpoint-4xl: 2000px;
+    --breakpoint-5xl: 2400px;
+
+    /* Transitions */
+    --transition-duration-fast: 0.2s;
+    --transition-duration: 0.4s;
+    --transition-duration-slow: 0.6s;
+    --transition-duration-slower: 0.8s;
+    --transition-duration-slowest: 1s;
+
+    --ease-power3-out: cubic-bezier(0.165, 0.84, 0.44, 1);
+    --ease-smooth: cubic-bezier(0.38, 0, 0.215, 1);
+    --ease: var(--ease-smooth);
+}
+
+/* =============================================================================
+   Custom utilities
+   ========================================================================== */
+@utility container {
+    @apply mx-auto w-full px-unit-md;
+    @apply max-w-none;
+}
+
+@utility heading-xl {
+    font-size: var(--text-heading-xl);
+}
+
+@utility heading-lg {
+    font-size: var(--text-heading-lg);
+    font-style: normal;
+    line-height: 1;
+}
+
+/* =============================================================================
+   Button component
+   ========================================================================== */
+@layer components {
+    :root {
+        --button-radius: 0px;
+        --button-color: var(--color-black);
+        --button-background: var(--color-yellow);
+        --button-stroke-color: transparent;
+        --button-color-hover: var(--color-white);
+    }
+
+    .c-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        text-transform: uppercase;
+        color: var(--button-color);
+        border-radius: var(--button-radius);
+        background-color: var(--button-background);
+        border: 1px solid var(--button-stroke-color);
+        transition: background-color var(--transition-duration) var(--ease);
+        @apply hover:bg-black hover:text-(--button-color-hover);
+    }
+}
+
+/* =============================================================================
+   Base + global styles
+   ========================================================================== */
+html {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    scrollbar-gutter: stable;
+}
+
+body {
+    background: var(--color-white);
+    color: var(--color-black);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    width: 100%;
+}
+
+::selection {
+    background-color: var(--color-yellow);
+    color: var(--color-black);
+    text-shadow: none;
+}
+
+/* Hover underline link */
+.hover-underline {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+}
+.hover-underline::before {
+    background-color: currentColor;
+    bottom: 0;
+    content: '';
+    height: max(1px, 0.04em);
+    left: 0;
+    position: absolute;
+    transform: scaleX(0);
+    transform-origin: 100% 0;
+    transition: transform var(--transition-duration) var(--ease-power3-out);
+    width: 100%;
+}
+.hover-underline.is-active::before {
+    transform: scaleX(1);
+    transform-origin: 0 0;
+}
+@media (hover: hover) {
+    .hover-parent:hover .hover-underline::before,
+    .hover-underline:hover::before {
+        transform: scaleX(1);
+        transform-origin: 0 0;
+    }
+}
+
+/* Desktop / mobile visibility toggle, for the sections whose two layouts are
+   different enough to be worth writing twice rather than restacking one tree.
+
+   The cut has to land on exactly the same pixel as Tailwind's `md:`, which is
+   min-width 810px — hence 809.98/810 rather than the 810/811 pair this started
+   as. That older pair left 810px itself reading as mobile here while every
+   `md:` utility on the page had already switched to desktop. */
+@media (max-width: 809.98px) {
+    .desktop-version {
+        display: none;
+    }
+}
+@media (min-width: 810px) {
+    .mob-version {
+        display: none;
+    }
+}
+
+/* =============================================================================
+   Page transitions (Astro View Transitions)
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+        animation: page-out 1.2s cubic-bezier(0.83, 0, 0.17, 1) both;
+    }
+    ::view-transition-new(root) {
+        animation: page-in 1.2s cubic-bezier(0.83, 0, 0.17, 1) both;
+    }
+}
+
+@keyframes page-out {
+}
+@keyframes page-in {
+    from {
+        clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+    }
+    to {
+        clip-path: polygon(0% 100%, 100% 100%, 100% 0%, 0% 0%);
+    }
+}

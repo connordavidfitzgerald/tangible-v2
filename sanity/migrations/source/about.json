@@ -1,0 +1,58 @@
+{
+    "fr": {
+        "heroSectionLabel": "Mission",
+        "heroLine1": "Faites émerger la ",
+        "heroLine2": "la pleine puissance",
+        "heroLine3": "de votre équipe !",
+        "introParagraph1": "élève le niveau de leadership des entrepreneurs et des équipes exécutives. Notre approche intégrée allie coaching sur mesure, outils interactifs et expériences immersives. Fondée sur une approche agile, Tangible crée un espace où vous trouverez les ressources pour apporter des changements durables et porteurs de sens afin de maximiser le potentiel de votre entreprise.",
+        "introParagraph2": "Notre approche active les ressources individuelles et collectives pour naviguer la complexité du monde du travail avec clarté et agilité.",
+        "approachSectionLabel": "Notre approche",
+        "circleLabel1": "Confiace",
+        "circleLabel2": "Clarté",
+        "circleLabel3": "Synergie",
+        "approachBody": "Un leadership solide repose sur la clarté, la connaissance de soi et une collaboration efficace. Il permet aux individus et aux équipes de mieux communiquer, prendre des décisions éclairées et avoir un impact concret au sein de leur organisation.",
+        "visionSectionLabel": "Vision",
+        "visionQuote": "Le leadership authentique s'enracine dans la clarté, la conscience de soi et la responsabilité partagée. Il fait émerger des personnes et des collectifs cohérents, impactants et profondément humains.",
+        "promiseSectionLabel": "Notre promesse",
+        "promiseIntro": "Chez Tangible, on s'engage à",
+        "promiseItems": [
+            "Offrir un accompagnement adapté aux réalités et aux objectifs de chaque client.",
+            "Développer des outils et des stratégies applicables dans le quotidien professionnel.",
+            "Favoriser une communication claire et une collaboration efficace au sein des équipes.",
+            "Créer des environnements propices à la réflexion, à l’apprentissage et à l’évolution.",
+            "Générer des résultats concrets, mesurables et durables."
+        ],
+        "ronName": "Ron Cherilus",
+        "ronTitle": "Fondateur de Tangible\net du Centre I AM",
+        "ronBio": "Coach de direction et fondateur du Centre I AM à Montréal en 2012, Ron Chérilus lance en 2025 Tangible, un collectif d'experts en accompagnement stratégique et humain au service des entreprises et des organisations.\n\nTangible est un réseau de professionnel·les trié·es sur le volet : coachs, experts en leadership, en stratégie et en intelligence émotionnelle réuni·es pour créer les conditions d'une transformation réelle, concrète et durable.\n\nFort de plus de 15 ans d'expérience, Ron conçoit, structure et facilite des espaces de réflexion et de décision à fort impact, où les personnes, les enjeux et les choix s'alignent. Il accompagne dirigeant·es, entrepreneur·es et équipes dans des moments clés de leur trajectoire : croissance, transformation, repositionnement ou prises de décisions majeures.\n\nCertifié par plusieurs programmes de pointe en développement du leadership (GLP, LCP, MPO), il allie clarté stratégique et travail intérieur profond. Créateur de la méthode I AM, il soutient l'émergence d'un leadership incarné, conscient et humain, au service de décisions tangibles, alignées et pérennes.",
+        "contactFooterHeading": "Initiez un changement concret."
+    },
+    "en": {
+        "heroSectionLabel": "Mission",
+        "heroLine1": "Unlock the full",
+        "heroLine2": "potential",
+        "heroLine3": "of your team!",
+        "introParagraph1": "helps entrepreneurs and executive teams strengthen their leadership capacity through a practical and integrated approach. Combining tailored coaching, interactive tools, and immersive experiences, Tangible provides the support and resources needed to drive meaningful, lasting change and maximize organizational potential.",
+        "introParagraph2": "Our approach activates individual and collective resources to navigate the complexity of today's work world with clarity and agility.",
+        "approachSectionLabel": "Our Approach",
+        "circleLabel1": "Trust",
+        "circleLabel2": "Clarity",
+        "circleLabel3": "Synergy",
+        "approachBody": "Inspired by Ron Cherilus's I AM method, Tangible deploys three key stages in each of its programs: vertical alignment, strategic direction, and evolutionary integration. A fluid process to reconnect with your intention, make sound decisions, and evolve your leadership with depth.",
+        "visionSectionLabel": "Vision",
+        "visionQuote": "Strong leadership is built on clarity, self-awareness, and effective collaboration. It enables individuals and teams to communicate more effectively, make informed decisions, and create meaningful impact within their organization.",
+        "promiseSectionLabel": "Our Promise",
+        "promiseIntro": "At Tangible, we commit to",
+        "promiseItems": [
+            "Provide support tailored to each client’s realities and objectives.",
+            "Develop practical tools and strategies that can be applied in everyday professional settings.",
+            "Foster clear communication and effective collaboration within teams.",
+            "Create environments that encourage reflection, learning, and growth.",
+            "Deliver concrete, measurable, and lasting results."
+        ],
+        "ronName": "Ron Cherilus",
+        "ronTitle": "Founder of Tangible\nand the I AM Centre",
+        "ronBio": "Executive coach and founder of the I AM Centre in Montreal in 2012, Ron Chérilus launched Tangible in 2025 — a collective of experts in strategic and human accompaniment serving businesses and organizations.\n\nTangible is a carefully curated network of professionals: coaches, leadership experts, strategists, and emotional intelligence specialists united to create the conditions for real, concrete, and lasting transformation.\n\nWith over 15 years of experience, Ron designs, structures, and facilitates high-impact spaces for reflection and decision-making, where people, challenges, and choices align. He accompanies executives, entrepreneurs, and teams at key moments in their trajectories: growth, transformation, repositioning, or major decisions.\n\nCertified by multiple leading leadership development programs (GLP, LCP, MPO), he combines strategic clarity with deep inner work. Creator of the I AM method, he supports the emergence of an embodied, conscious, and human leadership — in service of tangible, aligned, and lasting decisions.",
+        "contactFooterHeading": "Initiate a concrete change."
+    }
+}

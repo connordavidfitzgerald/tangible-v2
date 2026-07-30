@@ -1,0 +1,10 @@
+---
+import Leaders from '@components/pages/Leaders.astro';
+import { getServicesLeaders } from '@lib/sanity/queries';
+import { getLocale } from '@lib/i18n/utils';
+
+const data = await getServicesLeaders();
+const locale = getLocale(Astro.url);
+---
+
+<Leaders {data} {locale} />

@@ -1,0 +1,110 @@
+---
+interface Props {
+    lines: {
+        text: string;
+        font: string;
+    }[];
+    color?: string;
+    textColor?: string;
+    delay?: number;
+}
+
+const { lines, color = '#F4E727', textColor = '#000000', delay = 0 } = Astro.props;
+const id = `reveal-${Math.random().toString(36).slice(2, 7)}`;
+const fontMap: Record<string, string> = {
+    radio: 'font-sans',
+    formula: 'font-formula',
+    editorial: 'font-editorial'
+};
+---
+
+<reveal-header class="trigger relative block" id={id} data-color={color} data-delay={delay}>
+    <div class="flex flex-col gap-0">
+        {
+            lines.map(({ text, font }) => (
+                <div class="line-wrapper relative h-fit w-fit overflow-hidden -mb-4 pb-4 pt-4 -mt-4">
+                    <h1
+                        class={`font-formula text-mob-display md:text-main-header h-fit w-fit leading-[110%] tracking-[0.02em] uppercase`}
+                        style={`color: ${textColor}`}
+                    >
+                        {text}
+                    </h1>
+                </div>
+            ))
+        }
+    </div>
+</reveal-header>
+
+<script>
+    import gsap from 'gsap';
+    import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    class RevealHeader extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+
+        connectedCallback() {
+            this.ctx = gsap.context(() => {
+                const color = this.dataset.color || '#F4E727';
+                const wrappers = this.querySelectorAll('.line-wrapper');
+
+                wrappers.forEach((wrapper) => {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('reveal-bar');
+                    Object.assign(overlay.style, {
+                        position: 'absolute',
+                        height: '101%',
+                        width: '101%',
+                        inset: '0',
+                        background: color,
+                        transform: 'scaleX(0)',
+                        transformOrigin: 'left center',
+                        zIndex: '1'
+                    });
+                    wrapper.appendChild(overlay);
+                    const h1 = wrapper.querySelector('h1');
+                    if (h1) {
+                        gsap.set(h1, { opacity: 0 });
+                    }
+                });
+
+                const delay = parseFloat(this.dataset.delay || '0');
+
+                const tl = gsap.timeline({
+                    defaults: { ease: 'power3.inOut' },
+                    delay,
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top 95%',
+                        once: true
+                    }
+                });
+
+                wrappers.forEach((wrapper, i) => {
+                    const h1 = wrapper.querySelector('h1');
+                    const bar = wrapper.querySelector('.reveal-bar');
+                    const offset = i * 0.1;
+
+                    tl.to(bar, { scaleX: 1, duration: 0.7 }, offset)
+                        .set(h1, { opacity: 1 }, offset + 0.7)
+                        .to(
+                            bar,
+                            { scaleX: 0, transformOrigin: 'right center', duration: 0.6 },
+                            offset + 0.7
+                        );
+                });
+
+                ScrollTrigger.refresh();
+            }, this);
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('reveal-header')) {
+        customElements.define('reveal-header', RevealHeader);
+    }
+</script>

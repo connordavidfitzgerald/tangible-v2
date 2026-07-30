@@ -1,0 +1,275 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getLocale, localizedPath, otherLocale } from '@lib/i18n/utils';
+import { pick, type I18nField } from '@lib/sanity/i18n';
+
+interface Props {
+    settings: Record<string, I18nField | string> | null;
+}
+
+const { settings } = Astro.props;
+const locale = getLocale(Astro.url);
+const other = otherLocale(locale);
+const path = Astro.url.pathname;
+
+const t = (key: string) => pick(settings?.[key] as I18nField, locale);
+const membersUrl = (settings?.membersUrl as string) || '#';
+const bookingUrl = (settings?.bookingUrl as string) || '#';
+
+const links = [
+    { label: t('navAbout'), href: localizedPath('/about', locale) },
+    { label: t('navPrograms'), href: localizedPath('/services', locale) },
+    { label: t('navMembers'), href: membersUrl, external: true },
+    { label: t('navContact'), href: localizedPath('/contact', locale) },
+    { label: t('navIam'), href: localizedPath('/centre-iam', locale) }
+];
+
+/**
+ * The mobile menu is its own running order, not the desktop bar restacked: it
+ * hangs the two service pages under "Nos services" as indented sub-links and
+ * ends on the booking CTA, then the language toggle. Matches MOB-Header_Menu.
+ */
+const menuLinks = [
+    { label: t('navAbout'), href: localizedPath('/about', locale) },
+    {
+        label: t('navPrograms'),
+        href: localizedPath('/services', locale),
+        children: [
+            {
+                label: locale === 'en' ? 'Corporate services' : 'Services aux entreprises',
+                href: localizedPath('/services/entreprises', locale)
+            },
+            {
+                label: locale === 'en' ? 'Individual services' : 'Services aux individus',
+                href: localizedPath('/services/leaders', locale)
+            }
+        ]
+    },
+    { label: t('navIam'), href: localizedPath('/centre-iam', locale) },
+    { label: t('navMembers'), href: membersUrl, external: true },
+    { label: t('navContact'), href: localizedPath('/contact', locale) },
+    { label: t('navBook'), href: bookingUrl, external: true }
+];
+---
+
+<nav-bar style="display: contents;">
+    <!-- `top-16` is the 64px the mobile frames float the bar below the top edge;
+         the desktop offset takes over at `md`. -->
+    <div
+        id="navbar"
+        class="fixed top-16 z-50 flex h-fit w-full flex-row items-center justify-between bg-yellow px-mob-16 py-[0.3125rem] md:top-main-40 md:px-main-40 md:py-main-5"
+    >
+        <a href={localizedPath('/', locale)} class="relative z-10">
+            <Icon name="logo" class="h-[1.875rem] w-auto md:h-main-logo" />
+        </a>
+
+        <!-- Desktop nav items -->
+        <div
+            class="desktop-nav flex flex-row items-center gap-main-40 font-sans text-main-section tracking-[2%] uppercase"
+        >
+            {
+                links.map((link) => (
+                    <a
+                        class="hover-underline"
+                        href={link.href}
+                        target={link.external ? '_blank' : undefined}
+                    >
+                        {link.label}
+                    </a>
+                ))
+            }
+        </div>
+        <div
+            class="desktop-nav flex flex-row items-center gap-main-40 font-sans text-main-section tracking-[2%] uppercase"
+        >
+            <a href={localizedPath(path, other)} class="hover-underline">{other.toUpperCase()}</a>
+            <a class="hover-underline" href={bookingUrl} target="_blank">{t('navBook')}</a>
+        </div>
+
+        <!-- Hamburger button (mobile only) -->
+        <button id="hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="false">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </div>
+
+    <!-- Mobile menu overlay. Sits under the bar rather than replacing it, so the
+         logo and burger never move as it opens. -->
+    <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+        <nav class="mobile-nav gap-0 px-mob-16 pt-mob-64 pb-mob-32">
+            {
+                menuLinks.map((link) => (
+                    <div class="flex w-full flex-col gap-[0.625rem] border-t border-white">
+                        <a
+                            href={link.href}
+                            target={link.external ? '_blank' : undefined}
+                            class:list={[
+                                'w-full px-mob-inset pt-mob-32 text-mob-md leading-[1.2]',
+                                /* The sub-links sit tight under their parent, so
+                                    that space is the wrapper's gap alone — the
+                                   link gives up its own bottom padding or the
+                                   two would stack. Items without children keep
+                                   the full 32px, and the gap does nothing to
+                                   them. */
+                                link.children ? 'pb-0' : 'pb-mob-32'
+                            ]}
+                        >
+                            {link.label}
+                        </a>
+                        {link.children && (
+                            <div class="flex flex-col gap-mob-16 pb-mob-32 pl-[calc(var(--spacing-mob-inset)+var(--spacing-mob-32))]">
+                                {link.children.map((child) => (
+                                    <a href={child.href} class="text-mob-sub leading-[120%]">
+                                        {child.label}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))
+            }
+            <a
+                href={localizedPath(path, other)}
+                class="w-full px-mob-inset pt-mob-32 text-mob-sub leading-[120%] uppercase"
+                >{other.toUpperCase()}</a
+            >
+        </nav>
+    </div>
+</nav-bar>
+
+<style>
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        width: 30px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        position: relative;
+        z-index: 200;
+    }
+
+    .bar {
+        display: block;
+        width: 30px;
+        height: 1px;
+        background-color: black;
+        transition:
+            transform 0.35s cubic-bezier(0.77, 0, 0.175, 1),
+            opacity 0.25s ease;
+        transform-origin: center;
+    }
+
+    .hamburger.is-open .bar:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+    }
+    .hamburger.is-open .bar:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+    .hamburger.is-open .bar:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+    }
+
+    .mobile-menu {
+        position: fixed;
+        inset: 0;
+        background-color: var(--color-yellow);
+        z-index: 40;
+        display: flex;
+        align-items: start;
+        justify-content: start;
+        /* Clears the bar: it floats 64px down and is 40px tall, so nothing can
+           start above 104px. The nav's own `pt-mob-64` opens the gap below it. */
+        padding-top: 6.5rem;
+        overflow-x: hidden;
+        overflow-y: auto;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-8px);
+        transition:
+            opacity 0.35s cubic-bezier(0.77, 0, 0.175, 1),
+            transform 0.35s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    .mobile-menu.is-open {
+        opacity: 1;
+        pointer-events: all;
+        transform: translateY(0);
+    }
+
+    .mobile-nav {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        align-items: start;
+    }
+
+    .mobile-nav a {
+        font-family: var(--font-sans, sans-serif);
+        letter-spacing: 0%;
+        line-height: 105%;
+        color: black;
+        text-decoration: none;
+        position: relative;
+    }
+
+    /* Deliberately *not* the 810px the rest of the site switches at: the bar
+       carries seven links plus the language toggle, and they crowd well before
+       the layout does. The nav is the one thing allowed its own threshold. */
+    @media (max-width: 1024px) {
+        .desktop-nav {
+            display: none;
+        }
+        .hamburger {
+            display: flex;
+        }
+    }
+</style>
+
+<script>
+    class NavBar extends HTMLElement {
+        connectedCallback() {
+            const hamburger = this.querySelector('#hamburger');
+            const mobileMenu = this.querySelector('#mobile-menu');
+
+            if (!hamburger || !mobileMenu) return;
+
+            mobileMenu.addEventListener(
+                'wheel',
+                (e) => {
+                    e.preventDefault();
+                    mobileMenu.scrollTop += (e as WheelEvent).deltaY;
+                },
+                { passive: false }
+            );
+
+            hamburger.addEventListener('click', () => {
+                const isOpen = hamburger.classList.toggle('is-open');
+                mobileMenu.classList.toggle('is-open', isOpen);
+                hamburger.setAttribute('aria-expanded', String(isOpen));
+                mobileMenu.setAttribute('aria-hidden', String(!isOpen));
+                document.body.style.overflow = isOpen ? 'hidden' : '';
+            });
+
+            mobileMenu.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    hamburger.classList.remove('is-open');
+                    mobileMenu.classList.remove('is-open');
+                    hamburger.setAttribute('aria-expanded', 'false');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = '';
+                });
+            });
+        }
+    }
+
+    if (!customElements.get('nav-bar')) {
+        customElements.define('nav-bar', NavBar);
+    }
+</script>

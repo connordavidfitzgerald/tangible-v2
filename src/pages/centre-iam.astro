@@ -1,0 +1,10 @@
+---
+import CentreIam from '@components/pages/CentreIam.astro';
+import { getCentreIam } from '@lib/sanity/queries';
+import { getLocale } from '@lib/i18n/utils';
+
+const data = await getCentreIam();
+const locale = getLocale(Astro.url);
+---
+
+<CentreIam {data} {locale} />

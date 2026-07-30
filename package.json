@@ -1,0 +1,54 @@
+{
+    "name": "tangible",
+    "type": "module",
+    "version": "1.0.0",
+    "engines": {
+        "node": "22.x"
+    },
+    "scripts": {
+        "dev": "astro dev --host",
+        "start": "astro dev --host",
+        "build": "astro check && astro build",
+        "preview": "astro preview",
+        "astro": "astro",
+        "sanity:typegen": "sanity schema extract --path sanity/extract.json && sanity typegen generate",
+        "content:build": "tsx sanity/migrations/import-content.ts",
+        "format": "prettier --write --ignore-unknown ."
+    },
+    "dependencies": {
+        "@astrojs/check": "^0.9.5",
+        "@astrojs/react": "^4.2.0",
+        "@mux/mux-player": "^3.13.2",
+        "@sanity/astro": "^3.2.5",
+        "@sanity/client": "^6.24.1",
+        "@sanity/image-url": "^1.1.0",
+        "@sanity/vision": "^3.68.3",
+        "astro": "^5.15.5",
+        "astro-icon": "^1.1.5",
+        "astro-integration-lottie": "^0.3.2",
+        "astro-portabletext": "^0.11.0",
+        "astro-seo": "^0.8.4",
+        "groq": "^3.68.3",
+        "gsap": "^3.14.2",
+        "i": "^0.3.7",
+        "lenis": "^1.1.18",
+        "lottie-web": "^5.13.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "sanity": "^3.68.3",
+        "sanity-plugin-internationalized-array": "^3.0.1",
+        "sanity-plugin-mux-input": "^2.19.1",
+        "styled-components": "^6.4.3",
+        "tailwindcss": "^4.1.17",
+        "typescript": "^5.9.3"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.17",
+        "@types/react": "^18.3.12",
+        "@types/react-dom": "^18.3.1",
+        "prettier": "^3.9.6",
+        "prettier-plugin-astro": "^0.14.1",
+        "prettier-plugin-tailwindcss": "^0.7.1",
+        "tsx": "^4.19.2"
+    }
+}

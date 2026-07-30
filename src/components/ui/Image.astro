@@ -1,0 +1,104 @@
+---
+import { Image as AstroImage } from 'astro:assets';
+
+export interface Props {
+    src: any;
+    alt?: string;
+    width?: number;
+    height?: number;
+    tag?: 'div' | 'figure';
+    caption?: string;
+    class?: string;
+    sizes?: string;
+    widths?: number[];
+    loading?: 'eager' | 'lazy';
+}
+
+const {
+    src,
+    alt = '',
+    tag = 'div',
+    width,
+    height,
+    caption,
+    class: propsClass,
+    widths = [720, 1440, 1800],
+    sizes = '(max-width: 720px) 720px, (max-width: 1440px) 1440px, 1800px',
+    loading = 'lazy',
+    ...rest
+} = Astro.props;
+
+const Tag = tag === 'figure' ? 'figure' : 'div';
+const CaptionTag = tag === 'figure' ? 'figcaption' : 'div';
+
+const onLoad = `this.closest('.c-image')?.classList?.add('is-loaded');`;
+
+const classes = [
+    'c-image',
+    width && height && '-cover',
+    loading === 'lazy' && '-lazy-load',
+    propsClass
+];
+---
+
+{
+    src && (
+        <Tag class:list={classes} style={{ '--width': width, '--height': height }} {...rest}>
+            <div class="c-image_inner">
+                <AstroImage
+                    class="c-image_img"
+                    inferSize={typeof src === 'string'}
+                    src={src}
+                    widths={widths}
+                    sizes={sizes}
+                    width={width}
+                    height={height}
+                    alt={alt}
+                    loading={loading}
+                    onload={onLoad}
+                />
+            </div>
+
+            {caption && <CaptionTag class="c-image_caption">{caption}</CaptionTag>}
+        </Tag>
+    )
+}
+
+<style>
+    .c-image_inner {
+        height: 100%;
+
+        .c-image.-lazy-load & {
+            background-color: grey;
+            overflow: hidden;
+        }
+    }
+
+    .c-image_img {
+        width: 100%;
+        /* Resolves to `auto` unless an ancestor has a definite height — so this
+           only bites when the wrapper is given an aspect-ratio / fixed height. */
+        height: 100%;
+        object-fit: cover;
+
+        .c-image.-cover & {
+            object-fit: cover;
+            aspect-ratio: var(--width) / var(--height);
+        }
+
+        &[loading='lazy'] {
+            .c-image.-lazy-load & {
+                opacity: 0;
+                transform: scale(1.1, 1.1);
+                transition:
+                    transform var(--transition-duration-slow) var(--ease),
+                    opacity var(--transition-duration-slow) var(--ease);
+            }
+
+            .c-image.is-loaded & {
+                opacity: 1;
+                transform: scale(1, 1);
+            }
+        }
+    }
+</style>

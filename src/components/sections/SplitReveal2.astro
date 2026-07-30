@@ -1,0 +1,88 @@
+---
+interface Props {
+    tag?: 'h1' | 'h2' | 'h3' | 'p' | 'span';
+    class?: string;
+}
+
+const { tag: Tag = 'p', class: className = '' } = Astro.props;
+---
+
+<split-reveal style="display: contents;">
+    <Tag data-split class={className}>
+        <slot />
+    </Tag>
+</split-reveal>
+
+<style>
+    [data-split] {
+        /* Fix GSAP SplitText character shift bug by disabling kerning */
+        font-kerning: none;
+        text-rendering: optimizeSpeed;
+    }
+</style>
+
+<script>
+    import gsap from 'gsap';
+    import { ScrollTrigger } from 'gsap/ScrollTrigger';
+    import { SplitText } from 'gsap/SplitText';
+
+    gsap.registerPlugin(ScrollTrigger, SplitText);
+
+    class SplitReveal extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+
+        connectedCallback() {
+            const el = this.querySelector('[data-split]');
+            if (!el) return;
+
+            // Wait for custom fonts to load so SplitText calculates the correct metrics
+            // (prevents layout shifting on revert).
+            document.fonts.ready.then(() => {
+                // Defer to the next frame to guarantee that Swup DOM injections
+                // and CSS grid/flex layouts have fully resolved their computed dimensions
+                // before SplitText calculates absolute pixel positions.
+                requestAnimationFrame(() => {
+                    this.ctx = gsap.context(() => {
+                        // Pin the computed line-height before SplitText alters the DOM.
+                        // On real iOS Safari, the inline-block wrappers SplitText creates
+                        // produce a different line-height than the original flow, so when
+                        // revert() removes them the text snaps to a different height.
+                        // Setting it explicitly keeps both states identical.
+
+                        new SplitText(el, {
+                            type: 'words, lines',
+                            mask: 'lines',
+                            autoSplit: true,
+
+                            onSplit(self) {
+                                // Return the animation! This allows autoSplit to properly clean up and manage state when fonts load
+                                gsap.from(self.lines, {
+                                    yPercent: 110,
+                                    duration: 1.2,
+                                    ease: 'power3.out',
+                                    stagger: 0.1,
+                                    scrollTrigger: {
+                                        trigger: el,
+                                        start: 'top 98%',
+                                        once: true
+                                    },
+                                    onComplete: () => self.revert()
+                                });
+                            }
+                        });
+
+                        ScrollTrigger.refresh();
+                    }, this);
+                });
+            });
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('split-reveal')) {
+        customElements.define('split-reveal', SplitReveal);
+    }
+</script>

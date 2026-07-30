@@ -1,0 +1,282 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Picture } from 'astro:assets';
+import RevealHeader from '@components/sections/RevealHeader.astro';
+import SplitReveal from '@components/sections/SplitReveal.astro';
+import Button from '@components/ui/Button.astro';
+
+import building from '@images/AH1A3167.jpg';
+import mob from '@images/building-mob.jpg';
+
+import { pick, type I18nField } from '@lib/sanity/i18n';
+import type { LocaleId } from '@lib/i18n/locales';
+
+interface Props {
+    data: Record<string, I18nField> | null;
+    locale: LocaleId;
+}
+
+const { data, locale } = Astro.props;
+const t = (key: string) => pick(data?.[key], locale);
+
+const heroFonts = ['formula', 'formula', 'editorial', 'editorial'] as const;
+---
+
+<BaseLayout title="Contact">
+    <div
+        class="relative flex aspect-393/852 max-h-dvh flex-col justify-end overflow-hidden bg-offwhite px-mob-16 md:aspect-1512/902 md:px-fluid-forty md:justify-center md:pb-0"
+    >
+        <div class="absolute inset-0 z-0">
+            <Picture
+                alt="A clipboard and paper"
+                src={building}
+                layout="full-width"
+                class="hidden h-full w-full object-cover brightness-75 md:flex"
+            />
+            <Picture
+                alt="A clipboard and paper"
+                src={mob}
+                layout="full-width"
+                class="flex h-full w-full object-cover brightness-75 md:hidden"
+            />
+        </div>
+        <div class="pb-mob-64 md:pb-0">
+            <RevealHeader
+                delay={0.25}
+                textColor="#FFFFFF"
+                lines={[t('heroLine1'), t('heroLine2'), t('heroLine3'), t('heroLine4')]
+                    .filter((text): text is string => Boolean(text))
+                    .map((text, i) => ({ text, font: heroFonts[i] }))}
+            />
+        </div>
+    </div>
+
+    <div
+        class="grid h-fit grid-cols-12 gap-main-12 bg-perle px-mob-16 py-mob-128 md:px-fluid-forty md:pt-fluid-160 md:pb-fluid-160"
+    >
+        <div
+            class="col-span-12 flex h-full flex-col justify-start gap-fluid-eighty md:col-span-8 md:col-start-3"
+        >
+            <div class="flex flex-col gap-mob-32 md:gap-fluid-forty">
+                <SplitReveal
+                    class="w-full text-mob-body leading-[120%] font-bold tracking-[2%] text-bronze md:text-body-md"
+                >
+                    {t('introBold')}
+                </SplitReveal>
+                <div
+                    class="flex flex-col gap-0 text-mob-body leading-[120%] font-light tracking-[2%] md:gap-fluid-forty md:text-body-md"
+                >
+                    <p class="pb-fluid-forty md:pb-0">
+                        {t('introBody')}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="grid grid-cols-12 gap-gutter px-mob-16 py-mob-64 md:px-0 md:py-main-160">
+        <div class="col-span-12 md:col-span-8 md:col-start-3">
+            <div class="text-main leading-[1.2] font-light tracking-[0.02em]">
+                Réservez le Centre I AM
+            </div>
+
+            <form id="contact-form" class="flex flex-col gap-gutter pt-gutter">
+                <input
+                    type="hidden"
+                    name="access_key"
+                    value="3cb859b7-eb03-4988-a1d8-38cf672ee0c8"
+                />
+
+                <div class="flex flex-col gap-0">
+                    <label
+                        for="name"
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Nom
+                    </label>
+                    <input
+                        type="text"
+                        class="w-full border-b border-b-black text-main outline-0"
+                        name="name"
+                        required
+                    />
+                </div>
+
+                <div class="flex flex-col gap-0">
+                    <label
+                        for="email"
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Courriel
+                    </label>
+                    <input
+                        type="email"
+                        class="w-full border-b border-b-black text-main outline-0"
+                        name="email"
+                        required
+                    />
+                </div>
+
+                <div class="flex flex-col gap-0">
+                    <label
+                        for="phone"
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Téléphone
+                    </label>
+                    <input
+                        type="tel"
+                        class="w-full border-b border-b-black text-main outline-0"
+                        name="phone"
+                        required
+                    />
+                </div>
+
+                <div class="flex flex-col gap-0">
+                    <label
+                        for="entreprise"
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Entreprise
+                    </label>
+                    <input
+                        type="text"
+                        class="w-full border-b border-b-black text-main outline-0"
+                        name="entreprise"
+                        required
+                    />
+                </div>
+
+                <div class="flex flex-col gap-0">
+                    <label
+                        for="site"
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Site de l'entreprise
+                    </label>
+                    <input
+                        type="text"
+                        class="w-full border-b border-b-black text-main outline-0"
+                        name="site"
+                        required
+                    />
+                </div>
+
+                <div class="flex flex-col gap-0 border-b border-b-black pb-gutter">
+                    <span
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Nombre d'employé.e.s
+                    </span>
+                    <div class="flex flex-col gap-main-12 pt-main-12">
+                        {
+                            ['0 à 10', '11 à 25', '25 à 100', '100+'].map((option, i) => (
+                                <label
+                                    for={`employes-${i}`}
+                                    class="flex cursor-pointer items-center gap-main-12 font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                                >
+                                    <input
+                                        type="radio"
+                                        id={`employes-${i}`}
+                                        name="employes"
+                                        value={option}
+                                        required
+                                        class="h-[calc(1.2em-4px)] w-[calc(1.2em-4px)] shrink-0 appearance-none rounded-full border border-black bg-transparent outline-0 checked:bg-black"
+                                    />
+                                    {option}
+                                </label>
+                            ))
+                        }
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-0 border-b border-b-black pb-gutter">
+                    <span
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Budget
+                    </span>
+                    <div class="flex flex-col gap-main-12 pt-main-12">
+                        {
+                            [
+                                'Moins de 5 000 $',
+                                '5 000 $ - 15 000 $',
+                                '15 000 $ - 50 000 $',
+                                'Ne sais pas'
+                            ].map((option, i) => (
+                                <label
+                                    for={`budget-${i}`}
+                                    class="flex cursor-pointer items-center gap-main-12 font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                                >
+                                    <input
+                                        type="radio"
+                                        id={`budget-${i}`}
+                                        name="budget"
+                                        value={option}
+                                        required
+                                        class="h-[calc(1.2em-4px)] w-[calc(1.2em-4px)] shrink-0 appearance-none rounded-full border border-black bg-transparent outline-0 checked:bg-black"
+                                    />
+                                    {option}
+                                </label>
+                            ))
+                        }
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-0 border-b border-b-black pb-gutter">
+                    <span
+                        class="block font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                    >
+                        Type d'accompagnement recherché
+                    </span>
+                    <div class="flex flex-col gap-main-12 pt-main-12">
+                        {
+                            [
+                                'Ateliers',
+                                'Expériences immersives',
+                                'Formations/coaching',
+                                'Retraites',
+                                'Autres / Ne sais pas'
+                            ].map((option, i) => (
+                                <label
+                                    for={`accompagnement-${i}`}
+                                    class="flex cursor-pointer items-center gap-main-12 font-radio text-mob-section leading-[1.2] md:text-main-section tracking-[0.02em] uppercase opacity-75"
+                                >
+                                    <input
+                                        type="radio"
+                                        id={`accompagnement-${i}`}
+                                        name="accompagnement"
+                                        value={option}
+                                        required
+                                        class="h-[calc(1.2em-4px)] w-[calc(1.2em-4px)] shrink-0 appearance-none rounded-full border border-black bg-transparent outline-0 checked:bg-black"
+                                    />
+                                    {option}
+                                </label>
+                            ))
+                        }
+                    </div>
+                </div>
+
+                <label
+                    for="consultation"
+                    class="w-full cursor-pointer text-main-body leading-[1.2] font-light tracking-[0.02em]"
+                >
+                    <div class="flex h-full w-full items-center gap-gutter">
+                        <input
+                            type="checkbox"
+                            id="consultation"
+                            name="consultation"
+                            value="Oui"
+                            required
+                            class="h-[calc(1.2em-9px)] w-[calc(1.2em-9px)] appearance-none border border-black bg-transparent outline-0 checked:bg-black"
+                        />
+                        Je souhaite réserver une consultation gratuite avec un·e coach de Tangible.
+                    </div>
+                </label>
+
+                <div class="flex flex-row justify-center pt-main-60">
+                    <Button id="submit-btn" type="submit">Soumettre</Button>
+                </div>
+            </form>
+        </div>
+    </div>
+</BaseLayout>

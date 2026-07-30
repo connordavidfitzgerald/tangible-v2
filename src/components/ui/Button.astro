@@ -1,0 +1,133 @@
+---
+interface Props {
+    href?: string;
+    id?: string;
+    type?: 'button' | 'submit';
+    target?: '_blank' | '_self';
+    class?: string;
+    tabIndex?: string;
+    isStatic?: boolean;
+    ariaHidden?: boolean;
+}
+
+const {
+    href,
+    type,
+    target = '_self',
+    class: propsClass,
+    tabIndex,
+    isStatic = false,
+    ariaHidden = false,
+    ...rest
+} = Astro.props;
+
+const Tag = isStatic ? 'div' : href ? 'a' : 'button';
+const computedRel = target === '_blank' ? 'noopener noreferrer' : undefined;
+const computedHref = Tag === 'a' ? href : undefined;
+const computedType = Tag === 'button' ? type || 'button' : undefined;
+const computedTabIndex = tabIndex ?? undefined;
+const computedTarget = Tag === 'a' ? target : undefined;
+const computedAriaHidden = ariaHidden ? 'true' : undefined;
+---
+
+<button-hover style="display: contents;">
+    <Tag
+        class:list={['c-button', propsClass]}
+        href={computedHref}
+        rel={computedRel}
+        type={computedType}
+        target={computedTarget}
+        tabindex={computedTabIndex}
+        aria-hidden={computedAriaHidden}
+        {...rest}
+    >
+        <span
+            class="c-button_inner px-[2.375rem] pt-[0.65625rem] pb-[0.53125rem] text-main-section"
+        >
+            <span class="c-button_label leading-[120%] tracking-[2%]">
+                <span class="c-button_label_default"><slot /></span>
+                <span class="c-button_label_hover" aria-hidden="true"></span>
+            </span>
+            {Tag === 'a' && target === '_blank' && <span aria-hidden="true">&#x2197;</span>}
+        </span>
+    </Tag>
+</button-hover>
+
+<style>
+    .c-button_label {
+        position: relative;
+        overflow: hidden;
+        display: block;
+    }
+
+    .c-button_label_hover {
+        position: absolute;
+        inset: 0;
+    }
+</style>
+
+<script>
+    import { gsap } from 'gsap';
+    import { SplitText } from 'gsap/SplitText';
+    gsap.registerPlugin(SplitText);
+
+    class ButtonHover extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+        private tween: gsap.core.Timeline | null = null;
+
+        connectedCallback() {
+            this.ctx = gsap.context(() => {
+                const btn = this.querySelector('.c-button');
+                const defaultLabel = this.querySelector('.c-button_label_default');
+                const hoverLabel = this.querySelector('.c-button_label_hover');
+
+                if (!btn || !defaultLabel || !hoverLabel) return;
+
+                hoverLabel.textContent = defaultLabel.textContent;
+
+                const splitDefault = new SplitText(defaultLabel, { type: 'chars' });
+                const splitHover = new SplitText(hoverLabel, { type: 'chars' });
+
+                gsap.set(splitHover.chars, { y: '105%' });
+
+                btn.addEventListener('mouseenter', () => {
+                    this.tween?.kill();
+                    this.tween = gsap.timeline();
+                    this.tween.to(
+                        splitDefault.chars,
+                        { y: '-105%', duration: 0.4, stagger: 0.02, ease: 'power2.inOut' },
+                        0
+                    );
+                    this.tween.to(
+                        splitHover.chars,
+                        { y: '0%', duration: 0.4, stagger: 0.02, ease: 'power2.inOut' },
+                        0
+                    );
+                });
+
+                btn.addEventListener('mouseleave', () => {
+                    this.tween?.kill();
+                    this.tween = gsap.timeline();
+                    this.tween.to(
+                        splitDefault.chars,
+                        { y: '0%', duration: 0.4, stagger: 0.02, ease: 'power2.inOut' },
+                        0
+                    );
+                    this.tween.to(
+                        splitHover.chars,
+                        { y: '105%', duration: 0.4, stagger: 0.02, ease: 'power2.inOut' },
+                        0
+                    );
+                });
+            }, this);
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('button-hover')) {
+        customElements.define('button-hover', ButtonHover);
+    }
+</script>

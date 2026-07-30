@@ -1,0 +1,266 @@
+---
+import Button from '@components/ui/Button.astro';
+import SplitReveal from '@components/sections/SplitReveal.astro';
+
+interface Props {
+    heading?: string;
+    lang?: 'fr' | 'en';
+}
+
+const {
+    lang = 'fr',
+    heading = lang === 'en'
+        ? 'Initiate a tangible transformation.'
+        : 'Amorcez une transformation tangible.'
+} = Astro.props;
+
+const dict = {
+    fr: {
+        nameLabel: 'Nom',
+        paragraph:
+            'Tissons des connexions authentiques et déclenchons un impact durable — pour vous, votre équipe et votre communauté.',
+        booking: 'Réservez une consultation',
+        bookingMob:
+            'Tissons des connexions authentiques et déclenchons un impact durable — pour vous, votre équipe et votre communauté.<br /><br />Réserver une consulation.',
+        emailLabel: 'Courriel',
+        phoneLabel: 'Téléphone',
+        submitText: 'Soumettre',
+        successText: 'Succès'
+    },
+    en: {
+        nameLabel: 'Name',
+        paragraph:
+            "Let's weave authentic connections and trigger lasting impact — for you, your team, and your community.",
+        booking: 'Book a consultation',
+        bookingMob:
+            "Let's weave authentic connections and trigger lasting impact — for you, your team, and your community.<br /><br />Book a consultation.",
+        emailLabel: 'Email',
+        phoneLabel: 'Phone',
+        submitText: 'Submit',
+        successText: 'Success'
+    }
+};
+
+const t = dict[lang];
+---
+
+<contact-form
+    style="display: contents;"
+    data-btn-submit={t.submitText}
+    data-btn-success={t.successText}
+>
+    <div
+        class="desktop-version grid aspect-1512/902 grid-cols-12 gap-gutter bg-bronze pt-fluid-4xl pr-main-40 pb-fluid-4xl pl-main-40"
+    >
+        <div
+            class="col-span-10 col-start-2 flex flex-col justify-center gap-main-40 pt-fluid-lg pb-fluid-lg"
+        >
+            <SplitReveal class="font-radio text-footer-header leading-[110%] font-normal text-perle">
+                {heading}
+            </SplitReveal>
+
+            <div class="grid grid-cols-2 gap-gutter">
+                <SplitReveal
+                    class="font-radio text-body-md leading-[120%] font-light tracking-[3%] text-perle"
+                    tag="p"
+                >
+                    {t.paragraph}
+                </SplitReveal>
+                <div class="flex flex-col w-full h-full justify-end items-end">
+                    <Button href="/services">
+                        Découvrez nos services
+                    </Button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div
+        class="mob-version grid grid-cols-8 gap-x-mob-16 gap-y-mob-64 bg-bronze pt-mob-64 pr-mob-16 pb-mob-64 pl-mob-16"
+    >
+        <SplitReveal
+            class="font-radio col-span-6 col-start-2 text-mob-footer leading-[105%] font-normal text-perle"
+        >
+            {heading}
+        </SplitReveal>
+        <SplitReveal
+            class="font-radio col-span-8 text-mob-body leading-[120%] font-light tracking-[3%] text-perle"
+            tag="p"
+            set:html={t.bookingMob}
+        />
+        <form class="contact-form-inner col-span-8">
+            <input type="hidden" name="access_key" value="3cb859b7-eb03-4988-a1d8-38cf672ee0c8" />
+            <label
+                for="name"
+                class="font-radio block text-[0.875rem] tracking-[2%] text-perle uppercase opacity-75"
+            >
+                {t.nameLabel}
+            </label>
+            <input
+                type="text"
+                class="mb-5 w-full border-b border-b-perle pt-1 pb-1 text-mob-body text-offwhite outline-0"
+                name="name"
+                required
+            />
+            <label
+                for="email"
+                class="font-radio block text-[0.875rem] tracking-[2%] text-perle uppercase opacity-75"
+            >
+                {t.emailLabel}
+            </label>
+            <input
+                type="email"
+                name="email"
+                class="mb-5 w-full border-b border-b-perle pt-1 pb-1 text-mob-body text-offwhite outline-0"
+                required
+            />
+            <label
+                for="phone"
+                class="font-radio block text-[0.875rem] tracking-[2%] text-perle uppercase opacity-75"
+            >
+                {t.phoneLabel}
+            </label>
+            <input
+                type="text"
+                name="phone"
+                class="mb-5 w-full border-b border-b-perle pt-1 pb-1 text-mob-body text-offwhite outline-0"
+                required
+            />
+            <div class="flex flex-row justify-center pt-mob-16">
+                <Button class="submit-btn" type="submit">{t.submitText}</Button>
+            </div>
+        </form>
+    </div>
+</contact-form>
+
+<script>
+    import gsap from 'gsap';
+    import { SplitText } from 'gsap/SplitText';
+    gsap.registerPlugin(SplitText);
+
+    class ContactForm extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+
+        connectedCallback() {
+            const submitText = this.dataset.btnSubmit || 'Soumettre';
+            const successText = this.dataset.btnSuccess || 'Succès';
+
+            this.ctx = gsap.context(() => {
+                const forms = this.querySelectorAll('form.contact-form-inner');
+
+                forms.forEach((form) => {
+                    const btn = form.querySelector('.submit-btn');
+                    if (!btn) return;
+
+                    const labelDefault = btn.querySelector('.c-button_label_default');
+                    const labelHover = btn.querySelector('.c-button_label_hover');
+                    if (!labelDefault) return;
+
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+
+                        const inputs = form.querySelectorAll<HTMLInputElement>(
+                            'input[type="text"], input[type="email"]'
+                        );
+
+                        inputs.forEach((input) => {
+                            const overlay = document.createElement('div');
+                            overlay.textContent = input.value;
+                            overlay.style.cssText = `
+                                position: absolute;
+                                top: ${input.offsetTop}px;
+                                left: ${input.offsetLeft}px;
+                                width: ${input.offsetWidth}px;
+                                font-size: ${getComputedStyle(input).fontSize};
+                                font-family: ${getComputedStyle(input).fontFamily};
+                                color: ${getComputedStyle(input).color};
+                                pointer-events: none;
+                                overflow: hidden;
+                            `;
+                            if (input.parentElement) {
+                                input.parentElement.style.position = 'relative';
+                                input.parentElement.appendChild(overlay);
+                            }
+                            input.style.opacity = '0';
+
+                            const split = new SplitText(overlay, { type: 'chars' });
+
+                            gsap.to(split.chars, {
+                                y: 10,
+                                opacity: 0,
+                                duration: 0.3,
+                                stagger: 0.01,
+                                ease: 'power2.out',
+                                onComplete: () => overlay.remove()
+                            });
+                        });
+
+                        const btnSplit = new SplitText(labelDefault, { type: 'chars' });
+                        await gsap.to(btnSplit.chars, {
+                            y: 10,
+                            opacity: 0,
+                            duration: 0.3,
+                            stagger: 0.01,
+                            ease: 'power2.out'
+                        });
+
+                        const data = new FormData(form as HTMLFormElement);
+                        const response = await fetch('https://api.web3forms.com/submit', {
+                            method: 'POST',
+                            body: data
+                        });
+
+                        if (response.ok) {
+                            (form as HTMLFormElement).reset();
+                            inputs.forEach((input) => (input.style.opacity = ''));
+
+                            btnSplit.revert();
+                            labelDefault.textContent = successText;
+                            if (labelHover) labelHover.textContent = successText;
+
+                            const successSplit = new SplitText(labelDefault, { type: 'chars' });
+                            gsap.from(successSplit.chars, {
+                                y: 10,
+                                opacity: 0,
+                                duration: 0.3,
+                                stagger: 0.03,
+                                ease: 'power2.out'
+                            });
+
+                            setTimeout(async () => {
+                                await gsap.to(successSplit.chars, {
+                                    y: 10,
+                                    opacity: 0,
+                                    duration: 0.4,
+                                    stagger: 0.02,
+                                    ease: 'power2.out'
+                                });
+
+                                successSplit.revert();
+                                labelDefault.textContent = submitText;
+                                if (labelHover) labelHover.textContent = submitText;
+
+                                const revertSplit = new SplitText(labelDefault, { type: 'chars' });
+                                gsap.from(revertSplit.chars, {
+                                    y: 10,
+                                    opacity: 0,
+                                    duration: 0.5,
+                                    stagger: 0.03,
+                                    ease: 'power2.out',
+                                    onComplete: () => revertSplit.revert()
+                                });
+                            }, 2000);
+                        }
+                    });
+                });
+            }, this);
+        }
+
+        disconnectedCallback() {
+            this.ctx?.revert();
+        }
+    }
+
+    if (!customElements.get('contact-form')) {
+        customElements.define('contact-form', ContactForm);
+    }
+</script>

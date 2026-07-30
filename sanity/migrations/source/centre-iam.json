@@ -1,0 +1,67 @@
+{
+    "fr": {
+        "heroLine1": "Donnez un nouvel élan",
+        "heroLine2": "à votre entreprise ",
+        "heroLine3": "avec un suivi",
+        "heroLine4": "en temps réel",
+        "aboutSectionLabel": "À Propos",
+        "aboutBody": "Depuis 2012, le Centre I AM accompagne des milliers de personnes dans leur développement personnel et professionnel à travers une approche axée sur la conscience de soi, le mieux-être et l’évolution humaine.\n\nLe Centre I AM offre un environnement inspirant où se rencontrent apprentissage, réflexion et accompagnement. Grâce à une équipe de coach·es professionnel·les certifié·es, le centre propose des retraites de bien-être, des formations de groupe, du coaching personnel et différents parcours de formation conçus pour soutenir le développement du leadership personnel, la confiance en soi et un meilleur équilibre de vie.\n\nL’approche du Centre I AM vise à fournir des outils concrets favorisant une plus grande autonomie, une meilleure connaissance de soi et une présence plus intentionnelle dans les différentes sphères de la vie.",
+        "aboutBodyParagraph": "",
+        "servicesSectionLabel": "Nos services CIAM",
+        "slides": [
+            {
+                "title": "Formations",
+                "description": "Nos coachs certifié·es vous accompagnent dans l'émergence du leader authentique en vous. Nos formations proposent de découvrir et d'intégrer la posture du leader-coach. En partant de l'essence (l'alignement intérieur, la clarté, l'intention), les participant·es apprendront à transformer leur leadership en une pratique tangible, vécue dans leurs conversations quotidiennes, leurs décisions et leur façon de mobiliser leurs équipes."
+            },
+            {
+                "title": "Coaching",
+                "description": "Nos services de coaching offrent des expériences personnalisées et transformatrices, en individuel ou en groupe. Ces rencontres vous permettent de faire le point, de vous aligner sur votre I AM et d'accéder à un niveau supérieur de clarté, de congruence et de confiance en vous, tant dans vos décisions que dans vos relations."
+            },
+            {
+                "title": "Méditation",
+                "description": "Nos expert·es et professeur·es vous initient à diverses techniques de méditation basées sur des approches scientifiques et des méthodes immersives. Grâce à des outils comme les intégrations musicales, nous vous aidons à vous recentrer, calmer le mental et retrouver votre pleine puissance intérieure."
+            },
+            {
+                "title": "Coaching de\nprise de parole",
+                "description": "S'exprimer librement en public, c'est souvent sortir de sa zone de confort. Le coaching I AM vous aide à le faire avec authenticité, assurance et liberté. Nos accompagnements allient approche introspective et volet technique: vous explorez le récit personnel qui donne sens à votre message, tout en développant votre présence, votre aisance, votre éloquence et votre maîtrise de la parole. Une démarche complète pour vous aligner, incarner votre histoire et communiquer avec impact."
+            },
+            {
+                "title": "Nos services\npro bono",
+                "description": "Pour accroître notre impact social, l'équipe de coaching I AM offre ses services pro bono à des organismes à but non lucratif (OBNL) qui ont une mission sociale, environnementale, sportive ou éducative auprès des jeunes. Une façon concrète de mettre notre expertise au service de ceux et celles qui bâtissent un monde meilleur."
+            }
+        ],
+        "contactFooterHeading": "Amorcez une transformation tangible."
+    },
+    "en": {
+        "heroLine1": "Give your business new momentum",
+        "heroLine2": "with tailored ",
+        "heroLine3": "real-time support",
+        "aboutSectionLabel": "About",
+        "aboutBody": "Since 2012, the I AM Centre has accompanied thousands of members toward the realization of their authentic BEING. Established in the heart of downtown Montreal in an inspiring and unique space, the I AM Centre is a place of human connection where training, coaching services, and meditations are offered. Guided by a team of certified professional coaches, the I AM Centre offers programs to develop your autonomy, cultivate your presence to self, and embody a greater fulfillment in all areas of your life.",
+        "aboutBodyParagraph": "",
+        "servicesSectionLabel": "Our CIAM Services",
+        "slides": [
+            {
+                "title": "Training",
+                "description": "Our certified coaches guide you in the emergence of the authentic leader within you. Our training programs invite you to discover and integrate the leader-coach posture. Starting from essence (inner alignment, clarity, intention), participants will learn to transform their leadership into a tangible practice, lived through daily conversations, decisions, and the way they mobilize their teams."
+            },
+            {
+                "title": "Coaching",
+                "description": "Our coaching services offer personalized and transformative experiences, individually or in groups. These sessions allow you to take stock, align with your I AM, and access a higher level of clarity, congruence, and self-confidence — both in your decisions and your relationships."
+            },
+            {
+                "title": "Meditation",
+                "description": "Our experts and instructors introduce you to various meditation techniques based on scientific approaches and immersive methods. Through tools like musical integrations, we help you re-center, quiet the mind, and reconnect with your full inner power."
+            },
+            {
+                "title": "Public Speaking\nCoaching",
+                "description": "Expressing yourself freely in public often means stepping outside your comfort zone. I AM coaching helps you do so with authenticity, confidence, and freedom. Our programs combine an introspective approach with technical training: you explore the personal narrative that gives meaning to your message, while developing your presence, ease, eloquence, and command of speech. A complete process to align yourself, embody your story, and communicate with impact."
+            },
+            {
+                "title": "Our Pro Bono\nServices",
+                "description": "To increase our social impact, the I AM coaching team offers its pro bono services to non-profit organizations (NPOs) with a social, environmental, sports, or youth-focused educational mission. A concrete way to put our expertise in service of those building a better world."
+            }
+        ],
+        "contactFooterHeading": "Start a tangible transformation."
+    }
+}

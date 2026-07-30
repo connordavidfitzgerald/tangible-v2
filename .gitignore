@@ -5,6 +5,10 @@ dist/
 # dependencies
 node_modules/
 
+# this project uses bun — a second lockfile makes Vercel pick npm, which
+# chokes on the @sanity/astro -> @sanity/client peer range
+package-lock.json
+
 # generated Sanity types + schema extract
 sanity/extract.json
 

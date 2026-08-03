@@ -144,7 +144,7 @@
        Bigger than `main` but still read rather than composed, so it takes the
        same ~0.45 reading rate. */
     --text-main-lead: clamp(2.9382rem, 1.8906rem + 1.6371vw, 3.8551rem);
-    --text-main-body: clamp(0.875rem, 0.0179rem + 1.3393vw, 1.625rem);
+    --text-main-body: clamp(1rem, 0.0179rem + 1.3393vw, 1.625rem);
     --text-quote: clamp(3.625rem, 0.7398rem + 4.5082vw, 6.1496rem);
     --text-main-header: clamp(4.9844rem, 1.0172rem + 6.1987vw, 8.4556rem);
     --text-main-section: clamp(0.9099rem, 0.6684rem + 0.3773vw, 1.1212rem);

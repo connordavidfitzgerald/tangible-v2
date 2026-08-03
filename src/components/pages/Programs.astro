@@ -2,7 +2,7 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/ui/Button.astro';
 import DashList from '@components/ui/DashList.astro';
-import { Picture } from 'astro:assets';
+import SanityPicture from '@components/ui/SanityPicture.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooter from '@components/sections/ContactFooter.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
@@ -18,12 +18,12 @@ import { muxSliderVideos } from '@lib/sanity/video';
 import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
-    data: Record<string, I18nField> | null;
+    data: Record<string, any> | null;
     locale: LocaleId;
 }
 
 const { data, locale } = Astro.props;
-const t = (key: string) => pick(data?.[key], locale);
+const t = (key: string) => pick(data?.[key] as I18nField, locale);
 
 /** The films are global (Site Settings), not page content. */
 const settings = await getSiteSettings();
@@ -35,14 +35,11 @@ const sliderVideos = muxSliderVideos(settings).map((video) => ({
 const entreprisesFonts = ['formula', 'editorial'] as const;
 const leadersFonts = ['formula', 'editorial'] as const;
 
-const entreprisesResult = t('entreprisesResult');
-const leadersAmbition = t('leadersAmbition');
-
 const quote = t('quote');
 const quoteAuthor = t('quoteAuthor');
 ---
 
-<BaseLayout title="Services">
+<BaseLayout title={t('metaTitle')} description={t('metaDescription')}>
     <programs-animation style="display: contents;">
         <div class="programs-scroll-wrapper relative bg-offwhite">
             {
@@ -63,12 +60,9 @@ const quoteAuthor = t('quoteAuthor');
                         {t('pageTitle')}
                     </h1>
                     <p
-                        class="text-mob-caption leading-[120%] tracking-[0.03em] md:text-main-body md:leading-[1.2]"
+                        class="text-mob-section leading-[120%] tracking-[0.03em] whitespace-pre-line md:text-main-body md:leading-[1.2]"
                     >
-                        Des accompagnements concrets, humains et stratégiques pensés pour
-                        transformer votre vision en croissance durable. Grâce à une équipe
-                        chevronnée et un accompagnement personnalisé, nous aidons les leaders et les
-                        organisations à générer un impact réel et mobilisateur.
+                        {t('pageIntro')}
                     </p>
                 </div>
             </div>
@@ -86,8 +80,10 @@ const quoteAuthor = t('quoteAuthor');
                 <div
                     class="col-span-8 flex overflow-clip max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
                 >
-                    <Picture
-                        src={img6}
+                    <SanityPicture
+                        image={data?.entreprisesImage}
+                        fallback={img6}
+                        {locale}
                         class="aspect-[267/367.43] object-cover md:aspect-444/611"
                         alt="Corporate Coaching"
                     />
@@ -165,8 +161,10 @@ const quoteAuthor = t('quoteAuthor');
                 <div
                     class="col-span-8 overflow-clip max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
                 >
-                    <Picture
-                        src={img7}
+                    <SanityPicture
+                        image={data?.leadersImage}
+                        fallback={img7}
+                        {locale}
                         class="aspect-[267/367.43] object-cover md:aspect-444/611"
                         alt="Leadership Coaching"
                     />
@@ -258,5 +256,10 @@ const quoteAuthor = t('quoteAuthor');
             customElements.define('programs-animation', ProgramsAnimation);
         }
     </script>
-    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+    <ContactFooter
+        heading={t('contactFooterHeading')}
+        paragraph={t('contactFooterParagraph')}
+        mobBody={t('contactFooterMobBody')}
+        lang={locale}
+    />
 </BaseLayout>

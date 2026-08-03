@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import { Picture } from 'astro:assets';
+import SanityPicture from '@components/ui/SanityPicture.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
 import ContactFooterAlt from '@components/sections/ContactFooterAlt.astro';
@@ -34,6 +34,14 @@ const promiseItems: string[] = (data?.promiseItems ?? []).map((item: { text: I18
     pick(item.text, locale)
 );
 
+/**
+ * One caption per circle, in the same order. Never filtered: the stylesheet
+ * places these with `:nth-child(1|2|3)` — start / centre / end, which are the
+ * three discs' own positions — so dropping an empty one would slide the
+ * survivors onto the wrong circles.
+ */
+const approachLines = [t('approachLine1'), t('approachLine2'), t('approachLine3')];
+
 const ronTitle = t('ronTitle');
 const ronBio = t('ronBio');
 
@@ -44,7 +52,7 @@ const handsInnerPaths = handsSvgRaw
     .trim();
 ---
 
-<BaseLayout title="À Propos">
+<BaseLayout title={t('metaTitle')} description={t('metaDescription')}>
     <div
         class="relative flex aspect-393/852 h-auto max-h-dvh w-full flex-col justify-start overflow-hidden bg-bronze px-page pb-mob-64 md:aspect-1512/902 md:max-h-frame-902 md:py-main-40"
     >
@@ -54,9 +62,9 @@ const handsInnerPaths = handsSvgRaw
             {t('heroSectionLabel')}
         </div>
 
-        <div class="flex w-full grow flex-col justify-center">
+        <div class="flex w-full grow flex-col items-center justify-center md:items-start">
             <div
-                class="z-0 -mt-20 flex w-full grow px-main-40 max-md:px-0 md:absolute md:right-frame-inset md:mt-0 md:w-[calc(50%-var(--spacing-frame-inset))] md:flex-col md:justify-center"
+                class="z-0 flex w-full grow px-main-40 max-md:px-mob-16 md:absolute md:right-frame-inset md:mt-0 md:w-[calc(50%-var(--spacing-frame-inset))] md:flex-col md:justify-center"
             >
                 <hands-animation class="block h-full w-full">
                     <svg
@@ -88,6 +96,13 @@ const handsInnerPaths = handsSvgRaw
                 <span class="font-bold text-bronze">Tangible</span>
                 {' '}{t('introParagraph1')}
             </p>
+            {
+                t('introParagraph2') && (
+                    <p class="text-mob-body leading-[120%] font-light tracking-[3%] whitespace-pre-line md:text-main">
+                        {t('introParagraph2')}
+                    </p>
+                )
+            }
         </div>
     </div>
 
@@ -141,10 +156,10 @@ const handsInnerPaths = handsSvgRaw
             spending the composition to get it. */
         }
         <div
-            class="circles-pin flex min-h-dvh flex-col gap-main-80 bg-offwhite px-page pt-nav-bottom pb-mob-64 md:pb-main-80"
+            class="circles-pin flex min-h-dvh flex-col gap-main-80 bg-offwhite px-page pt-nav-bottom pb-40 md:pb-main-80"
         >
             <div class="grid grid-cols-12 gap-gutter pt-main-20">
-                <div class="col-span-8 md:col-span-12">
+                <div class="col-span-12">
                     <div
                         class="flex flex-row items-center justify-center border-b border-b-perle pb-mob-16 font-radio text-mob-section tracking-[3%] uppercase md:pb-main-12 md:text-main-section"
                     >
@@ -159,7 +174,7 @@ const handsInnerPaths = handsSvgRaw
                 the two rows measure themselves against — see the note over it in
                 the stylesheet. */
             }
-            <div class="circles-group">
+            <div class="circles-group mt-32 md:mt-0">
                 <div class="circles-wrapper">
                     {
                         /* The destinations, stated as hairlines before anything fills
@@ -174,7 +189,9 @@ const handsInnerPaths = handsSvgRaw
                     <div class="circle-ghost cg2" aria-hidden="true"></div>
                     <div class="circle-ghost cg3" aria-hidden="true"></div>
                     <div class="circle c1">
-                        <span class="circle-number md:hidden" aria-hidden="true">1 —</span>
+                        <span class="circle-number text-black md:hidden" aria-hidden="true"
+                            >1 —</span
+                        >
                         <div class="yellow y1"></div>
                         <div class="circle-label">
                             <p
@@ -185,7 +202,9 @@ const handsInnerPaths = handsSvgRaw
                         </div>
                     </div>
                     <div class="circle c2">
-                        <span class="circle-number md:hidden" aria-hidden="true">2 —</span>
+                        <span class="circle-number text-black md:hidden" aria-hidden="true"
+                            >2 —</span
+                        >
                         <div class="circle-label">
                             <p
                                 class="circle-label-inner text-main-circle leading-[120%] text-black"
@@ -195,7 +214,9 @@ const handsInnerPaths = handsSvgRaw
                         </div>
                     </div>
                     <div class="circle c3">
-                        <span class="circle-number md:hidden" aria-hidden="true">3 —</span>
+                        <span class="circle-number text-black md:hidden" aria-hidden="true"
+                            >3 —</span
+                        >
                         <div class="yellow y3"></div>
                         <div class="circle-label">
                             <p
@@ -214,15 +235,11 @@ const handsInnerPaths = handsSvgRaw
                     the two stay registered at every size. */
                 }
                 <div class="approach-lines pt-main-60 max-md:pt-mob-128">
-                    <p class="approach-line text-mob-caption md:text-main-body">
-                        Instaurer un leadership de confiance et renforcer les équipes.
-                    </p>
-                    <p class="approach-line text-mob-caption md:text-main-body">
-                        Aligner la stratégie, la communication et la mise en action.
-                    </p>
-                    <p class="approach-line text-mob-caption md:text-main-body">
-                        Libérer le potentiel collectif et favoriser une croissance durable.
-                    </p>
+                    {
+                        approachLines.map((line) => (
+                            <p class="approach-line text-mob-caption md:text-main-body">{line}</p>
+                        ))
+                    }
                 </div>
             </div>
         </div>
@@ -255,6 +272,17 @@ const handsInnerPaths = handsSvgRaw
     </div>
 
     <div class="relative grid grid-cols-12 gap-gutter bg-perle px-page pt-mob-32 md:py-main-40">
+        {
+            /* The band's own label, drawn like the ones over Approach and Vision.
+               `border-b-offwhite` and not perle, which is this band's background
+               and would leave the rule invisible — the numbered items below take
+               the same colour for the same reason. */
+            t('promiseSectionLabel') && (
+                <div class="col-span-12 flex flex-row items-center justify-center border-b border-b-offwhite pb-mob-16 font-radio text-mob-section tracking-[3%] uppercase md:pb-main-12 md:text-main-section">
+                    {t('promiseSectionLabel')}
+                </div>
+            )
+        }
         <div
             class="relative col-span-12 flex flex-col items-center justify-start text-mob-md md:col-span-8 md:col-start-3 md:text-main-circle"
         >
@@ -262,9 +290,9 @@ const handsInnerPaths = handsSvgRaw
                 class="relative grid w-full grid-cols-8 pt-mob-32 pb-mob-128 md:pt-main-80 md:pb-main-270"
             >
                 <p
-                    class="col-span-8 pt-gutter pb-mob-32 text-mob-sub text-bronze md:col-span-7 md:col-start-2 md:pb-main-80 md:text-main-circle"
+                    class="col-span-7 col-start-2 pt-gutter pb-mob-32 text-mob-sub text-bronze md:pb-main-80 md:text-main-circle"
                 >
-                    Notre engagement
+                    {t('promiseIntro')}
                 </p>
                 {
                     promiseItems.map((item, i) => (
@@ -280,37 +308,37 @@ const handsInnerPaths = handsSvgRaw
         </div>
     </div>
 
-    <div class="grid grid-cols-12 gap-gutter bg-offwhite px-page py-mob-64 md:py-main-160">
-        <div
-            class="col-span-12 flex flex-col max-md:pl-mob-inset-inner md:col-span-7 md:col-start-2 md:hidden"
-        >
+    <div
+        class="grid grid-cols-8 gap-gutter bg-offwhite px-page py-mob-64 md:grid-cols-12 md:py-main-160"
+    >
+        <div class="col-span-7 col-start-2 flex w-full flex-col md:hidden">
             <h1
-                class="pb-gutter font-radio text-mob-md leading-[1.2] md:pb-fluid-twenty md:text-main-circle"
+                class="w-full pb-gutter font-radio text-mob-md leading-[1.2] md:pb-fluid-twenty md:text-main-circle"
             >
                 {t('ronName')}
             </h1>
             <h2
-                class="border-t border-b border-bronze py-gutter font-radio text-mob-sub leading-[120%] md:text-main-sub"
+                class="w-full border-t border-b border-bronze pt-mob-32 pb-mob-16 font-radio text-mob-sub leading-[120%] tracking-[0.02em] md:py-gutter md:text-main-sub md:tracking-normal"
             >
-                <Fragment set:html={ronTitle.replace('\n', '<br/>')} />
+                <Fragment set:html={ronTitle} />
             </h2>
         </div>
 
-        <div
-            class="col-span-12 px-mob-inset-inner pt-mob-64 md:col-span-5 md:col-start-0 md:px-0 md:pt-0"
-        >
-            <Picture
-                src={ronCherilus}
-                alt="Ron Cherilus"
+        <div class="col-span-7 col-start-2 pt-mob-64 md:col-span-5 md:col-start-0 md:px-0 md:pt-0">
+            <SanityPicture
+                image={data?.ronImage}
+                fallback={ronCherilus}
+                {locale}
+                alt={t('ronName') || 'Ron Cherilus'}
                 class="aspect-585/628 h-auto w-full object-cover object-bottom"
             />
         </div>
 
         <div
-            class="col-span-12 grid grid-cols-6 gap-mob-16 border-b border-bronze px-mob-inset-inner pt-mob-64 pb-16 md:col-span-6 md:col-start-2 md:hidden md:gap-gutter md:px-0 md:pt-0 md:pb-0"
+            class="col-span-7 col-start-2 grid grid-cols-7 border-b border-bronze pt-mob-64 pb-mob-64 md:col-span-6 md:col-start-2 md:hidden md:gap-gutter md:px-0 md:pt-0 md:pb-0"
         >
             <p
-                class="col-span-6 py-mob-32 text-main-body text-mob-caption leading-[120%] tracking-[0.03em] md:py-main-60"
+                class="col-span-6 text-mob-section leading-[120%] tracking-[0.03em] md:col-start-1 md:border-none md:py-main-60"
             >
                 <Fragment
                     set:html={ronBio
@@ -321,15 +349,15 @@ const handsInnerPaths = handsSvgRaw
             </p>
         </div>
 
-        <div class="col-span-6 col-start-7 hidden flex-col md:flex">
+        <div class="col-span-8 hidden flex-col md:col-span-6 md:col-start-7 md:flex">
             <h1 class="pb-fluid-twenty font-radio text-circles-text leading-[120%]">
                 {t('ronName')}
             </h1>
-            <h2
+            <div
                 class="border-t border-b border-bronze pt-fluid-twenty pb-fluid-twenty font-radio text-header-two leading-[120%]"
             >
                 <Fragment set:html={ronTitle.replace('\n', '<br/>')} />
-            </h2>
+            </div>
             <div class="grid grid-cols-6 gap-fluid-twenty border-b border-bronze">
                 <p
                     class="col-span-6 pt-fluid-sixty pb-fluid-sixty text-body-caption leading-[120%] tracking-[3%] xl:col-span-4"
@@ -344,7 +372,12 @@ const handsInnerPaths = handsSvgRaw
             </div>
         </div>
     </div>
-    <ContactFooterAlt heading={t('contactFooterHeading')} lang={locale} />
+    <ContactFooterAlt
+        heading={t('contactFooterHeading')}
+        paragraph={t('contactFooterParagraph')}
+        mobBody={t('contactFooterMobBody')}
+        lang={locale}
+    />
 </BaseLayout>
 
 <style>

@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import { getLocale, localizedPath, otherLocale } from '@lib/i18n/utils';
 import { pick, type I18nField } from '@lib/sanity/i18n';
+import { copy } from '@lib/content/siteCopy';
 
 interface Props {
     settings: Record<string, I18nField | string> | null;
@@ -19,11 +20,11 @@ const bookingUrl = (settings?.bookingUrl as string) || '#';
 /** The two service pages, hung under "Nos services" in both menus. */
 const serviceChildren = [
     {
-        label: locale === 'en' ? 'Corporate services' : 'Services aux entreprises',
+        label: copy(settings, 'navServicesEntreprises', locale),
         href: localizedPath('/services/entreprises', locale)
     },
     {
-        label: locale === 'en' ? 'Individual services' : 'Services aux individus',
+        label: copy(settings, 'navServicesLeaders', locale),
         href: localizedPath('/services/leaders', locale)
     }
 ];

@@ -54,6 +54,14 @@ export const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings"][0]{
     }
 }`);
 
+/**
+ * Site settings are read by the layout, by the contact footer and by every page
+ * that embeds the film — several times over per page. The document is the same
+ * every time within a build, so it is fetched once and handed back after that;
+ * without this a seven-page build made a few dozen identical round trips.
+ */
+let settingsPromise: Promise<Record<string, any> | null> | null = null;
+
 export const getHome = () => fetchSingleton(HOME_QUERY);
 export const getAbout = () => fetchSingleton(ABOUT_QUERY);
 export const getPrograms = () => fetchSingleton(PROGRAMS_QUERY);
@@ -61,4 +69,4 @@ export const getContact = () => fetchSingleton(CONTACT_QUERY);
 export const getServicesEntreprises = () => fetchSingleton(SERVICES_ENTREPRISES_QUERY);
 export const getServicesLeaders = () => fetchSingleton(SERVICES_LEADERS_QUERY);
 export const getCentreIam = () => fetchSingleton(CENTRE_IAM_QUERY);
-export const getSiteSettings = () => fetchSingleton(SITE_SETTINGS_QUERY);
+export const getSiteSettings = () => (settingsPromise ??= fetchSingleton(SITE_SETTINGS_QUERY));

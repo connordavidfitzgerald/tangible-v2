@@ -33,7 +33,8 @@ export default defineConfig({
     schema: {
         types: schemaTypes,
         // Hide singleton types from the global "Create new document" menu.
-        templates: (templates) => templates.filter(({ schemaType }) => !singletonTypes.has(schemaType))
+        templates: (templates) =>
+            templates.filter(({ schemaType }) => !singletonTypes.has(schemaType))
     },
     document: {
         // Remove create/delete/duplicate actions for singleton documents.

@@ -1,14 +1,13 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/ui/Button.astro';
-import Image from '@components/ui/Image.astro';
 import FadeUp from '@components/ui/FadeUp.astro';
+import SanityPicture from '@components/ui/SanityPicture.astro';
 import DashList from '@components/ui/DashList.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooter from '@components/sections/ContactFooter.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
 import MuxVideo from '@components/ui/MuxVideo.astro';
-import { Picture } from 'astro:assets';
 import LottieAnimation from 'astro-integration-lottie/Lottie.astro';
 import plantAnimationUrl from '@images/plant.json?url';
 
@@ -66,18 +65,18 @@ const heroPhotos = [
 
 /**
  * Each photo carries its own title, and the two run off the same CSS clock (see
- * the style block) so a title is only ever on screen over its own photo.
+ * the style block) so a title is only ever on screen over its own photo. They
+ * are authored together in Sanity (`heroSlides`) for exactly that reason.
  *
- * Titles are authored per photo in Sanity (`heroTitles`, matched by position).
- * An unauthored entry falls back to the drawn copy in `homeFallbacks`, and the
- * first photo falls back to `heroLine1-3` — the fields that already hold the
- * hero's title today, and the page's `h1`.
+ * With the array empty the hero runs the five drawn photos above with the copy
+ * in `homeFallbacks`; the first slide falls back to `heroLine1-3`, which is the
+ * page's `h1` and already authored. Fill the array in and it takes over — the
+ * photos with it, since the count then comes from Sanity rather than from here.
  */
-const authoredTitles: any[] = Array.isArray(data?.heroTitles) ? data.heroTitles : [];
+const authoredSlides: any[] = Array.isArray(data?.heroSlides) ? data.heroSlides : [];
 const baseHeroLines = [t('heroLine1'), t('heroLine2'), t('heroLine3')].filter(Boolean);
 
-const heroTitleLines = (index: number) => {
-    const entry = authoredTitles[index];
+const heroTitleLines = (entry: any, index: number) => {
     const authored = entry
         ? [pick(entry.line1, locale), pick(entry.line2, locale), pick(entry.line3, locale)].filter(
               Boolean
@@ -89,9 +88,20 @@ const heroTitleLines = (index: number) => {
     return fallback.length ? fallback : baseHeroLines;
 };
 
-const heroSlides = heroPhotos.map((photo, i) => ({
-    ...photo,
-    lines: heroTitleLines(i).map((text, line) => ({ text, font: heroFonts[line] ?? 'editorial' }))
+const heroSource = authoredSlides.length ? authoredSlides : heroPhotos;
+
+const heroSlides = heroSource.map((entry: any, i: number) => ({
+    // The drawn photos are `ImageMetadata`; the authored ones are Sanity image
+    // fields. `SanityPicture` takes one of each and prefers the upload, so the
+    // two shapes are handed over together and it settles which one draws.
+    image: authoredSlides.length ? entry.desktop : null,
+    imageMobile: authoredSlides.length ? (entry.mobile ?? entry.desktop) : null,
+    fallback: authoredSlides.length ? (heroPhotos[i]?.desktop ?? null) : entry.desktop,
+    fallbackMobile: authoredSlides.length ? (heroPhotos[i]?.mobile ?? null) : entry.mobile,
+    lines: heroTitleLines(authoredSlides.length ? entry : null, i).map((text, line) => ({
+        text,
+        font: heroFonts[line] ?? 'editorial'
+    }))
 }));
 
 /**
@@ -102,29 +112,25 @@ const heroSlides = heroPhotos.map((photo, i) => ({
 const introBold = t('introBold') || INTRO_BOLD[locale];
 const introBody = t('introBody') || INTRO_BODY[locale];
 
-/** Copy is authored as "Label: body" — the label renders bold + bronze. */
-const splitHighlight = (value: string) => {
-    const [label, ...rest] = value.split(':');
-    return { label, body: rest.join(':') };
-};
-
 const programs = [
     {
-        image: img6,
+        image: data?.entreprisesImage,
+        fallback: img6,
+        alt: 'Corporate Coaching',
         titleLines: [t('entreprisesTitle1'), t('entreprisesTitle2')],
         titleFonts: entreprisesTitleFonts,
         body: t('entreprisesBody'),
-        highlight: splitHighlight(t('entreprisesResult')),
         buttonLabel: t('entreprisesButton'),
         href: localizedPath('/services/entreprises', locale),
         side: 'left' as const
     },
     {
-        image: img7,
+        image: data?.leadersImage,
+        fallback: img7,
+        alt: 'Leadership Coaching',
         titleLines: [t('leadersTitle1'), t('leadersTitle2')],
         titleFonts: leadersTitleFonts,
         body: t('leadersBody'),
-        highlight: splitHighlight(t('leadersAmbition')),
         buttonLabel: t('leadersButton'),
         href: localizedPath('/services/leaders', locale),
         side: 'right' as const
@@ -146,25 +152,72 @@ const programSide = {
         column: 'md:col-start-1 md:pr-fluid-sixty md:pl-fluid-sixty'
     }
 };
+
+/**
+ * The hero's two keyframe sets, written out for the number of slides there
+ * actually are.
+ *
+ * They cannot live in the stylesheet with the rest: a keyframe *stop* is a
+ * percentage of the cycle, and the cycle is now however many photos have been
+ * authored. At five slides these compute to exactly the 15/20/95 the block used
+ * to hardcode, so a five-photo hero is unchanged.
+ *
+ * `is:inline` keeps Astro's hand off it — the names have to survive verbatim
+ * for the scoped `animation` declarations below to reach them, and scoping
+ * would rewrite one side of that pair and not the other.
+ */
+const SLIDE_SECONDS = 4;
+const FADE_SECONDS = 1;
+const cycle = heroSlides.length * SLIDE_SECONDS;
+const pct = (seconds: number) => +((seconds / cycle) * 100).toFixed(4);
+const hold = pct(SLIDE_SECONDS);
+const fade = pct(FADE_SECONDS);
+
+const heroKeyframes = `
+@keyframes hero-fade {
+    0% { opacity: 1 }
+    ${hold - fade}% { opacity: 1 }
+    ${hold}% { opacity: 0 }
+    ${100 - fade}% { opacity: 0 }
+    100% { opacity: 1 }
+}
+@keyframes hero-title-fade {
+    0% { opacity: 0 }
+    ${fade}% { opacity: 1 }
+    ${hold}% { opacity: 1 }
+    ${hold + fade}% { opacity: 0 }
+    100% { opacity: 0 }
+}`;
 ---
 
-<BaseLayout>
+<style is:inline set:html={heroKeyframes}></style>
+
+<BaseLayout title={t('metaTitle')} description={t('metaDescription')}>
     <!-- ===================================================================
          Hero
          =================================================================== -->
+    {
+        /* Four seconds a slide. The cycle used to be a flat 20s because there
+           were always five of them; the count now comes from Sanity, so it is
+           published as a variable and the keyframes below read it — otherwise
+           adding a sixth photo would leave the whole rotation off its clock. */
+    }
     <div
         class="hero-section relative flex aspect-393/852 w-full flex-col justify-end overflow-hidden px-page pb-mob-64 max-md:max-h-dvh md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
+        style={`--hero-cycle: ${heroSlides.length * 4}s`}
     >
         <div class="hero-slideshow hidden brightness-80 md:flex">
             {
-                heroSlides.map(({ desktop }, i) => (
+                heroSlides.map(({ image, fallback }, i) => (
                     <div
                         class="hero-slide"
-                        style={`z-index: ${5 - i}; animation-delay: ${i * 4}s`}
+                        style={`z-index: ${heroSlides.length - i}; animation-delay: ${i * 4}s`}
                         aria-hidden="true"
                     >
-                        <Picture
-                            src={desktop}
+                        <SanityPicture
+                            {image}
+                            {fallback}
+                            {locale}
                             alt=""
                             layout="full-width"
                             loading={i === 0 ? 'eager' : 'lazy'}
@@ -175,14 +228,16 @@ const programSide = {
         </div>
         <div class="hero-slideshow flex brightness-80 md:hidden">
             {
-                heroSlides.map(({ mobile }, i) => (
+                heroSlides.map(({ imageMobile, fallbackMobile }, i) => (
                     <div
                         class="hero-slide"
-                        style={`z-index: ${5 - i}; animation-delay: ${i * 4}s`}
+                        style={`z-index: ${heroSlides.length - i}; animation-delay: ${i * 4}s`}
                         aria-hidden="true"
                     >
-                        <Picture
-                            src={mobile}
+                        <SanityPicture
+                            image={imageMobile}
+                            fallback={fallbackMobile}
+                            {locale}
                             alt=""
                             layout="full-width"
                             loading={i === 0 ? 'eager' : 'lazy'}
@@ -243,11 +298,13 @@ const programSide = {
             class="about-media px-mob-inset-inner pt-mob-64 md:col-span-4 md:h-full md:px-0 md:pt-0 md:pr-gutter"
         >
             <FadeUp class="md:h-full">
-                <Picture
-                    src={chalkboard}
+                <SanityPicture
+                    image={data?.aboutImage}
+                    fallback={chalkboard}
+                    {locale}
+                    alt="chalkboard"
                     class="aspect-267/343 object-cover md:aspect-auto"
                     layout="full-width"
-                    alt="chalkboard"
                     loading="lazy"
                 />
             </FadeUp>
@@ -280,7 +337,7 @@ const programSide = {
                     class="text-mob-section tracking-[3%] uppercase md:text-main-section"
                     href={localizedPath('/about', locale)}
                 >
-                    En savoir plus
+                    {t('aboutButton')}
                 </Button>
             </div>
         </div>
@@ -372,8 +429,11 @@ const programSide = {
                         </div>
                     </div>
 
-                    <Image
-                        src={program.image}
+                    <SanityPicture
+                        image={program.image}
+                        fallback={program.fallback}
+                        {locale}
+                        alt=""
                         class:list={[
                             /* No aspect-ratio at md, deliberately. `h-full` gives
                                this a definite height — the row's, which the text
@@ -434,7 +494,12 @@ const programSide = {
         )
     }
 
-    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+    <ContactFooter
+        heading={t('contactFooterHeading')}
+        paragraph={t('contactFooterParagraph')}
+        mobBody={t('contactFooterMobBody')}
+        lang={locale}
+    />
 </BaseLayout>
 
 <style>
@@ -483,7 +548,7 @@ const programSide = {
         position: absolute;
         inset: 0;
         opacity: 1;
-        animation: hero-fade 20s ease-out infinite;
+        animation: hero-fade var(--hero-cycle, 20s) ease-out infinite;
     }
 
     /* The titles run the same 20s cycle so each one is on screen exactly while
@@ -500,7 +565,7 @@ const programSide = {
        leaving its entrance to the reveal bars. */
     .hero-title {
         opacity: 0;
-        animation: hero-title-fade 20s ease-out infinite;
+        animation: hero-title-fade var(--hero-cycle, 20s) ease-out infinite;
     }
 
     :global(.hero-slide picture),

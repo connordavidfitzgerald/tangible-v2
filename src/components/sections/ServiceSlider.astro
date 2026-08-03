@@ -1,5 +1,8 @@
 ---
 import { Icon } from 'astro-icon/components';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { copy } from '@lib/content/siteCopy';
+import type { LocaleId } from '@lib/i18n/locales';
 
 interface Slide {
     shapeClass: string; // CSS class for the shape (e.g. 'hexagon', 'circle', 'diamond')
@@ -11,14 +14,20 @@ interface Slide {
 interface Props {
     slides: Slide[];
     /** Picks the fixed heading above the result paragraph. */
-    lang?: 'fr' | 'en';
+    lang?: LocaleId;
     class?: string;
 }
 
 const { slides, lang = 'fr', class: className } = Astro.props;
 
-/** Not authored per slide — the heading reads the same across the slider. */
-const resultLabel = lang === 'en' ? 'Result' : 'Résultat';
+/**
+ * Not authored per slide — these read the same across the whole slider, so they
+ * live under Site Settings → Buttons & Labels rather than on each one.
+ */
+const settings = await getSiteSettings();
+const resultLabel = copy(settings, 'sliderResultLabel', lang);
+const prevLabel = copy(settings, 'sliderPrevLabel', lang);
+const nextLabel = copy(settings, 'sliderNextLabel', lang);
 
 const slidesJson = JSON.stringify(slides);
 const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
@@ -56,13 +65,13 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
         >
             <button
                 class="slider-prev cursor-pointer border-0 bg-transparent p-0"
-                aria-label="Service précédent"
+                aria-label={prevLabel}
             >
                 <Icon name="leftarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
             </button>
             <button
                 class="slider-next cursor-pointer border-0 bg-transparent p-0"
-                aria-label="Service suivant"
+                aria-label={nextLabel}
             >
                 <Icon name="rightarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
             </button>

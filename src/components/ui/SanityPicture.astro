@@ -1,0 +1,119 @@
+---
+/**
+ * A `<Picture>` whose source is an editable Sanity image, with the drawn default
+ * from `src/assets/images` standing in until one is uploaded.
+ *
+ * The two cases cannot share a single `<Picture>` call: a local import carries
+ * its own dimensions and must *not* be given a width/height pair (that would
+ * pin it rather than let `layout` size it), while a remote URL is refused
+ * without one. So the branch is here, once, and every call site stays a
+ * one-liner. Every other prop — `layout`, `class`, `loading`, `widths` — is
+ * forwarded untouched, so swapping a local import for this component leaves the
+ * layout exactly as it was.
+ */
+import { Picture } from 'astro:assets';
+import { isUploaded, resolveImage, type SanityImage } from '@lib/sanity/image';
+import type { LocaleId } from '@lib/i18n/locales';
+
+interface Props {
+    /** The image field as authored in the Studio. */
+    image?: SanityImage | null;
+    /** The committed default, shown while `image` is empty. */
+    fallback?: ImageMetadata | null;
+    locale: LocaleId;
+    /** Used when the Studio image carries no alt text of its own. */
+    alt?: string;
+    [key: string]: any;
+}
+
+const { image, fallback, locale, alt = '', ...rest } = Astro.props;
+
+const resolved = resolveImage(image, fallback, locale, alt);
+
+/**
+ * Without one of these, Astro emits a single file at the source's full width —
+ * a 2400px image dropped into the 444px column on the programs cards, which is
+ * most of that page's weight for none of its detail.
+ *
+ * `layout` supplies both on its own, and the positioning CSS with it, so a call
+ * site that passes one is left alone. Everything else gets an explicit
+ * responsive set instead: that buys the srcset without the layout styles, which
+ * several of these images — positioned by their own `object-cover` and aspect
+ * classes — would be disturbed by.
+ *
+ * The default `sizes` describes the common case here: the full frame on a
+ * phone, about half of it once the layout goes two-column at 810. A call site
+ * whose image is a different share of the page passes its own.
+ */
+const CANDIDATE_WIDTHS = [400, 600, 800, 1200, 1600, 2000, 2400];
+const intrinsic = !resolved ? undefined : isUploaded(resolved) ? resolved.width : resolved.src.width;
+
+const responsive = (() => {
+    if (rest.widths || !intrinsic) return {};
+
+    // `full-width` brings its own breakpoints but no `sizes`, and a srcset with
+    // no `sizes` is read as `100vw` — which for a full-bleed image is the right
+    // answer anyway. Stated explicitly so it is a decision rather than a default
+    // that happens to land well.
+    if (rest.layout === 'full-width') return { sizes: rest.sizes ?? '100vw' };
+    if (rest.layout) return {};
+
+    return {
+        // Never upscale — a variant wider than the file itself is the same
+        // pixels in a bigger wrapper.
+        widths: [...CANDIDATE_WIDTHS.filter((w) => w < intrinsic), intrinsic],
+        sizes: rest.sizes ?? '(max-width: 810px) 100vw, 50vw'
+    };
+})();
+
+/**
+ * The `<img>` inside a `<picture>` is the fallback the webp `<source>` is
+ * chosen over, and Astro formats it after the *original* — so a photograph
+ * uploaded as a PNG had a 6.7MB PNG sitting behind every hero, and a full set
+ * of PNG variants built alongside it (291MB of `dist`, most of it unreachable).
+ * webp has been universal since 2020; there is nothing left for a second format
+ * to fall back to.
+ */
+const FALLBACK_FORMAT = 'webp';
+
+/**
+ * `<picture>` is `display: inline` by default, and it — not the `<img>` — is
+ * what the surrounding layout sees. Every class passed to this component lands
+ * on the `<img>` inside, so a call site that was placing a bare `<Image>` into a
+ * grid or flex line (`md:col-span-4`, `h-full`, an aspect ratio) suddenly had
+ * those classes on a descendant of the box being laid out, and the picture
+ * collapsed to its inline width.
+ *
+ * `display: contents` takes the wrapper out of the layout entirely, so the
+ * `<img>` is the grid or flex child again and the classes apply to the element
+ * they were written for. A call site that needs to style the wrapper itself
+ * passes its own `pictureAttributes` and overrides this.
+ */
+const pictureAttributes = rest.pictureAttributes ?? { style: 'display: contents' };
+delete rest.pictureAttributes;
+---
+
+{
+    resolved &&
+        (isUploaded(resolved) ? (
+            <Picture
+                src={resolved.src}
+                width={resolved.width}
+                height={resolved.height}
+                alt={resolved.alt}
+                fallbackFormat={FALLBACK_FORMAT}
+                pictureAttributes={pictureAttributes}
+                {...responsive}
+                {...rest}
+            />
+        ) : (
+            <Picture
+                src={resolved.src}
+                alt={resolved.alt}
+                fallbackFormat={FALLBACK_FORMAT}
+                pictureAttributes={pictureAttributes}
+                {...responsive}
+                {...rest}
+            />
+        ))
+}

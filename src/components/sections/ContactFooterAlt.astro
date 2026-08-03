@@ -1,47 +1,33 @@
 ---
 import Button from '@components/ui/Button.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { footerCopy, formCopy } from '@lib/content/siteCopy';
+import { localizedPath } from '@lib/i18n/utils';
+import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
     heading?: string;
-    lang?: 'fr' | 'en';
+    /** The paragraph beside the button on the wide layout. */
+    paragraph?: string;
+    /** The phone layout's single block, which runs the paragraph and the line under it together. */
+    mobBody?: string;
+    lang?: LocaleId;
 }
 
-const {
-    lang = 'fr',
-    heading = lang === 'en'
-        ? 'Initiate a tangible transformation.'
-        : 'Amorcez une transformation tangible.'
-} = Astro.props;
+const { lang = 'fr', heading, paragraph, mobBody } = Astro.props;
 
-const dict = {
-    fr: {
-        nameLabel: 'Nom',
-        paragraph:
-            'Tissons des connexions authentiques et déclenchons un impact durable — pour vous, votre équipe et votre communauté.',
-        booking: 'Réservez une consultation',
-        bookingMob:
-            'Tissons des connexions authentiques et déclenchons un impact durable — pour vous, votre équipe et votre communauté.<br /><br />Réserver une consulation.',
-        emailLabel: 'Courriel',
-        phoneLabel: 'Téléphone',
-        submitText: 'Soumettre',
-        successText: 'Succès'
-    },
-    en: {
-        nameLabel: 'Name',
-        paragraph:
-            "Let's weave authentic connections and trigger lasting impact — for you, your team, and your community.",
-        booking: 'Book a consultation',
-        bookingMob:
-            "Let's weave authentic connections and trigger lasting impact — for you, your team, and your community.<br /><br />Book a consultation.",
-        emailLabel: 'Email',
-        phoneLabel: 'Phone',
-        submitText: 'Submit',
-        successText: 'Success'
-    }
-};
-
-const t = dict[lang];
+/**
+ * Same arrangement as the full contact footer: the form labels are shared under
+ * Site Settings, while the heading and the two paragraphs are the page's own and
+ * fall back to the shared copy when left blank.
+ */
+const settings = await getSiteSettings();
+const t = formCopy(settings, lang);
+const footer = footerCopy(settings, lang);
+const finalHeading = heading || footer.heading;
+const finalParagraph = paragraph || footer.paragraph;
+const finalMobBody = mobBody || footer.mobBody;
 ---
 
 <contact-form
@@ -56,7 +42,7 @@ const t = dict[lang];
             class="col-span-10 col-start-2 flex flex-col justify-center gap-main-40 pt-fluid-lg pb-fluid-lg"
         >
             <SplitReveal class="font-radio text-footer-header leading-[110%] font-normal text-perle">
-                {heading}
+                {finalHeading}
             </SplitReveal>
 
             <div class="grid grid-cols-2 gap-gutter">
@@ -64,12 +50,10 @@ const t = dict[lang];
                     class="font-radio text-body-md leading-[120%] font-light tracking-[3%] text-perle"
                     tag="p"
                 >
-                    {t.paragraph}
+                    {finalParagraph}
                 </SplitReveal>
-                <div class="flex flex-col w-full h-full justify-end items-end">
-                    <Button href="/services">
-                        Découvrez nos services
-                    </Button>
+                <div class="flex h-full w-full flex-col items-end justify-end">
+                    <Button href={localizedPath('/services', lang)}>{footer.cta}</Button>
                 </div>
             </div>
         </div>
@@ -80,15 +64,16 @@ const t = dict[lang];
         <SplitReveal
             class="font-radio col-span-6 col-start-2 text-mob-footer leading-[105%] font-normal text-perle"
         >
-            {heading}
+            {finalHeading}
         </SplitReveal>
         <SplitReveal
-            class="font-radio col-span-8 text-mob-body leading-[120%] font-light tracking-[3%] text-perle"
+            class="font-radio col-span-8 text-mob-body leading-[120%] font-light tracking-[3%] whitespace-pre-line text-perle"
             tag="p"
-            set:html={t.bookingMob}
-        />
+        >
+            {finalMobBody}
+        </SplitReveal>
         <form class="contact-form-inner col-span-8">
-            <input type="hidden" name="access_key" value="3cb859b7-eb03-4988-a1d8-38cf672ee0c8" />
+            <input type="hidden" name="access_key" value={t.accessKey} />
             <label
                 for="name"
                 class="font-radio block text-[0.875rem] tracking-[2%] text-perle uppercase opacity-75"
@@ -133,134 +118,5 @@ const t = dict[lang];
 </contact-form>
 
 <script>
-    import gsap from 'gsap';
-    import { SplitText } from 'gsap/SplitText';
-    gsap.registerPlugin(SplitText);
-
-    class ContactForm extends HTMLElement {
-        private ctx: gsap.Context | undefined;
-
-        connectedCallback() {
-            const submitText = this.dataset.btnSubmit || 'Soumettre';
-            const successText = this.dataset.btnSuccess || 'Succès';
-
-            this.ctx = gsap.context(() => {
-                const forms = this.querySelectorAll('form.contact-form-inner');
-
-                forms.forEach((form) => {
-                    const btn = form.querySelector('.submit-btn');
-                    if (!btn) return;
-
-                    const labelDefault = btn.querySelector('.c-button_label_default');
-                    const labelHover = btn.querySelector('.c-button_label_hover');
-                    if (!labelDefault) return;
-
-                    form.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-
-                        const inputs = form.querySelectorAll<HTMLInputElement>(
-                            'input[type="text"], input[type="email"]'
-                        );
-
-                        inputs.forEach((input) => {
-                            const overlay = document.createElement('div');
-                            overlay.textContent = input.value;
-                            overlay.style.cssText = `
-                                position: absolute;
-                                top: ${input.offsetTop}px;
-                                left: ${input.offsetLeft}px;
-                                width: ${input.offsetWidth}px;
-                                font-size: ${getComputedStyle(input).fontSize};
-                                font-family: ${getComputedStyle(input).fontFamily};
-                                color: ${getComputedStyle(input).color};
-                                pointer-events: none;
-                                overflow: hidden;
-                            `;
-                            if (input.parentElement) {
-                                input.parentElement.style.position = 'relative';
-                                input.parentElement.appendChild(overlay);
-                            }
-                            input.style.opacity = '0';
-
-                            const split = new SplitText(overlay, { type: 'chars' });
-
-                            gsap.to(split.chars, {
-                                y: 10,
-                                opacity: 0,
-                                duration: 0.3,
-                                stagger: 0.01,
-                                ease: 'power2.out',
-                                onComplete: () => overlay.remove()
-                            });
-                        });
-
-                        const btnSplit = new SplitText(labelDefault, { type: 'chars' });
-                        await gsap.to(btnSplit.chars, {
-                            y: 10,
-                            opacity: 0,
-                            duration: 0.3,
-                            stagger: 0.01,
-                            ease: 'power2.out'
-                        });
-
-                        const data = new FormData(form as HTMLFormElement);
-                        const response = await fetch('https://api.web3forms.com/submit', {
-                            method: 'POST',
-                            body: data
-                        });
-
-                        if (response.ok) {
-                            (form as HTMLFormElement).reset();
-                            inputs.forEach((input) => (input.style.opacity = ''));
-
-                            btnSplit.revert();
-                            labelDefault.textContent = successText;
-                            if (labelHover) labelHover.textContent = successText;
-
-                            const successSplit = new SplitText(labelDefault, { type: 'chars' });
-                            gsap.from(successSplit.chars, {
-                                y: 10,
-                                opacity: 0,
-                                duration: 0.3,
-                                stagger: 0.03,
-                                ease: 'power2.out'
-                            });
-
-                            setTimeout(async () => {
-                                await gsap.to(successSplit.chars, {
-                                    y: 10,
-                                    opacity: 0,
-                                    duration: 0.4,
-                                    stagger: 0.02,
-                                    ease: 'power2.out'
-                                });
-
-                                successSplit.revert();
-                                labelDefault.textContent = submitText;
-                                if (labelHover) labelHover.textContent = submitText;
-
-                                const revertSplit = new SplitText(labelDefault, { type: 'chars' });
-                                gsap.from(revertSplit.chars, {
-                                    y: 10,
-                                    opacity: 0,
-                                    duration: 0.5,
-                                    stagger: 0.03,
-                                    ease: 'power2.out',
-                                    onComplete: () => revertSplit.revert()
-                                });
-                            }, 2000);
-                        }
-                    });
-                });
-            }, this);
-        }
-
-        disconnectedCallback() {
-            this.ctx?.revert();
-        }
-    }
-
-    if (!customElements.get('contact-form')) {
-        customElements.define('contact-form', ContactForm);
-    }
+    import '@scripts/contactForm';
 </script>

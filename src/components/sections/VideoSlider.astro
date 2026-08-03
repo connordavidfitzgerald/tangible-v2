@@ -14,20 +14,24 @@
  */
 import { Icon } from 'astro-icon/components';
 import MuxVideo from '@components/ui/MuxVideo.astro';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { copy } from '@lib/content/siteCopy';
+import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
     videos: { playbackId: string; title?: string }[];
     class?: string;
     /** Labels the arrow buttons; the films themselves carry their own titles. */
-    lang?: 'fr' | 'en';
+    lang?: LocaleId;
 }
 
 const { videos, class: className, lang = 'fr' } = Astro.props;
 
-const labels =
-    lang === 'en'
-        ? { prev: 'Previous film', next: 'Next film' }
-        : { prev: 'Film précédent', next: 'Film suivant' };
+const settings = await getSiteSettings();
+const labels = {
+    prev: copy(settings, 'videoPrevLabel', lang),
+    next: copy(settings, 'videoNextLabel', lang)
+};
 ---
 
 {

@@ -11,8 +11,8 @@ import Footer from '@components/layout/Footer.astro';
 interface Props extends SeoProps {}
 
 const locale = getLocale(Astro.url);
-const seo = buildSeo(Astro.props);
 const settings = await getSiteSettings();
+const seo = buildSeo(Astro.props, settings, locale);
 ---
 
 <!doctype html>

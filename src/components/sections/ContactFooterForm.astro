@@ -16,9 +16,10 @@
  * intact.
  */
 import Button from '@components/ui/Button.astro';
+import type { FormCopy } from '@lib/content/siteCopy';
 
 interface Props {
-    t: Record<string, any>;
+    t: FormCopy;
     groups: { name: string; label: string; options: string[] }[];
     labelClass: string;
     inputClass: string;
@@ -39,7 +40,7 @@ const textFields = [
 ---
 
 <form class="contact-form-inner flex flex-col gap-gutter pt-gutter" data-step="1">
-    <input type="hidden" name="access_key" value="3cb859b7-eb03-4988-a1d8-38cf672ee0c8" />
+    <input type="hidden" name="access_key" value={t.accessKey} />
 
     <!-- Step 1 — identity -->
     <div class="form-step flex flex-col gap-gutter" data-step-panel="1">

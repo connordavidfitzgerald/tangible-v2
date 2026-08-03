@@ -1,5 +1,8 @@
 ---
 import { Icon } from 'astro-icon/components';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { copy } from '@lib/content/siteCopy';
+import type { LocaleId } from '@lib/i18n/locales';
 
 interface DescriptionItem {
     title?: string;
@@ -18,10 +21,17 @@ interface Slide {
 interface Props {
     slides: Slide[];
 
+    /** Labels the arrow buttons; the slides carry their own copy. */
+    lang?: LocaleId;
+
     class?: string;
 }
 
-const { slides, class: className } = Astro.props;
+const { slides, lang = 'fr', class: className } = Astro.props;
+
+const settings = await getSiteSettings();
+const prevLabel = copy(settings, 'sliderPrevLabel', lang);
+const nextLabel = copy(settings, 'sliderNextLabel', lang);
 
 const slidesJson = JSON.stringify(slides);
 
@@ -62,14 +72,14 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
         >
             <button
                 class="slider-prev cursor-pointer border-0 bg-transparent p-0"
-                aria-label="Service précédent"
+                aria-label={prevLabel}
             >
                 <Icon name="leftarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
             </button>
 
             <button
                 class="slider-next cursor-pointer border-0 bg-transparent p-0"
-                aria-label="Service suivant"
+                aria-label={nextLabel}
             >
                 <Icon name="rightarrow" class="h-[1.875rem] w-auto md:h-fluid-forty" />
             </button>

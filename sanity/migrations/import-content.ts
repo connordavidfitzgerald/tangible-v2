@@ -97,7 +97,7 @@ function build() {
             text: iStr(fr, about.en.promiseItems?.[i])
         })),
         ronName: str(about, 'ronName'),
-        ronTitle: str(about, 'ronTitle'),
+        ronTitle: txt(about, 'ronTitle'),
         ronBio: txt(about, 'ronBio'),
         contactFooterHeading: str(about, 'contactFooterHeading')
     });

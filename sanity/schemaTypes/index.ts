@@ -4,7 +4,7 @@ import type { SchemaTypeDefinition } from 'sanity';
 import { bulletItem } from './objects/bulletItem';
 import { serviceSlide } from './objects/serviceSlide';
 import { centreIamSlide } from './objects/centreIamSlide';
-import { heroSlideTitle } from './objects/heroSlideTitle';
+import { heroSlide } from './objects/heroSlide';
 
 // Documents (singletons)
 import { home } from './documents/home';
@@ -33,7 +33,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     bulletItem,
     serviceSlide,
     centreIamSlide,
-    heroSlideTitle,
+    heroSlide,
     // documents
     home,
     about,

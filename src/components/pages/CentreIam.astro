@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import { Picture } from 'astro:assets';
+import SanityPicture from '@components/ui/SanityPicture.astro';
 import FadeUp from '@components/ui/FadeUp.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooterAlt from '@components/sections/ContactFooterAlt.astro';
@@ -12,6 +12,8 @@ import mobcentre from '@images/AH1A3167.jpg';
 import mob from '@images/hands.jpg';
 
 import { pick, type I18nField } from '@lib/sanity/i18n';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { formCopy } from '@lib/content/siteCopy';
 import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
@@ -21,6 +23,15 @@ interface Props {
 
 const { data, locale } = Astro.props;
 const t = (key: string) => pick(data?.[key] as I18nField, locale);
+
+/**
+ * The booking form's field labels are shared with the contact page and the
+ * contact footer, so they come from Site Settings → Forms. Only the event
+ * description label is particular to the Centre, and that one is authored on
+ * this document.
+ */
+const settings = await getSiteSettings();
+const f = formCopy(settings, locale);
 
 const heroFonts = ['formula', 'formula', 'editorial', 'editorial'] as const;
 
@@ -36,23 +47,42 @@ const slides = (data?.slides ?? []).map(
         descriptions: [{ text: pick(slide.description, locale) }]
     })
 );
+
+/** The booking form's fields, in the order the frame lists them. */
+const textFields = [
+    { name: 'name', type: 'text', label: f.nameLabel },
+    { name: 'email', type: 'email', label: f.emailLabel },
+    { name: 'phone', type: 'tel', label: f.phoneLabel },
+    { name: 'entreprise', type: 'text', label: f.companyLabel },
+    { name: 'site', type: 'text', label: f.siteLabel }
+] as const;
+
+const labelClass =
+    'block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section';
+const inputClass = 'w-full border-b border-b-perle text-main outline-0';
 ---
 
-<BaseLayout title="I AM Center">
+<BaseLayout title={t('metaTitle')} description={t('metaDescription')}>
     <div
         class="relative flex aspect-393/852 max-h-dvh w-full flex-col justify-end overflow-hidden bg-offwhite px-page md:aspect-1512/902 md:justify-center md:pb-0 md:[--page-gutter:var(--spacing-fluid-forty)]"
     >
         <div class="absolute inset-0 z-0">
-            <Picture
+            <SanityPicture
+                image={data?.heroImage}
+                fallback={leaders}
+                {locale}
                 alt="A clipboard and paper"
-                src={leaders}
                 layout="full-width"
+                loading="eager"
                 class="hidden h-full w-full object-cover md:flex"
             />
-            <Picture
+            <SanityPicture
+                image={data?.heroImageMobile ?? data?.heroImage}
+                fallback={mob}
+                {locale}
                 alt="A clipboard and paper"
-                src={mob}
                 layout="full-width"
+                loading="eager"
                 class="flex h-full w-full object-cover md:hidden"
             />
         </div>
@@ -87,8 +117,10 @@ const slides = (data?.slides ?? []).map(
             class="w-full px-mob-inset-inner pt-mob-64 md:col-span-4 md:flex md:px-0 md:pt-0 md:pr-gutter"
         >
             <FadeUp>
-                <Picture
-                    src={about}
+                <SanityPicture
+                    image={data?.aboutImage}
+                    fallback={about}
+                    {locale}
                     alt="Ron Cherilus"
                     class="aspect-267/343 w-full object-cover md:aspect-444/668"
                 />
@@ -122,149 +154,100 @@ const slides = (data?.slides ?? []).map(
         </div>
     </div>
 
-    <div class="flex flex-col gap-0 bg-bronze px-page pt-0 text-perle md:pt-main-80">
-        <div
-            class="grid h-fit grid-cols-12 gap-gutter border-b border-b-perle pb-mob-64 max-md:flex max-md:flex-col max-md:pb-0 md:border-none"
-        >
+    <!-- ===================================================================
+         The bronze band: the room itself, and the form to book it.
+         =================================================================== -->
+    <contact-form
+        style="display: contents;"
+        data-btn-submit={f.submitText}
+        data-btn-success={f.successText}
+    >
+        <div class="flex flex-col gap-0 bg-bronze px-page pt-0 text-perle md:pt-main-80">
             <div
-                class="col-span-6 flex h-full flex-col gap-main-80 border-b border-perle max-md:contents"
+                class="grid h-fit grid-cols-12 gap-gutter border-b border-b-perle pb-mob-64 max-md:flex max-md:flex-col max-md:pb-0 md:border-none"
             >
                 <div
-                    class="flex w-full flex-row items-center justify-center border-b border-b-perle font-radio text-mob-section tracking-[0.03em] uppercase max-md:order-1 max-md:pt-mob-64 max-md:pb-mob-16 md:pb-main-12 md:text-main-section"
+                    class="col-span-6 flex h-full flex-col gap-main-80 border-b border-perle max-md:contents"
                 >
-                    {t('aboutSectionLabel')}
+                    <div
+                        class="flex w-full flex-row items-center justify-center border-b border-b-perle font-radio text-mob-section tracking-[0.03em] uppercase max-md:order-1 max-md:pt-mob-64 max-md:pb-mob-16 md:pb-main-12 md:text-main-section"
+                    >
+                        {t('venueSectionLabel')}
+                    </div>
+                    <p
+                        class="text-mob-body leading-[120%] font-light tracking-[0.02em] whitespace-pre-line max-md:order-3 max-md:pt-mob-64 md:px-main-60 md:text-main md:leading-[1.2]"
+                    >
+                        {t('venueBody')}
+                    </p>
                 </div>
-                <p
-                    class="text-mob-body leading-[120%] font-light tracking-[0.02em] max-md:order-3 max-md:pt-mob-64 md:px-main-60 md:text-main md:leading-[1.2]"
-                >
-                    Offrez à vos événements un espace qui inspire autant les idées que les
-                    connexions humaines. Situé au cœur du centre-ville, le Centre I AM accueille vos
-                    rencontres corporatives, ateliers et expériences collaboratives dans une
-                    atmosphère chaleureuse, lumineuse et propice aux échanges porteurs de sens.
-                </p>
-            </div>
-            <div class="col-span-6 pl-gutter max-md:order-2 max-md:pt-mob-64 max-md:pl-0">
-                <Picture
-                    src={mobcentre}
-                    alt="I AM Center"
-                    class="aspect-square w-full object-cover"
-                />
-            </div>
-        </div>
-        <div class="grid grid-cols-12 gap-gutter py-mob-64 md:py-main-160">
-            <div class="col-span-12 md:col-span-8 md:col-start-3">
-                <div
-                    class="text-mob-body leading-[120%] font-light tracking-[0.02em] md:text-main md:leading-[1.2]"
-                >
-                    Réservez le Centre I AM
-                </div>
-
-                <form id="contact-form" class="flex flex-col gap-gutter pt-gutter">
-                    <input
-                        type="hidden"
-                        name="access_key"
-                        value="3cb859b7-eb03-4988-a1d8-38cf672ee0c8"
+                <div class="col-span-6 pl-gutter max-md:order-2 max-md:pt-mob-64 max-md:pl-0">
+                    <SanityPicture
+                        image={data?.venueImage}
+                        fallback={mobcentre}
+                        {locale}
+                        alt="I AM Center"
+                        class="aspect-square w-full object-cover"
                     />
-
-                    <div class="flex flex-col gap-0">
-                        <label
-                            for="name"
-                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
-                        >
-                            Nom
-                        </label>
-                        <input
-                            type="text"
-                            class="w-full border-b border-b-perle text-main outline-0"
-                            name="name"
-                            required
-                        />
+                </div>
+            </div>
+            <div class="grid grid-cols-12 gap-gutter py-mob-64 md:py-main-160">
+                <div class="col-span-12 md:col-span-8 md:col-start-3">
+                    <div
+                        class="text-mob-body leading-[120%] font-light tracking-[0.02em] md:text-main md:leading-[1.2]"
+                    >
+                        {t('bookingHeading')}
                     </div>
 
-                    <div class="flex flex-col gap-0">
-                        <label
-                            for="email"
-                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
-                        >
-                            Courriel
-                        </label>
-                        <input
-                            type="email"
-                            class="w-full border-b border-b-perle text-main outline-0"
-                            name="email"
-                            required
-                        />
-                    </div>
+                    <form class="contact-form-inner flex flex-col gap-gutter pt-gutter">
+                        <input type="hidden" name="access_key" value={f.accessKey} />
 
-                    <div class="flex flex-col gap-0">
-                        <label
-                            for="phone"
-                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
-                        >
-                            Téléphone
-                        </label>
-                        <input
-                            type="tel"
-                            class="w-full border-b border-b-perle text-main outline-0"
-                            name="phone"
-                            required
-                        />
-                    </div>
+                        {
+                            textFields.map((field) => (
+                                <div class="flex flex-col gap-0">
+                                    <label for={field.name} class={labelClass}>
+                                        {field.label}
+                                    </label>
+                                    <input
+                                        type={field.type}
+                                        id={field.name}
+                                        name={field.name}
+                                        class={inputClass}
+                                        required
+                                    />
+                                </div>
+                            ))
+                        }
 
-                    <div class="flex flex-col gap-0">
-                        <label
-                            for="entreprise"
-                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
-                        >
-                            Entreprise
-                        </label>
-                        <input
-                            type="text"
-                            class="w-full border-b border-b-perle text-main outline-0"
-                            name="entreprise"
-                            required
-                        />
-                    </div>
-
-                    <div class="flex flex-col gap-0">
-                        <label
-                            for="site"
-                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
-                        >
-                            Site de l'entreprise
-                        </label>
-                        <input
-                            type="text"
-                            class="w-full border-b border-b-perle text-main outline-0"
-                            name="site"
-                            required
-                        />
-                    </div>
-
-                    <div class="flex flex-col gap-0">
-                        <label
-                            for="message"
-                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
-                        >
-                            Info supplémentaires/Description de l'événement*
-                        </label>
-                        <textarea
-                            name="message"
-                            class="w-full border-b border-b-perle text-main outline-0"
-                            required
-                            rows="5"
-                        >
-                        </textarea>
-                    </div>
-                    <div class="flex flex-row justify-center pt-main-60">
-                        <Button id="submit-btn" type="submit">Soumettre</Button>
-                    </div>
-                </form>
+                        <div class="flex flex-col gap-0">
+                            <label for="message" class={labelClass}>
+                                {t('bookingMessageLabel') || f.messageLabel}
+                            </label>
+                            <textarea
+                                id="message"
+                                name="message"
+                                class={inputClass}
+                                required
+                                rows="5"></textarea>
+                        </div>
+                        <div class="flex flex-row justify-center pt-main-60">
+                            <Button class="submit-btn" type="submit">{f.submitText}</Button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    </contact-form>
 
-    <ServiceSliderAlt {slides} />
+    <ServiceSliderAlt {slides} lang={locale} />
 
-    <ContactFooterAlt heading={t('contactFooterHeading')} lang={locale} />
+    <ContactFooterAlt
+        heading={t('contactFooterHeading')}
+        paragraph={t('contactFooterParagraph')}
+        mobBody={t('contactFooterMobBody')}
+        lang={locale}
+    />
 </BaseLayout>
+
+<script>
+    import '@scripts/contactForm';
+</script>

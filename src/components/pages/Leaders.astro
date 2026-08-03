@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import { Picture } from 'astro:assets';
+import SanityPicture from '@components/ui/SanityPicture.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
+import SplitReveal from '@components/sections/SplitReveal.astro';
 import ContactFooter from '@components/sections/ContactFooter.astro';
 import ServiceSlider from '@components/sections/ServiceSlider.astro';
 import MuxVideo from '@components/ui/MuxVideo.astro';
@@ -12,6 +13,7 @@ import mob from '@images/leaders-mob.jpg';
 import { pick, type I18nField } from '@lib/sanity/i18n';
 import { getSiteSettings } from '@lib/sanity/queries';
 import { muxPlaybackId } from '@lib/sanity/video';
+import { splitLead } from '@lib/content/phrase';
 import type { LocaleId } from '@lib/i18n/locales';
 
 interface Slide {
@@ -43,23 +45,32 @@ const slides = (data?.slides ?? []).map((slide: Slide, i: number) => ({
 const settings = await getSiteSettings();
 const videoPlaybackId = muxPlaybackId(settings);
 const videoTitle = pick(settings?.videoTitle, locale);
+
+const introParagraph = t('introParagraph');
+const introResult = splitLead(t('introResult'));
 ---
 
-<BaseLayout title="Services — Leaders">
+<BaseLayout title={t('metaTitle')} description={t('metaDescription')}>
     <div
         class="relative flex w-full aspect-393/852 max-h-dvh flex-col justify-end overflow-hidden bg-offwhite px-page md:[--page-gutter:var(--spacing-fluid-forty)] md:aspect-1512/902 md:justify-center md:pb-0"
     >
         <div class="absolute inset-0 z-0">
-            <Picture
+            <SanityPicture
+                image={data?.heroImage}
+                fallback={leaders}
+                {locale}
                 alt="Leadership Coaching"
-                src={leaders}
                 layout="full-width"
+                loading="eager"
                 class="hidden h-full w-full object-cover md:flex"
             />
-            <Picture
+            <SanityPicture
+                image={data?.heroImageMobile ?? data?.heroImage}
+                fallback={mob}
+                {locale}
                 alt="Leadership Coaching"
-                src={mob}
                 layout="full-width"
+                loading="eager"
                 class="flex h-full w-full object-cover md:hidden"
             />
         </div>
@@ -75,6 +86,32 @@ const videoTitle = pick(settings?.videoTitle, locale);
         </div>
     </div>
 
+    <!-- ===================================================================
+         Intro band — perle, between the hero and the slider. Same 948px column
+         as the Entreprises page's, so the two siblings read alike.
+         =================================================================== -->
+    {
+        (introParagraph || introResult.rest) && (
+            <div class="grid grid-cols-8 gap-mob-16 bg-perle px-page py-mob-128 md:grid-cols-12 md:gap-gutter md:py-fluid-160">
+                <div class="col-span-8 flex flex-col gap-mob-32 md:col-span-8 md:col-start-3 md:gap-main-40">
+                    {introParagraph && (
+                        <p class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] whitespace-pre-line md:text-main md:leading-[120%]">
+                            {introParagraph}
+                        </p>
+                    )}
+                    {introResult.rest && (
+                        <SplitReveal
+                            class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] text-bronze md:text-main-lead md:leading-[120%] md:font-normal md:tracking-[0em]"
+                            tag="p"
+                        >
+                            {introResult.lead ? `${introResult.lead} ${introResult.rest}` : introResult.rest}
+                        </SplitReveal>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
     <ServiceSlider {slides} lang={locale} />
 
     <!-- ===================================================================
@@ -87,5 +124,10 @@ const videoTitle = pick(settings?.videoTitle, locale);
         class="aspect-video w-full md:aspect-1512/902"
     />
 
-    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+    <ContactFooter
+        heading={t('contactFooterHeading')}
+        paragraph={t('contactFooterParagraph')}
+        mobBody={t('contactFooterMobBody')}
+        lang={locale}
+    />
 </BaseLayout>

@@ -52,11 +52,11 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
                         data-index={i}
                         style={i === 0 ? '' : 'position:absolute;left:100%;top:0;bottom:0;'}
                     >
-                            <h2
-                                class="font-formula text-mob-display leading-[1.1] md:text-main-header tracking-[0.02em] text-bronze uppercase text-center whitespace-pre-line"
-                                set:html={slide.shapeTitle}
-                            />
-                        </div>
+                        <h2
+                            class="text-center font-formula text-mob-display leading-[1.1] tracking-[0.02em] whitespace-pre-line text-bronze uppercase md:text-main-header"
+                            set:html={slide.shapeTitle}
+                        />
+                    </div>
                 ))
             }
         </div>
@@ -79,7 +79,7 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
     </div>
 
     <div class="col-span-6 overflow-hidden md:h-full">
-        <div class="slider-right-track grid h-full w-full">
+        <div class="slider-right-track md:aspect-none grid aspect-square h-full w-full">
             {
                 slides.map((slide, i) => (
                     <div
@@ -87,7 +87,7 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
                         data-index={i}
                         style={i === 0 ? '' : 'opacity:0; pointer-events:none;'}
                     >
-                        <div class="flex h-fit w-full grid-cols-6 gap-fluid-twenty md:grid md:h-full">
+                        <div class="flex h-full w-full grid-cols-6 gap-fluid-twenty md:grid md:h-full">
                             <div class="col-span-6 col-start-1 flex flex-col md:justify-between lg:col-span-4 lg:col-start-2">
                                 {/* Takes the slack, so the result block below stays pinned to the bottom. */}
                                 <div class="flex grow flex-col gap-mob-8 border-t border-bronze pt-mob-8 pb-mob-16 md:gap-fluid-twenty md:pt-fluid-twenty md:pb-fluid-forty">
@@ -286,7 +286,6 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
 </script>
 
 <style>
-
     .hexagon {
         width: 100%;
 

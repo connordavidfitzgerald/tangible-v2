@@ -52,7 +52,7 @@ const introResult = splitLead(t('introResult'));
 
 <BaseLayout title={t('metaTitle')} description={t('metaDescription')}>
     <div
-        class="relative flex w-full aspect-393/852 max-h-dvh flex-col justify-end overflow-hidden bg-offwhite px-page md:[--page-gutter:var(--spacing-fluid-forty)] md:aspect-1512/902 md:justify-center md:pb-0"
+        class="relative flex aspect-393/852 max-h-dvh w-full flex-col justify-end overflow-hidden bg-offwhite px-page md:aspect-1512/902 md:justify-center md:pb-0 md:[--page-gutter:var(--spacing-fluid-forty)]"
     >
         <div class="absolute inset-0 z-0">
             <SanityPicture
@@ -85,32 +85,6 @@ const introResult = splitLead(t('introResult'));
             />
         </div>
     </div>
-
-    <!-- ===================================================================
-         Intro band — perle, between the hero and the slider. Same 948px column
-         as the Entreprises page's, so the two siblings read alike.
-         =================================================================== -->
-    {
-        (introParagraph || introResult.rest) && (
-            <div class="grid grid-cols-8 gap-mob-16 bg-perle px-page py-mob-128 md:grid-cols-12 md:gap-gutter md:py-fluid-160">
-                <div class="col-span-8 flex flex-col gap-mob-32 md:col-span-8 md:col-start-3 md:gap-main-40">
-                    {introParagraph && (
-                        <p class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] whitespace-pre-line md:text-main md:leading-[120%]">
-                            {introParagraph}
-                        </p>
-                    )}
-                    {introResult.rest && (
-                        <SplitReveal
-                            class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] text-bronze md:text-main-lead md:leading-[120%] md:font-normal md:tracking-[0em]"
-                            tag="p"
-                        >
-                            {introResult.lead ? `${introResult.lead} ${introResult.rest}` : introResult.rest}
-                        </SplitReveal>
-                    )}
-                </div>
-            </div>
-        )
-    }
 
     <ServiceSlider {slides} lang={locale} />
 

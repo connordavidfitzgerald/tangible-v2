@@ -203,7 +203,7 @@ const heroKeyframes = `
            adding a sixth photo would leave the whole rotation off its clock. */
     }
     <div
-        class="hero-section relative flex aspect-393/852 w-full flex-col justify-end overflow-hidden px-page pb-mob-64 max-md:max-h-dvh md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
+        class="hero-section relative flex aspect-393/852 w-full flex-col justify-end overflow-hidden px-page pb-mob-64 max-md:max-h-svh md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
         style={`--hero-cycle: ${heroSlides.length * 4}s`}
     >
         <div class="hero-slideshow hidden brightness-80 md:flex">
@@ -454,8 +454,21 @@ const heroKeyframes = `
                                border-box the 94px of inset came out of the width
                                while the height still followed the full box, so
                                the picture rendered at 267×497 (0.54) instead of
-                               the 264/363.3 (0.73) asked for here. */
-                            'box-content aspect-[264/363.3] h-fit max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4 md:row-start-1 md:box-border md:aspect-auto md:h-full md:overflow-clip',
+                               the 264/363.3 (0.73) asked for here.
+
+                               The width has to be stated for the same reason.
+                               `SanityPicture` renders `display: contents`, so
+                               this `img` is itself the grid item and stretches to
+                               the track — and under `content-box` the track sizes
+                               the *content*, leaving the 94px of inset to hang
+                               off the end. That put the image 78px past the right
+                               edge of a 390px screen, which Chrome answered by
+                               widening the layout viewport to 469 and laying the
+                               whole page out against it: the white band down the
+                               right of every section on mobile. Taking the inset
+                               out of the width first is what fills the track
+                               exactly, and leaves the ratio the 264 it wants. */
+                            'box-content aspect-[264/363.3] h-fit max-md:order-2 max-md:mt-mob-32 max-md:w-[calc(100%_-_2_*_var(--spacing-mob-inset-inner))] max-md:px-mob-inset-inner md:col-span-4 md:row-start-1 md:box-border md:aspect-auto md:h-full md:w-auto md:overflow-clip',
                             programSide[program.side].image
                         ]}
                     />

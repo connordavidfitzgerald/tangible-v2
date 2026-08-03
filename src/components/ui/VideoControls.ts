@@ -19,7 +19,7 @@ type MuxPlayerElement = HTMLElement & {
 const SEEK_STEP_SECONDS = 5;
 
 /** How much of the frame, measured up from the bottom, reveals the controls. */
-const HOVER_BAND_RATIO = 0.3;
+const HOVER_BAND_RATIO = 1;
 
 /** Fraction of the frame that has to be on screen before it plays itself. */
 const AUTOPLAY_VISIBILITY = 0.35;

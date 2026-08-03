@@ -1,0 +1,209 @@
+---
+import logoSvg from '@assets/svgs/logo.svg?raw';
+
+/* Inlined rather than rendered through `<Icon>`. astro-icon defines each icon's
+   `<symbol>` at its first use on the page and points every later use at it with
+   `<use href>` — and this is the first thing in the body, so the panel would own
+   the definition the navbar and the footer both reference. Removing it at the
+   end of the animation took their logos down with it.
+
+   The ids inside the file are namespaced for the second half of the same
+   problem: this copy and the one inside astro-icon's symbol are both in the
+   document, and a duplicate id resolves to whichever comes first. That is this
+   one, which would leave the symbol's `clip-path` pointing at nothing the moment
+   the panel goes — an invalid reference, so the browser drops the element and
+   the logo disappears exactly as before, by a different route. */
+const logoMarkup = logoSvg.replace(
+    /(id="|url\(#)([^")]+)/g,
+    (_match, prefix, id) => `${prefix}preloader-${id}`
+);
+---
+
+<site-preloader style="display: contents;">
+    <div id="preloader" class="preloader" aria-hidden="true">
+        <!-- The mask the logo rises out of. Sized to the logo exactly, so the
+             overflow it clips is only ever the logo's own travel. -->
+        <div class="preloader-mask">
+            <div class="preloader-logo" set:html={logoMarkup} />
+        </div>
+    </div>
+</site-preloader>
+
+<noscript>
+    <style>
+        /* Nothing is going to animate the panel away, so it must never cover the
+           page in the first place. */
+        #preloader {
+            display: none;
+        }
+    </style>
+</noscript>
+
+<style>
+    /* Above the navbar's z-50 — the bar is the same yellow, and seeing it sit on
+       top of the panel would give the wipe an edge to come apart on. */
+    .preloader {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background-color: var(--color-yellow);
+        /* Bottom-left, bottom-right, top-right, top-left: the same winding the
+           page transition's keyframes use, so the panel can collapse to the top
+           edge against the exact same four points. */
+        clip-path: polygon(0% 100%, 100% 100%, 100% 0%, 0% 0%);
+        will-change: clip-path;
+    }
+
+    .preloader-mask {
+        display: block;
+        overflow: hidden;
+    }
+
+    /* The out-of-frame start is CSS, not a gsap.set: the panel is painted the
+       moment it parses, and a set would land a frame or two later — long enough
+       to show the logo already in place before it rises. */
+    .preloader-logo {
+        display: block;
+        transform: translateY(105%);
+        will-change: transform;
+    }
+
+    /* The navbar's logo, to the pixel — the two are the same mark on the same
+       yellow, and the wipe hands one straight to the other. Kept as the literal
+       pair from `Navbar.astro` rather than a token, because that is where the
+       size is decided; the breakpoint is `md`, which the bar switches at too.
+
+       `:global` because the svg arrives through `set:html`, which Astro does not
+       reach into with the scope attribute. */
+    .preloader-logo :global(svg) {
+        display: block;
+        width: auto;
+        height: 1.875rem;
+    }
+
+    @media (min-width: 810px) {
+        .preloader-logo :global(svg) {
+            height: var(--spacing-main-logo);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .preloader {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    import { gsap } from 'gsap';
+    import { CustomEase } from 'gsap/CustomEase';
+
+    gsap.registerPlugin(CustomEase);
+
+    /* The incoming page's wipe, to the number: cubic-bezier(0.22, 1, 0.36, 1) at
+       0.8s (see the page-transition block in global.css). The preloader leaving
+       and a navigation arriving are the same move, so they use the same curve. */
+    const PAGE_WIPE = CustomEase.create('preloader-wipe', 'M0,0 C0.22,1 0.36,1 1,1');
+    const COLLAPSED = 'polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)';
+
+    /** The point the timeline waits on: the logo is up, nothing has left yet. */
+    const GATE = 0.8;
+    /** How long the wipe is willing to wait on a page that is still loading. */
+    const GATE_TIMEOUT = 1500;
+    /** A stalled frame advances the timeline by this much at most (seconds). */
+    const MAX_STEP = 0.05;
+
+    /** Only ever the first paint of a session — never a client-side navigation. */
+    let hasPlayed = false;
+
+    class SitePreloader extends HTMLElement {
+        connectedCallback() {
+            if (hasPlayed) return;
+            hasPlayed = true;
+
+            const panel = this.querySelector<HTMLElement>('#preloader');
+            const logo = this.querySelector<HTMLElement>('.preloader-logo');
+            if (!panel || !logo) return;
+
+            const finish = () => {
+                panel.remove();
+                document.documentElement.style.removeProperty('overflow');
+            };
+
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                finish();
+                return;
+            }
+
+            // A reload restores the old scroll position, which would leave the
+            // page mid-document behind the panel and reveal it from there.
+            document.documentElement.style.overflow = 'hidden';
+            window.scrollTo(0, 0);
+
+            /* The same 105% the stylesheet already has it at, restated so gsap
+               owns it. A computed transform comes back as a matrix — in pixels,
+               with no memory of having been written as a percentage — so left to
+               read the CSS, gsap sees `yPercent: 0` on top of a 105%-worth pixel
+               offset: the reveal then animates a percentage that was already 0
+               and the logo never leaves the bottom of its mask. Zeroing `y` in
+               the same call is what discards that misread pixel offset. */
+            gsap.set(logo, { y: 0, yPercent: 105 });
+
+            const tl = gsap
+                .timeline({ paused: true })
+                .to(logo, { yPercent: 0, duration: GATE, ease: 'expo.out' })
+                // Back up through the top of its mask, so the logo is gone by the
+                // time the panel's own edge would have cut across it.
+                .to(logo, { yPercent: -105, duration: 0.45, ease: 'power3.in' }, '+=0.2')
+                .to(panel, { clipPath: COLLAPSED, duration: 0.8, ease: PAGE_WIPE }, '-=0.3');
+
+            // The one thing that must not happen is revealing a page that has not
+            // finished painting, so the timeline parks at the top of its hold
+            // until the load event — or until the wait stops being worth it.
+            let ready = document.readyState === 'complete';
+            const open = () => (ready = true);
+            if (!ready) window.addEventListener('load', open, { once: true });
+            setTimeout(open, GATE_TIMEOUT);
+
+            /* Driven on its own clock rather than gsap's global ticker, because
+               `motion.ts` runs the ticker with `lagSmoothing(0)` for Lenis. That
+               turns off the clamp on long frames, and the frames this animation
+               plays over are the worst of the page's life — decoding the hero,
+               parsing the rest of the bundle. A single 600ms stall would hand the
+               timeline 600ms of progress and skip the wipe half-done. Clamping
+               each step to `MAX_STEP` costs a stall its time, not its frames: the
+               animation stretches instead of jumping. */
+            let last = performance.now();
+            let time = 0;
+
+            const step = (now: number) => {
+                // A rAF timestamp is the frame's start, which can predate the
+                // `performance.now()` this started from — hence the floor at 0,
+                // or the first step would run the timeline backwards.
+                const delta = Math.min(Math.max(now - last, 0) / 1000, MAX_STEP);
+                last = now;
+
+                if (ready || time < GATE) time = Math.min(time + delta, tl.duration());
+                tl.time(time);
+
+                if (time < tl.duration()) requestAnimationFrame(step);
+                else finish();
+            };
+
+            requestAnimationFrame(step);
+        }
+    }
+
+    if (!customElements.get('site-preloader')) {
+        customElements.define('site-preloader', SitePreloader);
+    }
+
+    /* The panel is in every document the router fetches, so without this it would
+       be re-inserted — full-screen and un-animated, since the element above has
+       already run — on top of every page the site navigates to. */
+    document.addEventListener('astro:before-swap', (event) => {
+        (event as any).newDocument.getElementById('preloader')?.remove();
+    });
+</script>

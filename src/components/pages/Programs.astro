@@ -170,13 +170,23 @@ const quoteAuthor = t('quoteAuthor');
                     />
                 </div>
             </div>
+
+            <!-- ===============================================================
+                 Films — a three-up slider, and the last floor of the stack. It
+                 sits inside the wrapper rather than after it so that card 2 has
+                 something to stay stuck against: a sticky element is released at
+                 its container's bottom edge, so as the wrapper's final child card
+                 2 had nowhere to travel and its `sticky` never took effect. With
+                 the slider below it inside the same box, card 2 holds at the top
+                 for the slider's whole height while it climbs over it — the same
+                 exchange card 1 and card 2 already make one floor down.
+
+                 `z-30` continues that ladder (intro 0, card 1 10, card 2 20), and
+                 the section's own `bg-offwhite` is what does the covering.
+                 =============================================================== -->
+            <VideoSlider videos={sliderVideos} lang={locale} class="programs-video relative z-30" />
         </div>
     </programs-animation>
-
-    <!-- ===================================================================
-         Films — a three-up slider, sitting between the programs and the quote.
-         =================================================================== -->
-    <VideoSlider videos={sliderVideos} lang={locale} />
 
     <!-- ===================================================================
          Quote — bronze on perle, ruled top and bottom. The lines after the
@@ -218,11 +228,30 @@ const quoteAuthor = t('quoteAuthor');
             connectedCallback() {
                 const card1 = this.querySelector('.programs-card-1') as HTMLElement | null;
                 const card2 = this.querySelector('.programs-card-2') as HTMLElement | null;
+                const video = this.querySelector('.programs-video') as HTMLElement | null;
 
                 if (card1 && card2) {
                     this.mm = gsap.matchMedia();
 
                     this.mm.add('(min-width: 810px)', () => {
+                        /** Each floor recedes over the stretch the next one takes
+                         *  to climb from its bottom edge to covering it outright.
+                         *  The card is stuck by then, so its own height is the
+                         *  distance from the top of the viewport to the edge the
+                         *  climber has to clear. */
+                        const recede = (card: HTMLElement, climber: HTMLElement) =>
+                            gsap.to(card, {
+                                scale: 0.8,
+                                ease: 'power1.inOut',
+                                scrollTrigger: {
+                                    trigger: climber,
+                                    start: () => `top ${card.offsetHeight}px`,
+                                    end: 'top top',
+                                    scrub: true,
+                                    invalidateOnRefresh: true
+                                }
+                            });
+
                         /* Card 1 recedes only over the stretch where it is stuck at
                            the top and card 2 is climbing across it: from card 2's
                            top clearing card 1's bottom edge to it covering card 1
@@ -232,17 +261,14 @@ const quoteAuthor = t('quoteAuthor');
                            it to `top top` rather than stopping halfway keeps the
                            recede going for as long as there is anything left to
                            see of it, instead of settling and then waiting. */
-                        gsap.to(card1, {
-                            scale: 0.8,
-                            ease: 'power1.inOut',
-                            scrollTrigger: {
-                                trigger: card2,
-                                start: () => `top ${card1.offsetHeight}px`,
-                                end: 'top top',
-                                scrub: true,
-                                invalidateOnRefresh: true
-                            }
-                        });
+                        recede(card1, card2);
+
+                        /* Card 2 makes the same exchange one floor up, with the
+                           films as the climber. Guarded because the slider only
+                           renders when Site Settings has films in it — with no
+                           slider there is nothing to be covered by, so card 2
+                           simply stays at full size as it always did. */
+                        if (video) recede(card2, video);
                     });
                 }
             }

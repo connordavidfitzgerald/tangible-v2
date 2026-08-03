@@ -28,8 +28,11 @@ const PUSH = 15;
  * Two beats:
  *
  *   1. The move. Both sides close at once — they converge symmetrically, and
- *      staggering a symmetry only makes it look like a mistake.
- *   2. The type, left to right, starting before the move has quite finished.
+ *      staggering a symmetry only makes it look like a mistake. The titles are
+ *      part of this beat rather than one of their own: they sit inside the discs,
+ *      already legible, and ride in with them.
+ *   2. The paragraphs, left to right, starting before the move has quite
+ *      finished.
  *
  * Then the same held tail as `grow`, for the same reason: the pin should not
  * release on the frame the last paragraph lands.
@@ -56,7 +59,7 @@ export const settle: CirclesVariant = {
     end: '+=120%',
 
     compose(tl, parts: CircleParts) {
-        const { sides, y1, y3, labelInners, lines } = parts;
+        const { sides, y1, y3, lines } = parts;
         const [left, right] = sides;
 
         // ── 1. The move ──────────────────────────────────────────────────────
@@ -92,44 +95,38 @@ export const settle: CirclesVariant = {
         if (y1) converge(y1, PUSH);
         if (y3) converge(y3, -PUSH);
 
-        // ── 2. The type ──────────────────────────────────────────────────────
-        // Overlapping the tail of the move by about a quarter of it, so the
-        // circles are still closing as the first title rises. A scrubbed
-        // timeline with a seam in it reads as broken rather than as two beats.
+        // ── 2. The paragraphs ────────────────────────────────────────────────
+        // The titles are no longer a beat of their own. They belong to the
+        // circles — a title is part of the field being brought into register,
+        // not a caption that arrives once the field lands — so they are at full
+        // strength from the first frame and travel in with their own disc.
+        // `.circle-label` is a child of `.circle`, which is what makes that free:
+        // the converge above carries the type with the shape it names, and the
+        // mask around it goes back to being nothing but descender room.
         //
-        // Same treatment as `grow`: title and paragraph paired by index on one
-        // beat, the title rising out of its mask and the paragraph taking the
-        // gentler lift and fade that `FadeUp.astro` uses for body copy.
+        // What stays staggered is the row of paragraphs, still left to right and
+        // still overlapping the tail of the move by about a quarter of it, so the
+        // circles are closing as the first line lifts. A scrubbed timeline with a
+        // seam in it reads as broken rather than as two beats. They keep the
+        // gentler lift and fade `FadeUp.astro` uses for body copy.
         const TEXT_START = MOVE_DURATION * 0.72;
         const TEXT_STAGGER = 0.22;
         const LINE_DURATION = 0.66;
 
-        labelInners.forEach((label, i) => {
-            const at = TEXT_START + i * TEXT_STAGGER;
-
+        lines.forEach((line, i) => {
             tl.fromTo(
-                label,
-                { yPercent: 110 },
-                { yPercent: 0, duration: 0.52, ease: 'power3.out' },
-                at
+                line,
+                { yPercent: 14, opacity: 0 },
+                { yPercent: 0, opacity: 1, duration: LINE_DURATION, ease: 'power2.out' },
+                TEXT_START + i * TEXT_STAGGER
             );
-
-            const line = lines[i];
-            if (line) {
-                tl.fromTo(
-                    line,
-                    { yPercent: 14, opacity: 0 },
-                    { yPercent: 0, opacity: 1, duration: LINE_DURATION, ease: 'power2.out' },
-                    at
-                );
-            }
         });
 
         // ── The held tail ────────────────────────────────────────────────────
         // Composition complete, nothing moving. Placed off the last paragraph
         // rather than off a literal so retiming the type carries it.
         const LAST_LANDING =
-            TEXT_START + Math.max(labelInners.length - 1, 0) * TEXT_STAGGER + LINE_DURATION;
+            TEXT_START + Math.max(lines.length - 1, 0) * TEXT_STAGGER + LINE_DURATION;
 
         tl.to({}, { duration: 0.4 }, LAST_LANDING);
     }

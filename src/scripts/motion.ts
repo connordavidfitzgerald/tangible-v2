@@ -9,6 +9,15 @@ import { HandsAnimation } from '@components/animation/HandsAnimation';
 
 gsap.registerPlugin(ScrollTrigger);
 
+/* Mobile browsers fire `resize` every time the URL bar slides away, and the only
+   thing that changed is how much of the page you can see. Left alone,
+   ScrollTrigger answers each one with a full refresh — remeasuring every trigger
+   and repositioning the pinned circles section on About mid-scroll, which is what
+   made the page shift under the thumb. `ignoreMobileResize` drops the ones that
+   only change the viewport's height; an orientation change still refreshes,
+   because that changes the width too. */
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 let lenis: Lenis | null = null;
 
 const raf = (time: number) => {
@@ -42,7 +51,9 @@ function reinitPageAnimations() {
     document
         .querySelectorAll<CirclesAnimation>('circles-animation')
         .forEach((el) => el.initCircles());
-    document.querySelectorAll<HandsAnimation>('hands-animation').forEach((el) => el.initAnimation());
+    document
+        .querySelectorAll<HandsAnimation>('hands-animation')
+        .forEach((el) => el.initAnimation());
 }
 
 // ── Astro View Transitions lifecycle ────────────────────────────────────────

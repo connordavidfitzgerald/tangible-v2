@@ -1,13 +1,4 @@
 ---
-/**
- * Mux-hosted video, played by the `<mux-player>` web component behind a custom
- * control bar (`VideoControls.ts`) — the player's own chrome is switched off.
- *
- * The element fills its wrapper and crops to it, so the caller owns the frame:
- * pass the aspect ratio / sizing through `class` (e.g. `aspect-1512/902 w-full`).
- * Renders nothing without a playback id, so a page is safe to build before the
- * video has been uploaded in the Studio.
- */
 import { muxPosterUrl } from '@lib/sanity/video';
 
 import iconPlay from '@assets/svgs/video-icons/ICON-PLAY.svg?raw';
@@ -94,6 +85,7 @@ const icons = {
         >
             <mux-player
                 class="c-video-player"
+                loop
                 playback-id={playbackId}
                 stream-type="on-demand"
                 loading={loading}
@@ -241,12 +233,12 @@ const icons = {
 
     .-toggle span,
     .-fullscreen span {
-        height: 50px;
+        height: 2.08333333333rem;
     }
 
     /* Sized so the speaker matches the 50px width of the square icons. */
     .-mute span {
-        height: 40.6px;
+        height: 1.69166666667rem;
     }
 
     /* Each button holds both states; only the applicable action is shown. */
@@ -264,7 +256,7 @@ const icons = {
         /* Fills whatever the buttons leave, and is as tall as the indicator so
            the whole stroke is a hit target. */
         flex: 1 1 auto;
-        height: 50px;
+        height: 1rem;
         cursor: pointer;
         touch-action: none;
     }
@@ -284,7 +276,7 @@ const icons = {
         top: 50%;
         left: var(--progress, 0%);
         width: 3px;
-        height: 50px;
+        height: 2.08333333333rem;
         background: currentColor;
         transform: translate(-50%, -50%);
     }

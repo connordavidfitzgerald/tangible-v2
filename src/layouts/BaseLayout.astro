@@ -7,6 +7,7 @@ import { getLocale } from '@lib/i18n/utils';
 import { getSiteSettings } from '@lib/sanity/queries';
 import Navbar from '@components/layout/Navbar.astro';
 import Footer from '@components/layout/Footer.astro';
+import Preloader from '@components/layout/Preloader.astro';
 
 interface Props extends SeoProps {}
 
@@ -43,6 +44,9 @@ const seo = buildSeo(Astro.props, settings, locale);
         <ClientRouter />
     </head>
     <body>
+        <!-- First in the body so it paints with the first frame, ahead of the
+             content it is there to cover. -->
+        <Preloader />
         <Navbar {settings} />
         <main id="content" class="bg-offwhite">
             <slot />

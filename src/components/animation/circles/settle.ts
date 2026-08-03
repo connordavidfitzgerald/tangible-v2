@@ -63,7 +63,7 @@ export const settle: CirclesVariant = {
         const [left, right] = sides;
 
         // ── 1. The move ──────────────────────────────────────────────────────
-        const MOVE_DURATION = 1.1;
+        const MOVE_DURATION = 0.3;
         const MOVE_EASE = 'power2.inOut';
 
         // Below `md` the three circles are stacked rather than rowed, so the same

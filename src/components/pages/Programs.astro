@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/ui/Button.astro';
+import DashList from '@components/ui/DashList.astro';
 import { Picture } from 'astro:assets';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooter from '@components/sections/ContactFooter.astro';
@@ -37,56 +38,40 @@ const leadersFonts = ['formula', 'editorial'] as const;
 const entreprisesResult = t('entreprisesResult');
 const leadersAmbition = t('leadersAmbition');
 
-/**
- * Both service bodies are authored in the Studio as one em-dash-prefixed line
- * per service. The dash is drawn in the band's accent colour rather than in the
- * text colour, so it is split off its line and given its own span — leaving the
- * label to inherit. Copy without a leading dash falls through unchanged, so a
- * prose paragraph still renders.
- */
-const dashedLines = (value: string) =>
-    value
-        .split(/\r?\n/)
-        .map((line) => {
-            const match = line.match(/^\s*([—–-])\s*(.*)$/);
-            return match
-                ? { dash: match[1], text: match[2].trimEnd() }
-                : { dash: '', text: line.trim() };
-        })
-        .filter(({ dash, text }) => dash || text);
-
-const entreprisesLines = dashedLines(t('entreprisesBody'));
-const leadersLines = dashedLines(t('leadersBody'));
-
 const quote = t('quote');
 const quoteAuthor = t('quoteAuthor');
 ---
 
 <BaseLayout title="Services">
-    <div
-        class="relative grid grid-cols-8 gap-mob-16 bg-offwhite px-page pt-nav-bottom md:grid-cols-12 md:gap-gutter"
-    >
-        <div
-            class="col-span-8 flex flex-col gap-mob-16 py-mob-64 md:col-start-3 md:gap-main-40 md:px-main-60 md:py-main-80"
-        >
-            <h1
-                class="text-mob-body leading-[120%] font-light text-bronze md:text-main-circle md:leading-[1.2] md:font-normal"
-            >
-                {t('pageTitle')}
-            </h1>
-            <p
-                class="text-mob-caption leading-[120%] tracking-[0.03em] md:text-main-body md:leading-[1.2]"
-            >
-                Des accompagnements concrets, humains et stratégiques pensés pour transformer votre
-                vision en croissance durable. Grâce à une équipe chevronnée et un accompagnement
-                personnalisé, nous aidons les leaders et les organisations à générer un impact réel
-                et mobilisateur.
-            </p>
-        </div>
-    </div>
-
     <programs-animation style="display: contents;">
         <div class="programs-scroll-wrapper relative bg-offwhite">
+            {
+                /* The intro is the bottom of the stack: it holds its place while
+                   card 1 rides up over it, so it lives inside the same wrapper as
+                   the cards — that is what bounds how long it stays stuck. Mobile
+                   keeps it in the flow, like the cards. */
+            }
+            <div
+                class="programs-intro relative z-0 grid grid-cols-8 gap-mob-16 bg-offwhite px-page pt-nav-bottom md:sticky md:top-0 md:grid-cols-12 md:gap-gutter"
+            >
+                <div
+                    class="col-span-8 flex flex-col gap-mob-16 py-mob-64 md:col-start-3 md:gap-main-40 md:px-main-60 md:py-main-80"
+                >
+                    <h1
+                        class="text-mob-body leading-[120%] font-light tracking-[0.03em] text-bronze md:text-main-circle md:leading-[1.2] md:font-normal md:tracking-normal"
+                    >
+                        {t('pageTitle')}
+                    </h1>
+                    <p
+                        class="text-mob-caption leading-[120%] tracking-[0.03em] md:text-main-body md:leading-[1.2]"
+                    >
+                        Des accompagnements concrets, humains et stratégiques pensés pour
+                        transformer votre vision en croissance durable. Grâce à une équipe
+                        chevronnée et un accompagnement personnalisé, nous aidons les leaders et les
+                        organisations à générer un impact réel et mobilisateur.
+                    </p>
+                </div>
+            </div>
             {
                 /* Both bands stack title → list → button → image on mobile. Card 1
                 draws the image first for the wide layout, so it is pushed last
@@ -96,7 +81,7 @@ const quoteAuthor = t('quoteAuthor');
                 pin over each other on a phone. */
             }
             <div
-                class="programs-card programs-card-1 z-10 grid h-fit grid-cols-8 gap-mob-16 bg-perle px-page pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:py-main-80"
+                class="programs-card programs-card-1 z-10 grid h-fit grid-cols-8 bg-perle px-page pb-mob-64 max-md:flex max-md:flex-col md:sticky md:top-nav-bottom md:grid-cols-12 md:gap-gutter md:py-main-80"
             >
                 <div
                     class="col-span-8 flex overflow-clip max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
@@ -108,9 +93,9 @@ const quoteAuthor = t('quoteAuthor');
                     />
                 </div>
                 <div
-                    class="col-span-8 flex flex-col items-start gap-mob-32 max-md:order-1 md:gap-main-40 md:px-main-60"
+                    class="col-span-8 flex flex-col items-start gap-mob-32 max-md:contents md:gap-main-40 md:px-main-60"
                 >
-                    <div class="pt-mob-64 md:pt-0">
+                    <div class="pt-mob-64 max-md:order-1 md:pt-0">
                         <RevealHeader
                             delay={0.25}
                             lines={[t('entreprisesTitle1'), t('entreprisesTitle2')].map(
@@ -122,20 +107,17 @@ const quoteAuthor = t('quoteAuthor');
                         />
                     </div>
 
-                    <div class="flex w-full flex-col justify-start gap-mob-32 md:gap-main-100">
-                        <p
-                            class="text-mob-body leading-[120%] font-light tracking-[0.03em] max-md:px-mob-inset-inner md:text-main md:leading-[1.2]"
+                    <div
+                        class="flex w-full flex-col justify-start gap-mob-32 max-md:contents md:gap-main-100"
+                    >
+                        <DashList
+                            text={t('entreprisesBody')}
+                            markerClass="text-bronze"
+                            class="text-mob-body leading-[120%] font-light tracking-[0.03em] max-md:order-3 max-md:px-mob-inset-inner max-md:pt-mob-32 md:text-main md:leading-[1.2]"
+                        />
+                        <div
+                            class="flex w-full flex-row items-center justify-center max-md:order-4 max-md:pt-mob-32"
                         >
-                            {
-                                entreprisesLines.map(({ dash, text }) => (
-                                    <span class="block">
-                                        {dash && <span class="text-bronze">{dash} </span>}
-                                        {text}
-                                    </span>
-                                ))
-                            }
-                        </p>
-                        <div class="flex w-full flex-row items-center justify-center">
                             <Button
                                 class="font-sans text-mob-section tracking-[0.03em] uppercase md:text-main-section"
                                 href={localizedPath('/services/entreprises', locale)}
@@ -147,12 +129,12 @@ const quoteAuthor = t('quoteAuthor');
             </div>
 
             <div
-                class="programs-card-2 z-20 grid h-fit grid-cols-8 gap-mob-16 bg-bronze px-page pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:py-main-80"
+                class="programs-card-2 z-20 grid h-fit grid-cols-8 bg-bronze px-page pb-mob-64 max-md:flex max-md:flex-col md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:py-main-80"
             >
                 <div
-                    class="col-span-8 flex flex-col items-start gap-mob-32 md:gap-main-40 md:px-main-60"
+                    class="col-span-8 flex flex-col items-start gap-mob-32 max-md:contents md:gap-main-40 md:px-main-60"
                 >
-                    <div class="col-span-8 flex w-full flex-col pt-mob-64 md:pt-0">
+                    <div class="col-span-8 flex w-full flex-col pt-mob-64 max-md:order-1 md:pt-0">
                         <RevealHeader
                             textColor={'#e1e3d0'}
                             lines={[t('leadersTitle1'), t('leadersTitle2')].map((text, i) => ({
@@ -162,22 +144,15 @@ const quoteAuthor = t('quoteAuthor');
                         />
                     </div>
                     <div
-                        class="col-span-6 col-start-2 flex w-full flex-col justify-end gap-0 max-md:px-mob-inset-inner"
+                        class="col-span-6 col-start-2 flex w-full flex-col justify-end gap-0 max-md:contents"
                     >
-                        <p
-                            class="text-mob-body leading-[120%] font-light tracking-[0.03em] md:text-main md:leading-[1.2]"
-                        >
-                            {
-                                leadersLines.map(({ dash, text }) => (
-                                    <span class="block">
-                                        {dash && <span class="text-perle">{dash} </span>}
-                                        {text}
-                                    </span>
-                                ))
-                            }
-                        </p>
+                        <DashList
+                            text={t('leadersBody')}
+                            markerClass="text-perle"
+                            class="text-mob-body leading-[120%] font-light tracking-[0.03em] max-md:order-3 max-md:px-mob-inset-inner max-md:pt-mob-32 md:text-main md:leading-[1.2]"
+                        />
                         <div
-                            class="flex w-full flex-row items-center justify-center pt-mob-32 md:pt-main-100"
+                            class="flex w-full flex-row items-center justify-center pt-mob-32 max-md:order-4 md:pt-main-100"
                         >
                             <Button
                                 class="text-mob-section tracking-[0.03em] uppercase md:text-main-section"
@@ -188,7 +163,7 @@ const quoteAuthor = t('quoteAuthor');
                     </div>
                 </div>
                 <div
-                    class="col-span-8 overflow-clip max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
+                    class="col-span-8 overflow-clip max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
                 >
                     <Picture
                         src={img7}
@@ -213,7 +188,7 @@ const quoteAuthor = t('quoteAuthor');
          =================================================================== -->
     {
         quote && (
-            <div class="flex w-full flex-col justify-center bg-perle px-page py-mob-64 md:aspect-1512/902 md:max-h-frame-902 md:py-main-40">
+            <div class="flex w-full flex-col justify-center bg-perle px-page pt-50.5 pb-76.5 md:aspect-1512/902 md:max-h-frame-902 md:py-main-40">
                 <div class="grid grid-cols-8 gap-mob-16 md:grid-cols-12 md:gap-gutter">
                     <div class="col-span-8 flex flex-col gap-mob-32 border-y border-bronze py-mob-32 text-bronze md:col-span-10 md:col-start-2 md:gap-main-40 md:py-main-40">
                         <SplitReveal
@@ -250,14 +225,24 @@ const quoteAuthor = t('quoteAuthor');
                     this.mm = gsap.matchMedia();
 
                     this.mm.add('(min-width: 810px)', () => {
+                        /* Card 1 recedes only over the stretch where it is stuck at
+                           the top and card 2 is climbing across it: from card 2's
+                           top clearing card 1's bottom edge to it covering card 1
+                           outright. Starting any earlier — the old `top bottom` —
+                           had card 1 shrinking while it was itself still rising up
+                           over the intro, which read as two moves at once. Running
+                           it to `top top` rather than stopping halfway keeps the
+                           recede going for as long as there is anything left to
+                           see of it, instead of settling and then waiting. */
                         gsap.to(card1, {
                             scale: 0.8,
-                            ease: 'none',
+                            ease: 'power1.inOut',
                             scrollTrigger: {
                                 trigger: card2,
-                                start: 'top bottom',
-                                end: 'top 50%',
-                                scrub: true
+                                start: () => `top ${card1.offsetHeight}px`,
+                                end: 'top top',
+                                scrub: true,
+                                invalidateOnRefresh: true
                             }
                         });
                     });

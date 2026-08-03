@@ -40,9 +40,8 @@ const slides = (data?.slides ?? []).map(
 
 <BaseLayout title="I AM Center">
     <div
-        class="relative flex w-full aspect-393/852 max-h-dvh flex-col justify-end overflow-hidden bg-offwhite px-page md:[--page-gutter:var(--spacing-fluid-forty)] md:aspect-1512/902 md:justify-center md:pb-0"
+        class="relative flex aspect-393/852 max-h-dvh w-full flex-col justify-end overflow-hidden bg-offwhite px-page md:aspect-1512/902 md:justify-center md:pb-0 md:[--page-gutter:var(--spacing-fluid-forty)]"
     >
-
         <div class="absolute inset-0 z-0">
             <Picture
                 alt="A clipboard and paper"
@@ -67,24 +66,26 @@ const slides = (data?.slides ?? []).map(
                     .map((text, i) => ({ text, font: heroFonts[i] }))}
             />
         </div>
-
     </div>
 
     <div
         class="flex flex-col bg-offwhite px-page pb-mob-64 md:grid md:h-fit md:w-full md:grid-cols-12 md:gap-gutter md:py-main-80"
     >
-
-        {/* The frame opens this band with the section label, above the photo.
+        {
+            /* The frame opens this band with the section label, above the photo.
             Desktop keeps it at the top of the text column, which sits after the
             photo in the DOM — so the mobile copy is written separately and each
-            shows at one size only. */}
+            shows at one size only. */
+        }
         <div
             class="flex w-full flex-row items-center justify-center border-b border-b-perle pt-mob-64 pb-mob-16 font-radio text-mob-section tracking-[3%] uppercase md:hidden"
         >
             {t('aboutSectionLabel')}
         </div>
 
-        <div class="w-full px-mob-inset-inner pt-mob-64 md:col-span-4 md:flex md:px-0 md:pt-0 md:pr-gutter">
+        <div
+            class="w-full px-mob-inset-inner pt-mob-64 md:col-span-4 md:flex md:px-0 md:pt-0 md:pr-gutter"
+        >
             <FadeUp>
                 <Picture
                     src={about}
@@ -98,11 +99,13 @@ const slides = (data?.slides ?? []).map(
             class="flex h-full w-full flex-col items-center justify-start gap-mob-32 md:col-span-8 md:gap-main-80 md:border-b md:border-b-perle"
         >
             <div
-                class="font-radio hidden w-full flex-row items-center justify-center border-b border-b-perle pb-main-12 text-main-section tracking-[3%] uppercase md:flex"
+                class="hidden w-full flex-row items-center justify-center border-b border-b-perle pb-main-12 font-radio text-main-section tracking-[3%] uppercase md:flex"
             >
                 {t('aboutSectionLabel')}
             </div>
-            <div class="flex flex-col justify-center items-center gap-mob-32 pt-mob-64 md:gap-main-40 md:px-main-60 md:pt-0">
+            <div
+                class="flex flex-col items-center justify-center gap-mob-32 pt-mob-64 md:gap-main-40 md:px-main-60 md:pt-0"
+            >
                 <p
                     class="text-mob-body leading-[120%] font-light tracking-[0.02em] whitespace-pre-line md:text-main"
                 >
@@ -117,42 +120,56 @@ const slides = (data?.slides ?? []).map(
                 }
             </div>
         </div>
-
     </div>
 
-    <div class="flex flex-col gap-0 bg-bronze text-perle px-page pt-0 md:pt-main-80">
-        <div class="grid grid-cols-12 gap-gutter h-fit max-md:flex max-md:flex-col">
-            <div class="col-span-6 flex flex-col gap-main-80 h-full border-b border-perle max-md:contents">
+    <div class="flex flex-col gap-0 bg-bronze px-page pt-0 text-perle md:pt-main-80">
+        <div
+            class="grid h-fit grid-cols-12 gap-gutter border-b border-b-perle pb-mob-64 max-md:flex max-md:flex-col max-md:pb-0 md:border-none"
+        >
+            <div
+                class="col-span-6 flex h-full flex-col gap-main-80 border-b border-perle max-md:contents"
+            >
                 <div
-                    class="font-radio w-full flex flex-row items-center justify-center border-b border-b-perle text-mob-section tracking-[0.03em] uppercase max-md:order-1 max-md:pt-mob-64 max-md:pb-mob-16 md:pb-main-12 md:text-main-section"
+                    class="flex w-full flex-row items-center justify-center border-b border-b-perle font-radio text-mob-section tracking-[0.03em] uppercase max-md:order-1 max-md:pt-mob-64 max-md:pb-mob-16 md:pb-main-12 md:text-main-section"
                 >
                     {t('aboutSectionLabel')}
                 </div>
-                <p class="text-mob-body font-light tracking-[0.02em] leading-[120%] max-md:order-3 max-md:pt-mob-64 md:text-main md:leading-[1.2] md:px-main-60">
-                    Offrez à vos événements un espace qui inspire autant les idées que les connexions humaines. Situé au cœur du centre-ville, le Centre I AM accueille vos rencontres corporatives, ateliers et expériences collaboratives dans une atmosphère chaleureuse, lumineuse et propice aux échanges porteurs de sens.
+                <p
+                    class="text-mob-body leading-[120%] font-light tracking-[0.02em] max-md:order-3 max-md:pt-mob-64 md:px-main-60 md:text-main md:leading-[1.2]"
+                >
+                    Offrez à vos événements un espace qui inspire autant les idées que les
+                    connexions humaines. Situé au cœur du centre-ville, le Centre I AM accueille vos
+                    rencontres corporatives, ateliers et expériences collaboratives dans une
+                    atmosphère chaleureuse, lumineuse et propice aux échanges porteurs de sens.
                 </p>
             </div>
             <div class="col-span-6 pl-gutter max-md:order-2 max-md:pt-mob-64 max-md:pl-0">
-                <Picture src={mobcentre} alt="I AM Center" class="aspect-square w-full object-cover" />
+                <Picture
+                    src={mobcentre}
+                    alt="I AM Center"
+                    class="aspect-square w-full object-cover"
+                />
             </div>
         </div>
-        <div
-            class="grid grid-cols-12 gap-gutter py-mob-64 md:py-main-160"
-        >
-
+        <div class="grid grid-cols-12 gap-gutter py-mob-64 md:py-main-160">
             <div class="col-span-12 md:col-span-8 md:col-start-3">
-                <div class="font-light text-mob-body tracking-[0.02em] leading-[120%] md:text-main md:leading-[1.2]">
+                <div
+                    class="text-mob-body leading-[120%] font-light tracking-[0.02em] md:text-main md:leading-[1.2]"
+                >
                     Réservez le Centre I AM
                 </div>
 
                 <form id="contact-form" class="flex flex-col gap-gutter pt-gutter">
-
-                    <input type="hidden" name="access_key" value="3cb859b7-eb03-4988-a1d8-38cf672ee0c8" />
+                    <input
+                        type="hidden"
+                        name="access_key"
+                        value="3cb859b7-eb03-4988-a1d8-38cf672ee0c8"
+                    />
 
                     <div class="flex flex-col gap-0">
                         <label
                             for="name"
-                            class="font-radio block text-mob-section tracking-[0.02em] leading-[1.2] uppercase opacity-75 md:text-main-section"
+                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
                         >
                             Nom
                         </label>
@@ -167,7 +184,7 @@ const slides = (data?.slides ?? []).map(
                     <div class="flex flex-col gap-0">
                         <label
                             for="email"
-                            class="font-radio block text-mob-section tracking-[0.02em] leading-[1.2] uppercase opacity-75 md:text-main-section"
+                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
                         >
                             Courriel
                         </label>
@@ -182,7 +199,7 @@ const slides = (data?.slides ?? []).map(
                     <div class="flex flex-col gap-0">
                         <label
                             for="phone"
-                            class="font-radio block text-mob-section tracking-[0.02em] leading-[1.2] uppercase opacity-75 md:text-main-section"
+                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
                         >
                             Téléphone
                         </label>
@@ -197,7 +214,7 @@ const slides = (data?.slides ?? []).map(
                     <div class="flex flex-col gap-0">
                         <label
                             for="entreprise"
-                            class="font-radio block text-mob-section tracking-[0.02em] leading-[1.2] uppercase opacity-75 md:text-main-section"
+                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
                         >
                             Entreprise
                         </label>
@@ -212,7 +229,7 @@ const slides = (data?.slides ?? []).map(
                     <div class="flex flex-col gap-0">
                         <label
                             for="site"
-                            class="font-radio block text-mob-section tracking-[0.02em] leading-[1.2] uppercase opacity-75 md:text-main-section"
+                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
                         >
                             Site de l'entreprise
                         </label>
@@ -227,16 +244,16 @@ const slides = (data?.slides ?? []).map(
                     <div class="flex flex-col gap-0">
                         <label
                             for="message"
-                            class="font-radio block text-mob-section tracking-[0.02em] leading-[1.2] uppercase opacity-75 md:text-main-section"
+                            class="block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section"
                         >
                             Info supplémentaires/Description de l'événement*
                         </label>
                         <textarea
                             name="message"
                             class="w-full border-b border-b-perle text-main outline-0"
-                        required
-                        rows="5">
-
+                            required
+                            rows="5"
+                        >
                         </textarea>
                     </div>
                     <div class="flex flex-row justify-center pt-main-60">
@@ -247,10 +264,7 @@ const slides = (data?.slides ?? []).map(
         </div>
     </div>
 
-
-         <ServiceSliderAlt {slides} />
-
-
+    <ServiceSliderAlt {slides} />
 
     <ContactFooterAlt heading={t('contactFooterHeading')} lang={locale} />
 </BaseLayout>

@@ -55,6 +55,20 @@
     }
 }
 
+/* The navbar is a different bar below `md` — `top-16`, `py-[0.3125rem]` and a
+   1.875rem logo — and the token in `@theme` is built from the *desktop* three
+   (`main-40`, `main-5`, `main-logo`). Those clamps bottom out at 56px on a phone,
+   which is 48px short of where the bar actually ends, so anything using
+   `pt-nav-bottom` to clear it was sitting underneath it instead.
+
+   4rem + 2 × 0.3125rem + 1.875rem = 6.5rem, which is the bar's own arithmetic.
+   Stated here rather than in `@theme` because `@theme` cannot hold two values. */
+@media (max-width: 809.98px) {
+    :root {
+        --spacing-nav-bottom: 6.5rem;
+    }
+}
+
 /* =============================================================================
    Design tokens
    Fluid values were authored with Utopia (viewport 320–2560px, root 16px) and
@@ -202,11 +216,14 @@
     --text-mob-display: clamp(2.75rem, 0rem + 13.75vw, 6.875rem);
     /* 24px @393 — sub-headings ("Notre engagement", menu sub-links, Ron's role). */
     --text-mob-sub: clamp(1.375rem, 0.9583rem + 2.0833vw, 2rem);
-    --text-mob-body: clamp(1.375rem, 1.1667rem + 0.6944vw, 2rem);
+    /* 22px @393. The ceiling is the one part of this that is not a mobile size:
+       the token is left in place at md by the contact footers and the services
+       slider, so it keeps growing past 810 and only stops at 36px. */
+    --text-mob-body: clamp(1.375rem, 0.786rem + 2.3981vw, 2rem);
     --text-mob-nav: clamp(1.7813rem, -0.0312rem + 9.0625vw, 4rem);
     --text-mob-nav-sm: clamp(1.2213rem, 0.0354rem + 5.9292vw, 2.5rem);
     --text-mob-md: clamp(1.7813rem, 0.0001rem + 8.9056vw, 2.7831rem);
-    --text-mob-caption: clamp(0.875rem, 0.75rem + 0.4167vw, 1.25rem);
+    --text-mob-caption: clamp(0.875rem, 0.5216rem + 1.4388vw, 1.25rem);
     --text-slider-caption: clamp(0.75rem, 0.5833rem + 0.5556vw, 1.25rem);
     --text-button-mob: clamp(0.855rem, 0.1528rem + 3.5111vw, 1rem);
     --text-mob-footer: clamp(1.7813rem, 0.0001rem + 8.9056vw, 2.7831rem);
@@ -489,12 +506,25 @@ body {
 /* =============================================================================
    Page transitions (Astro View Transitions)
    ========================================================================== */
+/* The incoming page wipes up over the outgoing one, so the curve is the whole
+   effect: it decides when the wipe is *seen* to start.
+
+   It used to run on cubic-bezier(0.83, 0, 0.17, 1) — ease-in-out-quint, which is
+   symmetric and therefore nearly flat at both ends. Over a second that put the
+   wipe 0.6% up the screen at 100ms and 2.6% at 200ms: the transition had begun,
+   but for a fifth of a second there was nothing to see, which reads as the click
+   not having registered. Half the duration went on the first half-percent of
+   travel.
+
+   An ease-*out* spends its speed at the start instead — 48% of the way up at
+   100ms, 88% at 300ms — so the page moves on the frame the navigation starts and
+   the tail is what stretches. */
 @media (prefers-reduced-motion: no-preference) {
     ::view-transition-old(root) {
-        animation: page-out 1.2s cubic-bezier(0.83, 0, 0.17, 1) both;
+        animation: page-out 0.01s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     ::view-transition-new(root) {
-        animation: page-in 1.2s cubic-bezier(0.83, 0, 0.17, 1) both;
+        animation: page-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 }
 

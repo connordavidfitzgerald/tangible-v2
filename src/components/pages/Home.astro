@@ -3,6 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/ui/Button.astro';
 import Image from '@components/ui/Image.astro';
 import FadeUp from '@components/ui/FadeUp.astro';
+import DashList from '@components/ui/DashList.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooter from '@components/sections/ContactFooter.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
@@ -29,15 +30,16 @@ import { localizedPath } from '@lib/i18n/utils';
 import { pick, type I18nField } from '@lib/sanity/i18n';
 import { getSiteSettings } from '@lib/sanity/queries';
 import { muxPlaybackId } from '@lib/sanity/video';
+import { HERO_TITLES, INTRO_BOLD, INTRO_BODY } from '@lib/content/homeFallbacks';
 import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
-    data: Record<string, I18nField> | null;
+    data: Record<string, any> | null;
     locale: LocaleId;
 }
 
 const { data, locale } = Astro.props;
-const t = (key: string) => pick(data?.[key], locale);
+const t = (key: string) => pick(data?.[key] as I18nField, locale);
 
 /** The film is global (Site Settings), not home-page content. */
 const settings = await getSiteSettings();
@@ -54,13 +56,51 @@ const leadersTitleFonts = ['formula', 'editorial'] as const;
  * wide one. The hero is the one exception — its mobile crops are separate image
  * assets, so both sets stay in the DOM and swap at `sm` (700px).
  */
-const heroSlides = [
+const heroPhotos = [
     { desktop: img1, mobile: mob1 },
     { desktop: img2, mobile: mob2 },
     { desktop: img3, mobile: mob3 },
     { desktop: img4, mobile: mob4 },
     { desktop: img5, mobile: mob5 }
 ];
+
+/**
+ * Each photo carries its own title, and the two run off the same CSS clock (see
+ * the style block) so a title is only ever on screen over its own photo.
+ *
+ * Titles are authored per photo in Sanity (`heroTitles`, matched by position).
+ * An unauthored entry falls back to the drawn copy in `homeFallbacks`, and the
+ * first photo falls back to `heroLine1-3` — the fields that already hold the
+ * hero's title today, and the page's `h1`.
+ */
+const authoredTitles: any[] = Array.isArray(data?.heroTitles) ? data.heroTitles : [];
+const baseHeroLines = [t('heroLine1'), t('heroLine2'), t('heroLine3')].filter(Boolean);
+
+const heroTitleLines = (index: number) => {
+    const entry = authoredTitles[index];
+    const authored = entry
+        ? [pick(entry.line1, locale), pick(entry.line2, locale), pick(entry.line3, locale)].filter(
+              Boolean
+          )
+        : [];
+    if (authored.length) return authored;
+
+    const fallback = HERO_TITLES[locale]?.[index] ?? [];
+    return fallback.length ? fallback : baseHeroLines;
+};
+
+const heroSlides = heroPhotos.map((photo, i) => ({
+    ...photo,
+    lines: heroTitleLines(i).map((text, line) => ({ text, font: heroFonts[line] ?? 'editorial' }))
+}));
+
+/**
+ * The intro band is drawn on both frames, but its two fields are empty in the
+ * dataset, and an empty lead sentence takes the whole band off the page. So it
+ * falls back to the drawn copy, which any Studio edit then replaces.
+ */
+const introBold = t('introBold') || INTRO_BOLD[locale];
+const introBody = t('introBody') || INTRO_BODY[locale];
 
 /** Copy is authored as "Label: body" — the label renders bold + bronze. */
 const splitHighlight = (value: string) => {
@@ -113,7 +153,7 @@ const programSide = {
          Hero
          =================================================================== -->
     <div
-        class="hero-section relative flex w-full aspect-393/852 max-md:max-h-dvh flex-col justify-end overflow-hidden px-page pb-mob-64 md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
+        class="hero-section relative flex aspect-393/852 w-full flex-col justify-end overflow-hidden px-page pb-mob-64 max-md:max-h-dvh md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
     >
         <div class="hero-slideshow hidden brightness-80 md:flex">
             {
@@ -152,15 +192,31 @@ const programSide = {
             }
         </div>
 
-        <div class="relative z-10">
-            <RevealHeader
-                delay={0.25}
-                textColor={'#FFFFFF'}
-                lines={[t('heroLine1'), t('heroLine2'), t('heroLine3')].map((text, i) => ({
-                    text,
-                    font: heroFonts[i]
-                }))}
-            />
+        {
+            /* The titles stack in one grid cell so the block keeps the height of
+               the tallest — a shorter title in the rotation must not move the
+               ones around it — and sit on their shared bottom edge, which is the
+               edge the frame positions against. Only the first is the page's
+               heading; the rest are its decorative variants, so they render as
+               `p` and stay out of the accessibility tree, like the photos. */
+        }
+        <div class="relative z-10 grid items-end">
+            {
+                heroSlides.map(({ lines }, i) => (
+                    <div
+                        class="hero-title col-start-1 row-start-1"
+                        style={`animation-delay: ${i * 4 - 1}s`}
+                        aria-hidden={i > 0 ? 'true' : undefined}
+                    >
+                        <RevealHeader
+                            delay={0.25}
+                            textColor={'#FFFFFF'}
+                            as={i === 0 ? 'h1' : 'p'}
+                            lines={lines}
+                        />
+                    </div>
+                ))
+            }
         </div>
     </div>
 
@@ -207,14 +263,12 @@ const programSide = {
             <div
                 class="flex grow flex-col justify-center gap-mob-32 pt-mob-64 md:gap-main-40 md:px-main-40 md:pt-main-80"
             >
-                <p
-                    class="text-mob-body leading-[120%] font-light tracking-[3%] md:text-main md:leading-[1.2]"
-                >
+                <p class="text-mob-body leading-[1.2] font-light tracking-[0.03em] md:text-main">
                     <span class="font-bold text-bronze">Tangible</span>
                     {' '}{t('aboutBody')}
                 </p>
                 <p
-                    class="text-mob-caption leading-[120%] tracking-[3%] whitespace-pre-line md:text-main-body md:leading-[1.2] md:tracking-[0.03em]"
+                    class="text-mob-section leading-[1.2] tracking-[0.03em] whitespace-pre-line md:text-main-body md:leading-[1.2]"
                 >
                     {t('aboutBody2')}
                 </p>
@@ -241,7 +295,7 @@ const programSide = {
         side, so it starts at md. */
     }
     <div
-        class="flex w-full flex-col gap-mob-64 bg-yellow px-page py-mob-64 md:grid md:aspect-[1512/902] md:max-h-frame-902 md:h-auto md:grid-cols-12 md:gap-gutter md:py-0"
+        class="flex w-full flex-col gap-mob-64 bg-yellow px-page py-mob-64 md:grid md:aspect-[1512/902] md:h-auto md:max-h-frame-902 md:grid-cols-12 md:gap-gutter md:py-0"
     >
         <div
             class="order-2 flex flex-col items-center justify-center px-mob-inset-inner leading-[110%] md:order-none md:col-span-5 md:col-start-2 md:px-0"
@@ -293,9 +347,10 @@ const programSide = {
                                     }))}
                                 />
                             </div>
-                            <p class="text-mob-body leading-[120%] font-light tracking-[3%] whitespace-pre-line max-md:order-3 max-md:px-mob-inset-inner max-md:pt-mob-32 md:text-main">
-                                {program.body}
-                            </p>
+                            <DashList
+                                text={program.body}
+                                class="text-mob-body leading-[120%] font-light tracking-[3%] max-md:order-3 max-md:px-mob-inset-inner max-md:pt-mob-32 md:text-main"
+                            />
                         </div>
 
                         <div
@@ -309,7 +364,7 @@ const programSide = {
                             ]}
                         >
                             <Button
-                                class="text-mob-section tracking-[3%] uppercase md:text-body-sm"
+                                class="text-mob-section tracking-[0.03em] uppercase md:text-body-sm"
                                 href={program.href}
                             >
                                 {program.buttonLabel}
@@ -332,7 +387,15 @@ const programSide = {
                                merely floored. Dropping the ratio lets the track
                                set the width and `h-full` set the height; the
                                `object-fit: cover` in Image.astro does the rest. */
-                            'aspect-[267/367.43] h-fit max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4 md:row-start-1 md:aspect-auto md:h-full md:overflow-clip',
+                            /* `box-content` so the mobile ratio governs the
+                               *image*, not the padded box. The inset lives on
+                               this same element, and `aspect-ratio` sizes
+                               whichever box `box-sizing` names — on the default
+                               border-box the 94px of inset came out of the width
+                               while the height still followed the full box, so
+                               the picture rendered at 267×497 (0.54) instead of
+                               the 264/363.3 (0.73) asked for here. */
+                            'box-content aspect-[264/363.3] h-fit max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4 md:row-start-1 md:box-border md:aspect-auto md:h-full md:overflow-clip',
                             programSide[program.side].image
                         ]}
                     />
@@ -357,14 +420,14 @@ const programSide = {
          left edge on 282px at 1512, exactly as drawn.
          =================================================================== -->
     {
-        t('introBold') && (
+        introBold && (
             <div class="grid grid-cols-8 gap-mob-16 bg-perle px-page py-mob-128 md:grid-cols-12 md:gap-gutter md:py-fluid-160">
                 <div class="col-span-8 flex flex-col gap-mob-32 md:col-span-8 md:col-start-3 md:gap-main-40">
-                    <SplitReveal class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] md:text-main-lead md:leading-[120%] md:font-normal">
-                        {t('introBold')}
+                    <SplitReveal class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] text-bronze md:text-main-lead md:leading-[120%] md:font-normal md:tracking-[0em]">
+                        {introBold}
                     </SplitReveal>
-                    <p class="font-radio text-mob-caption leading-[120%] font-light tracking-[0.03em] whitespace-pre-line md:text-main md:leading-[120%]">
-                        {t('introBody')}
+                    <p class="font-radio text-mob-section leading-[120%] font-normal tracking-[0.03em] whitespace-pre-line md:text-main md:leading-[120%] md:font-light">
+                        {introBody}
                     </p>
                 </div>
             </div>
@@ -412,11 +475,32 @@ const programSide = {
         z-index: 0;
     }
 
+    /* Five photos, four seconds each: a 20s cycle offset by 4s per slide. The
+       photos are opaque and stacked, so each one only has to fade *out* to
+       reveal the next; between the fades it sits at full opacity, which is why
+       a slide waiting its turn stays visible under the ones above it. */
     .hero-slide {
         position: absolute;
         inset: 0;
         opacity: 1;
         animation: hero-fade 20s ease-out infinite;
+    }
+
+    /* The titles run the same 20s cycle so each one is on screen exactly while
+       its photo is. They cannot borrow the photos' trick, though — text is
+       transparent, so a title waiting its turn would be legible over the title
+       above it. It stays at `opacity: 0` until its turn (no fill mode, so the
+       delay leaves this declaration standing) and fades in and out on its own.
+
+       The `-1s` in the delay is what lines the two up: the fade-in occupies the
+       first second of the animation, so starting a second early puts a title at
+       full opacity for the same window its photo holds — and crossfades it with
+       the outgoing title over the same second the photos crossfade. It also
+       means the first title, at `-1s`, is already opaque on the first frame,
+       leaving its entrance to the reveal bars. */
+    .hero-title {
+        opacity: 0;
+        animation: hero-title-fade 20s ease-out infinite;
     }
 
     :global(.hero-slide picture),
@@ -443,6 +527,25 @@ const programSide = {
         }
         100% {
             opacity: 1;
+        }
+    }
+
+    /* 0-1s in, 1-4s held, 4-5s out, hidden for the remaining 15s. */
+    @keyframes hero-title-fade {
+        0% {
+            opacity: 0;
+        }
+        5% {
+            opacity: 1;
+        }
+        20% {
+            opacity: 1;
+        }
+        25% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 0;
         }
     }
 </style>

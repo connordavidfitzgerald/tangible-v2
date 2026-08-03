@@ -1,0 +1,64 @@
+---
+interface Props {
+    /** Copy as authored: one item per line, each opening with a dash. */
+    text: string;
+    class?: string;
+    /**
+     * Classes for the dash column alone. The programs cards draw the dash in the
+     * band's accent colour rather than the text colour, so it is styled apart
+     * from the label; left off, it simply inherits.
+     */
+    markerClass?: string;
+}
+
+const { text, class: className, markerClass } = Astro.props as Props;
+
+/**
+ * The program lists are authored as one string with a line per item — "— Ateliers
+ * Whiteboard\n— Expériences immersives\n…". Set as a single `white-space:
+ * pre-line` paragraph the dashes line up, but a wrapped item does not: its second
+ * line starts under the dash instead of under the text. `text-indent` cannot fix
+ * that, because it indents the first line of a *block*, and the lines after a
+ * forced break are not that.
+ *
+ * So each item gets its own row, the dash in a fixed column and the text in the
+ * one beside it — which is how the mobile frame draws it: the dash on the content
+ * edge, every line of text at 1.25em.
+ *
+ * A line that does not open with a dash stays a plain paragraph, so prose copy
+ * renders unchanged, and a blank line between two of them keeps its break.
+ */
+const DASH = /^([—–-])\s+(.*)$/;
+
+type Item = { marker: string | null; body: string; spaced: boolean };
+
+const items: Item[] = [];
+let spaced = false;
+
+for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) {
+        // Leading blank lines have nothing to separate.
+        spaced = items.length > 0;
+        continue;
+    }
+    const match = line.match(DASH);
+    items.push({ marker: match?.[1] ?? null, body: match ? match[2] : line, spaced });
+    spaced = false;
+}
+---
+
+<div class:list={['flex flex-col', className]}>
+    {
+        items.map(({ marker, body, spaced }) => (
+            <p class:list={['flex', spaced && 'mt-[1em]']}>
+                {marker && (
+                    <span class:list={['w-[1.25em] shrink-0', markerClass]} aria-hidden="true">
+                        {marker}
+                    </span>
+                )}
+                <span>{body}</span>
+            </p>
+        ))
+    }
+</div>

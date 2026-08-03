@@ -93,7 +93,7 @@ class CirclesAnimation extends HTMLElement {
         });
 
         // Desktop pins the section and scrubs the assembly against the scrollbar.
-        this.mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
+        this.mm.add('(min-width: 810px) and (prefers-reduced-motion: no-preference)', () => {
             const tl = gsap.timeline({
                 scrollTrigger: {
                     // `pin` gets the inner div, never `this` — pinning re-parents
@@ -124,7 +124,7 @@ class CirclesAnimation extends HTMLElement {
         // Mobile plays it once on entry instead. A pinned scrub against touch
         // momentum feels rubbery, and the group is likely taller than a phone
         // viewport anyway, so there is nothing to be gained by holding it there.
-        this.mm.add('(max-width: 767px) and (prefers-reduced-motion: no-preference)', () => {
+        this.mm.add('(max-width: 809px) and (prefers-reduced-motion: no-preference)', () => {
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: wrapper,

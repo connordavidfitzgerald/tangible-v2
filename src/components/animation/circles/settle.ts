@@ -63,45 +63,34 @@ export const settle: CirclesVariant = {
         const MOVE_DURATION = 1.1;
         const MOVE_EASE = 'power2.inOut';
 
-        if (left) {
-            tl.fromTo(
-                left,
-                { xPercent: -PUSH },
-                { xPercent: 0, duration: MOVE_DURATION, ease: MOVE_EASE },
-                0
-            );
-        }
+        // Below `md` the three circles are stacked rather than rowed, so the same
+        // convergence has to run down the page instead of across it. Only the axis
+        // changes — the two outer discs still close on the middle one by the same
+        // share of their own size, and the lenses still cancel it exactly.
+        //
+        // Read here rather than passed in because the layout it mirrors is a CSS
+        // media query, and this is the one place that has to agree with it. It is
+        // the same 809px the stylesheet switches on.
+        const axis = window.matchMedia('(max-width: 809px)').matches ? 'yPercent' : 'xPercent';
 
-        if (right) {
+        /** A converge tween on whichever axis this layout uses. */
+        const converge = (el: HTMLElement, push: number) =>
             tl.fromTo(
-                right,
-                { xPercent: PUSH },
-                { xPercent: 0, duration: MOVE_DURATION, ease: MOVE_EASE },
+                el,
+                { [axis]: push },
+                { [axis]: 0, duration: MOVE_DURATION, ease: MOVE_EASE },
                 0
             );
-        }
+
+        if (left) converge(left, -PUSH);
+        if (right) converge(right, PUSH);
 
         // Each lens holds still in the page while its parent moves under it. Same
         // duration and ease as the parent, opposite sign — anything else and the
         // cancellation is only exact at the two ends, with the lens drifting off
         // the real intersection everywhere in between.
-        if (y1) {
-            tl.fromTo(
-                y1,
-                { xPercent: PUSH },
-                { xPercent: 0, duration: MOVE_DURATION, ease: MOVE_EASE },
-                0
-            );
-        }
-
-        if (y3) {
-            tl.fromTo(
-                y3,
-                { xPercent: -PUSH },
-                { xPercent: 0, duration: MOVE_DURATION, ease: MOVE_EASE },
-                0
-            );
-        }
+        if (y1) converge(y1, PUSH);
+        if (y3) converge(y3, -PUSH);
 
         // ── 2. The type ──────────────────────────────────────────────────────
         // Overlapping the tail of the move by about a quarter of it, so the

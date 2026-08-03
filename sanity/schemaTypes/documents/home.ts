@@ -1,4 +1,4 @@
-import { defineType } from 'sanity';
+import { defineField, defineType } from 'sanity';
 import { HomeIcon } from '@sanity/icons';
 import { i18nString, i18nText } from '../lib/fields';
 
@@ -18,6 +18,18 @@ export const home = defineType({
         { ...i18nString('heroLine1', 'Hero Line 1'), group: 'hero' },
         { ...i18nString('heroLine2', 'Hero Line 2'), group: 'hero' },
         { ...i18nString('heroLine3', 'Hero Line 3'), group: 'hero' },
+        // The hero cycles five photos. The three lines above are the first
+        // photo's title (and the page's h1); the rest are authored here, in the
+        // order the photos appear.
+        defineField({
+            name: 'heroTitles',
+            title: 'Hero — Title per photo',
+            description:
+                'One title per hero photo, from the second photo onward. Leave an entry blank and that photo falls back to the drawn default.',
+            type: 'array',
+            of: [{ type: 'heroSlideTitle' }],
+            group: 'hero'
+        }),
         { ...i18nString('aboutSectionLabel', 'About — Section Label'), group: 'about' },
         {
             ...i18nText('aboutBody', 'About — Body', 'Follows the bold "Tangible" prefix.'),

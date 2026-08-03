@@ -4,12 +4,15 @@ import { Picture } from 'astro:assets';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
 import ContactFooterAlt from '@components/sections/ContactFooterAlt.astro';
+import MuxVideo from '@components/ui/MuxVideo.astro';
 import LottieAnimation from 'astro-integration-lottie/Lottie.astro';
 import facesAnimationUrl from '@images/faces.json?url';
 import ronCherilus from '@images/roncherilus.jpg';
 import handsSvgRaw from '@assets/svgs/HandsNew.svg?raw';
 
 import { pick, type I18nField } from '@lib/sanity/i18n';
+import { getSiteSettings } from '@lib/sanity/queries';
+import { muxPlaybackId } from '@lib/sanity/video';
 import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
@@ -19,6 +22,11 @@ interface Props {
 
 const { data, locale } = Astro.props;
 const t = (key: string) => pick(data?.[key] as I18nField, locale);
+
+/** The film is global (Site Settings), not about-page content. */
+const settings = await getSiteSettings();
+const videoPlaybackId = muxPlaybackId(settings);
+const videoTitle = pick(settings?.videoTitle, locale);
 
 const heroFonts = ['formula', 'formula', 'formula', 'formula'] as const;
 
@@ -38,17 +46,17 @@ const handsInnerPaths = handsSvgRaw
 
 <BaseLayout title="À Propos">
     <div
-        class="relative flex w-full aspect-393/852 h-auto max-h-dvh flex-col justify-start overflow-hidden bg-bronze px-page pb-mob-64 md:aspect-1512/902 md:max-h-frame-902 md:py-main-40"
+        class="relative flex aspect-393/852 h-auto max-h-dvh w-full flex-col justify-start overflow-hidden bg-bronze px-page pb-mob-64 md:aspect-1512/902 md:max-h-frame-902 md:py-main-40"
     >
         <div
-            class="flex flex-row items-center justify-center border-b border-b-perle pt-nav-bottom pb-mob-16 font-radio text-mob-section text-perle uppercase md:pb-main-12 md:text-main-section"
+            class="flex flex-row items-center justify-center border-b border-b-perle pt-nav-bottom pb-mob-16 font-radio text-mob-section text-perle uppercase max-md:pt-[calc(var(--spacing-nav-bottom)+var(--spacing-mob-32))] md:pb-main-12 md:text-main-section"
         >
             {t('heroSectionLabel')}
         </div>
 
         <div class="flex w-full grow flex-col justify-center">
             <div
-                class="z-0 -mt-20 flex w-full grow px-main-40 md:absolute md:right-frame-inset md:mt-0 md:w-[calc(50%-var(--spacing-frame-inset))] md:flex-col md:justify-center"
+                class="z-0 -mt-20 flex w-full grow px-main-40 max-md:px-0 md:absolute md:right-frame-inset md:mt-0 md:w-[calc(50%-var(--spacing-frame-inset))] md:flex-col md:justify-center"
             >
                 <hands-animation class="block h-full w-full">
                     <svg
@@ -72,9 +80,7 @@ const handsInnerPaths = handsSvgRaw
         </div>
     </div>
 
-    <div
-        class="grid h-fit grid-cols-12 gap-gutter bg-perle px-page py-mob-128 md:py-main-160"
-    >
+    <div class="grid h-fit grid-cols-12 gap-gutter bg-perle px-page py-mob-128 md:py-main-160">
         <div
             class="col-span-12 flex h-full flex-col justify-center gap-fluid-eighty md:col-span-8 md:col-start-3"
         >
@@ -111,6 +117,12 @@ const handsInnerPaths = handsSvgRaw
         rebuild. Both read the same markup below, so nothing here changes with it.
         See CirclesAnimation.ts. */
     }
+    <MuxVideo
+        playbackId={videoPlaybackId}
+        title={videoTitle}
+        autoplayInView
+        class="aspect-1512/902 w-full"
+    />
     <circles-animation class="block" variant="settle">
         {
             /* The top padding clears the fixed navbar rather than matching the sides:
@@ -162,6 +174,7 @@ const handsInnerPaths = handsSvgRaw
                     <div class="circle-ghost cg2" aria-hidden="true"></div>
                     <div class="circle-ghost cg3" aria-hidden="true"></div>
                     <div class="circle c1">
+                        <span class="circle-number md:hidden" aria-hidden="true">1 —</span>
                         <div class="yellow y1"></div>
                         <div class="circle-label">
                             <p
@@ -172,6 +185,7 @@ const handsInnerPaths = handsSvgRaw
                         </div>
                     </div>
                     <div class="circle c2">
+                        <span class="circle-number md:hidden" aria-hidden="true">2 —</span>
                         <div class="circle-label">
                             <p
                                 class="circle-label-inner text-main-circle leading-[120%] text-black"
@@ -181,6 +195,7 @@ const handsInnerPaths = handsSvgRaw
                         </div>
                     </div>
                     <div class="circle c3">
+                        <span class="circle-number md:hidden" aria-hidden="true">3 —</span>
                         <div class="yellow y3"></div>
                         <div class="circle-label">
                             <p
@@ -198,7 +213,7 @@ const handsInnerPaths = handsSvgRaw
                     own width and each line is placed exactly where its disc is, so
                     the two stay registered at every size. */
                 }
-                <div class="approach-lines pt-main-60">
+                <div class="approach-lines pt-main-60 max-md:pt-mob-128">
                     <p class="approach-line text-mob-caption md:text-main-body">
                         Instaurer un leadership de confiance et renforcer les équipes.
                     </p>
@@ -224,7 +239,9 @@ const handsInnerPaths = handsSvgRaw
         <div
             class="relative grid h-auto grid-cols-12 gap-gutter max-md:flex max-md:flex-col max-md:gap-mob-64"
         >
-            <div class="col-span-7 h-fit px-main-40 text-black max-md:px-0 max-md:pt-mob-64">
+            <div
+                class="col-span-7 h-fit px-main-40 text-black max-md:-mx-mob-16 max-md:px-0 max-md:pt-mob-64"
+            >
                 <div class="h-auto w-full mix-blend-multiply">
                     <LottieAnimation src={facesAnimationUrl} autoplay={true} loop={true} />
                 </div>
@@ -263,10 +280,10 @@ const handsInnerPaths = handsSvgRaw
         </div>
     </div>
 
-    <div
-        class="grid grid-cols-12 gap-gutter bg-offwhite px-page py-mob-64 md:py-main-160"
-    >
-        <div class="col-span-12 flex flex-col md:col-span-7 md:col-start-2 md:hidden">
+    <div class="grid grid-cols-12 gap-gutter bg-offwhite px-page py-mob-64 md:py-main-160">
+        <div
+            class="col-span-12 flex flex-col max-md:pl-mob-inset-inner md:col-span-7 md:col-start-2 md:hidden"
+        >
             <h1
                 class="pb-gutter font-radio text-mob-md leading-[1.2] md:pb-fluid-twenty md:text-main-circle"
             >
@@ -409,13 +426,6 @@ const handsInnerPaths = handsSvgRaw
        Overriding `--circle-size` here and not on the rows below is deliberate:
        `--circles-row` is substituted where it is *declared*, so it only follows a
        diameter that changes on this same element. */
-    @media (max-width: 809px) {
-        .circles-group {
-            container-type: inline-size;
-            flex: 0 0 auto;
-            --circle-size: var(--circle-fit-width);
-        }
-    }
 
     .circles-wrapper {
         position: relative;
@@ -609,5 +619,101 @@ const handsInnerPaths = handsSvgRaw
     }
     .y3 {
         left: calc(-70% - 0.7 * var(--spacing-gutter));
+    }
+
+    @media (max-width: 809px) {
+        .circles-group {
+            container-type: inline-size;
+            flex: 0 0 auto;
+
+            /* One circle wide, inset a column and a gutter from each edge — the
+               `mob-inset-inner` the portrait and the bio further down already
+               use, so the whole page keeps one mobile indent. */
+            --circle-size: calc(100cqw - 2 * var(--spacing-mob-inset-inner));
+
+            /* How far each circle sits below the one before it, as a share of a
+               diameter. Anything under 1 overlaps them; at 0.723 the lens is the
+               same slice of a circle the desktop row shows, turned on its side. */
+            --circles-step: 0.723;
+        }
+
+        /* Stacked, not rowed. The wrapper is one circle wide, which collapses
+           every `left` below to 0 on its own — `calc((100% - var(--circle-size))
+           / 2)` and `calc(100% - var(--circle-size))` are both zero once the row
+           is a single diameter across — so only the vertical offsets are stated
+           here. */
+        .circles-wrapper {
+            width: var(--circle-size);
+            height: calc(var(--circle-size) * (1 + 2 * var(--circles-step)));
+        }
+
+        .c2,
+        .cg2 {
+            top: calc(var(--circles-step) * var(--circle-size));
+        }
+
+        .c3,
+        .cg3 {
+            top: calc(2 * var(--circles-step) * var(--circle-size));
+        }
+
+        /* Each lens is still its own circle's disc parked over the neighbour it
+           overlaps — the same trick as the row, along the other axis. `top` is a
+           percentage of the circle, which is what the lens is 100% of. */
+        .y1 {
+            left: 0;
+            top: calc(var(--circles-step) * 100%);
+        }
+        .y3 {
+            left: 0;
+            top: calc(-1 * var(--circles-step) * 100%);
+        }
+
+        /* The frame sets the labels at the mobile sub size rather than deriving
+           them from the diameter; at this size the two land within a pixel of
+           each other anyway, and the flat token is the one the rest of the
+           mobile page is set in. */
+        .circle-label-inner {
+            font-size: var(--text-mob-sub);
+        }
+
+        /* The number sits to the left of the title, both on the circle's centre
+           line. Outside `.circle-label`, because that box is the mask the title
+           rises out of and anything inside it is clipped to the same beat. */
+        .circle-number {
+            position: absolute;
+            left: calc(0.12 * var(--circle-size));
+            top: 50%;
+            translate: 0 -50%;
+            font-size: var(--text-mob-sub);
+            line-height: 1.2;
+        }
+
+        /* The captions stop being three columns under three circles and become
+           one numbered list under the stack, which is the only reading order a
+           single column has. */
+        .approach-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+            width: var(--circle-size);
+            counter-reset: approach;
+        }
+
+        .approach-line {
+            position: relative;
+            width: auto;
+            padding-inline: 0;
+            padding-left: 1.5rem;
+            text-align: left;
+            counter-increment: approach;
+        }
+
+        .approach-line::before {
+            content: counter(approach) '.';
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
     }
 </style>

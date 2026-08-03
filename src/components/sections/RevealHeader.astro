@@ -7,9 +7,19 @@ interface Props {
     color?: string;
     textColor?: string;
     delay?: number;
+    /**
+     * Tag each line renders as. `h1` by default — but where the same header is
+     * repeated as a decorative variant (the home hero cycles one title per
+     * photo), only the first copy should be a heading, so the rest pass `p`.
+     */
+    as?: 'h1' | 'h2' | 'p';
 }
 
-const { lines, color = '#F4E727', textColor = '#000000', delay = 0 } = Astro.props;
+// The cast is load-bearing: rendering the line through a variable tag below
+// stops Astro from inferring `Astro.props` from `Props` on its own, and every
+// prop silently becomes `any`.
+const { lines, color = '#F4E727', textColor = '#000000', delay = 0, as = 'h1' } = Astro.props as Props;
+const Line = as;
 const id = `reveal-${Math.random().toString(36).slice(2, 7)}`;
 const fontMap: Record<string, string> = {
     radio: 'font-sans',
@@ -23,12 +33,12 @@ const fontMap: Record<string, string> = {
         {
             lines.map(({ text, font }) => (
                 <div class="line-wrapper relative h-fit w-fit overflow-hidden -mb-4 pb-4 pt-4 -mt-4">
-                    <h1
-                        class={`font-formula text-mob-display md:text-main-header h-fit w-fit leading-[110%] tracking-[0.02em] uppercase`}
+                    <Line
+                        class={`reveal-line font-formula text-mob-display md:text-main-header h-fit w-fit leading-[110%] tracking-[0.02em] uppercase`}
                         style={`color: ${textColor}`}
                     >
                         {text}
-                    </h1>
+                    </Line>
                 </div>
             ))
         }
@@ -63,9 +73,9 @@ const fontMap: Record<string, string> = {
                         zIndex: '1'
                     });
                     wrapper.appendChild(overlay);
-                    const h1 = wrapper.querySelector('h1');
-                    if (h1) {
-                        gsap.set(h1, { opacity: 0 });
+                    const line = wrapper.querySelector('.reveal-line');
+                    if (line) {
+                        gsap.set(line, { opacity: 0 });
                     }
                 });
 
@@ -82,12 +92,12 @@ const fontMap: Record<string, string> = {
                 });
 
                 wrappers.forEach((wrapper, i) => {
-                    const h1 = wrapper.querySelector('h1');
+                    const line = wrapper.querySelector('.reveal-line');
                     const bar = wrapper.querySelector('.reveal-bar');
                     const offset = i * 0.1;
 
                     tl.to(bar, { scaleX: 1, duration: 0.7 }, offset)
-                        .set(h1, { opacity: 1 }, offset + 0.7)
+                        .set(line, { opacity: 1 }, offset + 0.7)
                         .to(
                             bar,
                             { scaleX: 0, transformOrigin: 'right center', duration: 0.6 },

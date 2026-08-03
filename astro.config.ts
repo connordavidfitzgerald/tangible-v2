@@ -23,6 +23,22 @@ export default defineConfig({
             prefixDefaultLocale: false
         }
     },
+    /**
+     * `<ClientRouter />` turns prefetching on by default, but on the `hover`
+     * strategy: the destination is only fetched 80ms after the pointer lands on
+     * a link, which a quick click beats and a touch never triggers at all. The
+     * router has to hold the whole document before it can start the transition,
+     * so whatever is left of that fetch is dead time on screen.
+     *
+     * `viewport` fetches each link once it scrolls into view, so by click time
+     * the page is in the cache. It costs one request per visible link — cheap
+     * here, where the whole site is seven static documents, and Astro skips it
+     * on save-data and 2g connections regardless.
+     */
+    prefetch: {
+        prefetchAll: true,
+        defaultStrategy: 'viewport'
+    },
     vite: {
         plugins: [tailwindcss()]
     },

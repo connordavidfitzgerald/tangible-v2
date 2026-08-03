@@ -31,7 +31,7 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
 <service-slider
     id={id}
     class:list={[
-        'service-slider mx-auto w-full max-w-page gap-gutter grid grid-cols-12  bg-offwhite',
+        'service-slider flex w-full flex-col bg-offwhite md:grid md:grid-cols-12 md:gap-gutter',
 
         className
     ]}
@@ -39,10 +39,8 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
 >
     <!-- Left panel: shape + arrows -->
 
-    <div
-        class="relative flex overflow-hidden bg-perle col-span-6"
-    >
-        <div class="slider-left-track flex aspect-746/793 w-full">
+    <div class="relative flex overflow-hidden bg-perle md:col-span-6">
+        <div class="slider-left-track flex aspect-square w-full md:aspect-746/793">
             {
                 slides.map((slide, i) => (
                     <div
@@ -50,13 +48,11 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
                         data-index={i}
                         style={i === 0 ? '' : 'position:absolute;left:100%;top:0;bottom:0;'}
                     >
-
-                            <h2
-                                class="font-formula text-mob-display leading-[1.1] md:text-main-header tracking-[0.02em] text-bronze uppercase text-center whitespace-pre-line"
-                                set:html={slide.shapeTitle}
-                            />
-                        </div>
-
+                        <h2
+                            class="text-center font-formula text-mob-display leading-[1.1] tracking-[0.02em] whitespace-pre-line text-bronze uppercase md:text-main-header"
+                            set:html={slide.shapeTitle}
+                        />
+                    </div>
                 ))
             }
         </div>
@@ -82,22 +78,25 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
 
     <!-- Right panel: descriptions -->
 
-    <div class="col-span-6 overflow-hidden">
+    <div class="overflow-hidden md:col-span-6">
         <div
-            class="slider-right-track relative aspect-746/793 w-full md:h-full md:px-0"
+            class="slider-right-track relative aspect-square w-full md:aspect-746/793 md:h-full md:px-0"
         >
             {
                 slides.map((slide, i) => (
                     <div
-                        class="slider-right-slide absolute inset-0 flex px-main-40 py-main-40 md:px-0"
+                        class="slider-right-slide absolute inset-0 flex p-mob-16 md:px-0 md:py-main-40"
                         data-index={i}
                         style={i === 0 ? '' : 'opacity:0; pointer-events:none;'}
                     >
-                        <div class="flex h-fit w-full md:grid-cols-6 md:gap-gutter md:grid md:h-full">
+                        {/* Full height on mobile, so the last description's `grow`
+                            has somewhere to grow into and its bottom rule lands on
+                            the bottom of the panel rather than directly under the
+                            text — which is where the frame draws it. */}
+                        <div class="flex h-full w-full md:grid md:h-full md:grid-cols-6 md:gap-gutter">
                             <div class="col-span-4 col-start-2 flex flex-col md:justify-between">
                                 {slide.descriptions.map((desc, j) => {
                                     const isLast = j === slide.descriptions.length - 1;
-
 
                                     const borderClasses =
                                         j === 0
@@ -110,11 +109,9 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
 
                                     return (
                                         <div
-                                            class={`flex h-fit flex-col gap-fluid-twenty ${borderClasses}${lastBorder}${growClass} pt-fluid-eighty pb-fluid-eighty md:py-main-40`}
+                                            class={`flex h-full flex-col gap-fluid-twenty md:h-fit ${borderClasses}${lastBorder}${growClass} md:py-main-40`}
                                         >
-
-
-                                            <p class="pt-mob-8 pb-mob-16 text-black text-mob-caption leading-[120%] font-normal tracking-[3%] md:pt-0 md:pb-0 md:text-main-body">
+                                            <p class="pt-mob-8 pb-mob-8 text-mob-caption leading-[120%] font-normal tracking-[3%] text-black md:pt-0 md:pb-0 md:text-main-body">
                                                 {desc.text}
                                             </p>
                                         </div>
@@ -128,6 +125,7 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
         </div>
     </div>
 </service-slider>
+
 
 <script>
     import gsap from 'gsap';

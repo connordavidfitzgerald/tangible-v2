@@ -16,9 +16,25 @@ const t = (key: string) => pick(settings?.[key] as I18nField, locale);
 const membersUrl = (settings?.membersUrl as string) || '#';
 const bookingUrl = (settings?.bookingUrl as string) || '#';
 
+/** The two service pages, hung under "Nos services" in both menus. */
+const serviceChildren = [
+    {
+        label: locale === 'en' ? 'Corporate services' : 'Services aux entreprises',
+        href: localizedPath('/services/entreprises', locale)
+    },
+    {
+        label: locale === 'en' ? 'Individual services' : 'Services aux individus',
+        href: localizedPath('/services/leaders', locale)
+    }
+];
+
 const links = [
     { label: t('navAbout'), href: localizedPath('/about', locale) },
-    { label: t('navPrograms'), href: localizedPath('/services', locale) },
+    {
+        label: t('navPrograms'),
+        href: localizedPath('/services', locale),
+        children: serviceChildren
+    },
     { label: t('navMembers'), href: membersUrl, external: true },
     { label: t('navContact'), href: localizedPath('/contact', locale) },
     { label: t('navIam'), href: localizedPath('/centre-iam', locale) }
@@ -34,16 +50,7 @@ const menuLinks = [
     {
         label: t('navPrograms'),
         href: localizedPath('/services', locale),
-        children: [
-            {
-                label: locale === 'en' ? 'Corporate services' : 'Services aux entreprises',
-                href: localizedPath('/services/entreprises', locale)
-            },
-            {
-                label: locale === 'en' ? 'Individual services' : 'Services aux individus',
-                href: localizedPath('/services/leaders', locale)
-            }
-        ]
+        children: serviceChildren
     },
     { label: t('navIam'), href: localizedPath('/centre-iam', locale) },
     { label: t('navMembers'), href: membersUrl, external: true },
@@ -68,15 +75,35 @@ const menuLinks = [
             class="desktop-nav flex flex-row items-center gap-main-40 font-sans text-main-section tracking-[2%] uppercase"
         >
             {
-                links.map((link) => (
-                    <a
-                        class="hover-underline"
-                        href={link.href}
-                        target={link.external ? '_blank' : undefined}
-                    >
-                        {link.label}
-                    </a>
-                ))
+                links.map((link) =>
+                    link.children ? (
+                        /* "Nos services" carries the hover dropdown. The panel is a
+                           child of this wrapper so that moving into it still counts
+                           as hovering the parent. */
+                        <div class="nav-dropdown-wrap">
+                            <a class="hover-underline" href={link.href}>
+                                {link.label}
+                            </a>
+                            <div class="nav-dropdown">
+                                <div class="nav-dropdown-panel bg-perle">
+                                    {link.children.map((child) => (
+                                        <a class="nav-dropdown-item" href={child.href}>
+                                            <span class="hover-underline">{child.label}</span>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <a
+                            class="hover-underline"
+                            href={link.href}
+                            target={link.external ? '_blank' : undefined}
+                        >
+                            {link.label}
+                        </a>
+                    )
+                )
             }
         </div>
         <div
@@ -100,25 +127,25 @@ const menuLinks = [
         <nav class="mobile-nav gap-0 px-mob-16 pt-mob-64 pb-mob-32">
             {
                 menuLinks.map((link) => (
-                    <div class="flex w-full flex-col gap-[0.625rem] border-t border-white">
+                    <div class="flex w-full flex-col border-t border-white">
                         <a
                             href={link.href}
                             target={link.external ? '_blank' : undefined}
                             class:list={[
-                                'w-full px-mob-inset pt-mob-32 text-mob-md leading-[1.2]',
+                                'w-full px-mob-inset pt-[1.5rem] text-mob-md leading-[1.2]',
                                 /* The sub-links sit tight under their parent, so
                                     that space is the wrapper's gap alone — the
                                    link gives up its own bottom padding or the
                                    two would stack. Items without children keep
                                    the full 32px, and the gap does nothing to
                                    them. */
-                                link.children ? 'pb-0' : 'pb-mob-32'
+                                link.children ? 'pb-0' : 'pb-[1.25rem]'
                             ]}
                         >
                             {link.label}
                         </a>
                         {link.children && (
-                            <div class="flex flex-col gap-mob-16 pb-mob-32 pl-[calc(var(--spacing-mob-inset)+var(--spacing-mob-32))]">
+                            <div class="flex flex-col gap-mob-16 pt-mob-16 pb-[1.5rem] pl-[calc(var(--spacing-mob-inset)+var(--spacing-mob-32))]">
                                 {link.children.map((child) => (
                                     <a href={child.href} class="text-mob-sub leading-[120%]">
                                         {child.label}
@@ -139,6 +166,70 @@ const menuLinks = [
 </nav-bar>
 
 <style>
+    /* The 3.5px the frame keeps between the panel edge and its labels. Pulling
+       the panel left by the same amount lands its type on the same vertical as
+       "Nos services" above it. */
+    .nav-dropdown-wrap {
+        --dropdown-inset: 0.21875rem;
+        position: relative;
+    }
+
+    /* The panel hangs off the bar's bottom edge, not the link's. The link is
+       centred in the bar, so that drop is half the bar's height — the logo,
+       which is its tallest child, plus the `py-main-5` band on each side. It is
+       transparent padding rather than an offset so the pointer never crosses a
+       dead gap on its way down into the panel and closes it. */
+    .nav-dropdown {
+        position: absolute;
+        top: 50%;
+        left: calc(-1 * var(--dropdown-inset));
+        padding-top: calc((var(--spacing-main-logo) + 2 * var(--spacing-main-5)) / 2);
+        opacity: 0;
+        margin-left: calc(var(--spacing-main-5) * -1);
+        visibility: hidden;
+        transition:
+            opacity var(--transition-duration-fast) var(--ease-power3-out),
+            visibility 0s linear var(--transition-duration-fast);
+    }
+
+    .nav-dropdown-panel {
+        display: flex;
+        width: max-content;
+        flex-direction: column;
+
+        padding-inline: var(--dropdown-inset);
+    }
+
+    .nav-dropdown-item {
+        display: block;
+        padding-block: var(--spacing-main-5);
+        padding-right: 1.25rem;
+        padding-top: var(--spacing-main-5);
+        padding-bottom: var(--spacing-main-5);
+        padding-left: var(--spacing-main-5);
+    }
+
+    .nav-dropdown-wrap:focus-within .nav-dropdown {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0s;
+    }
+
+    @media (hover: hover) {
+        .nav-dropdown-wrap:hover .nav-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 0s;
+        }
+
+        /* The parent stays underlined for as long as the panel is open, even
+           once the pointer has left the link itself. */
+        .nav-dropdown-wrap:hover > .hover-underline::before {
+            transform: scaleX(1);
+            transform-origin: 0 0;
+        }
+    }
+
     .hamburger {
         display: none;
         flex-direction: column;

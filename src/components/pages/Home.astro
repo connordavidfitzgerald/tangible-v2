@@ -113,7 +113,7 @@ const programSide = {
          Hero
          =================================================================== -->
     <div
-        class="hero-section relative flex aspect-393/852 w-full max-md:max-h-dvh flex-col justify-end overflow-hidden px-mob-16 pb-mob-64 md:aspect-auto md:min-h-200 md:px-main-40 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
+        class="hero-section relative flex w-full aspect-393/852 max-md:max-h-dvh flex-col justify-end overflow-hidden px-page pb-mob-64 md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
     >
         <div class="hero-slideshow hidden brightness-80 md:flex">
             {
@@ -168,7 +168,7 @@ const programSide = {
          About
          =================================================================== -->
     <div
-        class="flex flex-col bg-offwhite px-mob-16 pb-mob-64 md:grid md:grid-cols-12 md:gap-gutter md:px-main-40 md:pt-main-80 md:pb-main-80"
+        class="flex flex-col bg-offwhite px-page pb-mob-64 md:grid md:grid-cols-12 md:gap-gutter md:pt-main-80 md:pb-main-80"
     >
         {
             /* The frame runs label → image → copy → button, but the desktop grid
@@ -241,7 +241,7 @@ const programSide = {
         side, so it starts at md. */
     }
     <div
-        class="flex w-full flex-col gap-mob-64 bg-yellow px-mob-16 py-mob-64 md:grid md:aspect-[1512/902] md:h-auto md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-0"
+        class="flex w-full flex-col gap-mob-64 bg-yellow px-page py-mob-64 md:grid md:aspect-[1512/902] md:max-h-frame-902 md:h-auto md:grid-cols-12 md:gap-gutter md:py-0"
     >
         <div
             class="order-2 flex flex-col items-center justify-center px-mob-inset-inner leading-[110%] md:order-none md:col-span-5 md:col-start-2 md:px-0"
@@ -262,7 +262,7 @@ const programSide = {
     <!-- ===================================================================
          Programs — one block per program, image side alternates at md.
          =================================================================== -->
-    <div class="flex h-fit flex-col bg-offwhite px-mob-16 pb-mob-64 md:p-main-40">
+    <div class="flex h-fit flex-col bg-offwhite px-page pb-mob-64 md:py-main-40">
         <div
             class="flex w-full flex-row items-center justify-center border-b border-b-perle pt-mob-64 pb-mob-16 font-radio text-mob-section leading-[1.2] tracking-[0.03em] uppercase md:pt-0 md:pb-main-12 md:text-main-section"
         >
@@ -358,7 +358,7 @@ const programSide = {
          =================================================================== -->
     {
         t('introBold') && (
-            <div class="grid grid-cols-8 gap-mob-16 bg-perle px-mob-16 py-mob-128 md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-fluid-160">
+            <div class="grid grid-cols-8 gap-mob-16 bg-perle px-page py-mob-128 md:grid-cols-12 md:gap-gutter md:py-fluid-160">
                 <div class="col-span-8 flex flex-col gap-mob-32 md:col-span-8 md:col-start-3 md:gap-main-40">
                     <SplitReveal class="font-radio text-mob-body leading-[120%] font-light tracking-[0.03em] md:text-main-lead md:leading-[120%] md:font-normal">
                         {t('introBold')}

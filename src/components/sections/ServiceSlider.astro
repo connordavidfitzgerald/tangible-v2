@@ -27,13 +27,13 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
 <service-slider
     id={id}
     class:list={[
-        'service-slider flex w-full flex-col gap-0 md:grid md:grid-cols-12 md:gap-fluid-twenty md:pr-fluid-forty md:pl-fluid-forty',
+        'service-slider flex w-full flex-col gap-0 md:grid md:grid-cols-12 md:gap-fluid-twenty md:[--page-gutter:var(--spacing-fluid-forty)] md:px-page',
         className
     ]}
     data-slides={slidesJson}
 >
     <div
-        class="relative flex overflow-hidden bg-perle md:col-span-6 md:-ml-fluid-forty md:min-h-[500px]"
+        class="relative flex overflow-hidden bg-perle md:col-span-6 md:-ml-(--page-gutter) md:min-h-[500px]"
     >
         <div class="slider-left-track flex aspect-square w-full">
             {

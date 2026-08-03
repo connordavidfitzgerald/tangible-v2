@@ -3,7 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import { Picture } from 'astro:assets';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
-import ContactFooter from '@components/sections/ContactFooter.astro';
+import ContactFooterAlt from '@components/sections/ContactFooterAlt.astro';
 import LottieAnimation from 'astro-integration-lottie/Lottie.astro';
 import facesAnimationUrl from '@images/faces.json?url';
 import ronCherilus from '@images/roncherilus.jpg';
@@ -38,7 +38,7 @@ const handsInnerPaths = handsSvgRaw
 
 <BaseLayout title="À Propos">
     <div
-        class="flex aspect-393/852 h-auto max-h-dvh w-full flex-col justify-start overflow-hidden bg-bronze px-mob-16 pb-mob-64 md:aspect-1512/902 md:p-main-40"
+        class="relative flex w-full aspect-393/852 h-auto max-h-dvh flex-col justify-start overflow-hidden bg-bronze px-page pb-mob-64 md:aspect-1512/902 md:max-h-frame-902 md:py-main-40"
     >
         <div
             class="flex flex-row items-center justify-center border-b border-b-perle pt-nav-bottom pb-mob-16 font-radio text-mob-section text-perle uppercase md:pb-main-12 md:text-main-section"
@@ -48,7 +48,7 @@ const handsInnerPaths = handsSvgRaw
 
         <div class="flex w-full grow flex-col justify-center">
             <div
-                class="z-0 -mt-20 flex w-full grow px-main-40 md:absolute md:right-0 md:mt-0 md:w-[50%] md:flex-col md:justify-center"
+                class="z-0 -mt-20 flex w-full grow px-main-40 md:absolute md:right-frame-inset md:mt-0 md:w-[calc(50%-var(--spacing-frame-inset))] md:flex-col md:justify-center"
             >
                 <hands-animation class="block h-full w-full">
                     <svg
@@ -73,7 +73,7 @@ const handsInnerPaths = handsSvgRaw
     </div>
 
     <div
-        class="grid h-fit grid-cols-12 gap-gutter bg-perle px-mob-16 py-mob-128 md:px-main-40 md:py-main-160"
+        class="grid h-fit grid-cols-12 gap-gutter bg-perle px-page py-mob-128 md:py-main-160"
     >
         <div
             class="col-span-12 flex h-full flex-col justify-center gap-fluid-eighty md:col-span-8 md:col-start-3"
@@ -118,10 +118,18 @@ const handsInnerPaths = handsSvgRaw
             behind the bar, so `p-main-40` up here put the section label underneath
             it. `--spacing-nav-bottom` is the token for exactly this. Split into
             px/pb/pt rather than `p-main-40 pt-nav-bottom` so nothing depends on
-            Tailwind's utility ordering to resolve the conflict. */
+            Tailwind's utility ordering to resolve the conflict.
+
+            The gap and the bottom padding are the circles' height budget, spent.
+            The section is exactly one viewport tall and the group takes what is
+            left of it, so every pixel here comes straight off the diameter — at
+            `main-160` the two of them took 502px of a 1080px screen, 46% of it,
+            and left the circles at 290px in a column that allowed 744px. `main-80`
+            still reads as a deliberate band of space under the label without
+            spending the composition to get it. */
         }
         <div
-            class="circles-pin flex min-h-dvh flex-col gap-main-160 bg-offwhite px-mob-16 pt-nav-bottom pb-mob-64 md:px-main-40 md:pb-main-160"
+            class="circles-pin flex min-h-dvh flex-col gap-main-80 bg-offwhite px-page pt-nav-bottom pb-mob-64 md:pb-main-80"
         >
             <div class="grid grid-cols-12 gap-gutter pt-main-20">
                 <div class="col-span-8 md:col-span-12">
@@ -206,7 +214,7 @@ const handsInnerPaths = handsSvgRaw
     </circles-animation>
 
     <div
-        class="relative flex h-auto w-full flex-col justify-start gap-0 bg-bronze px-mob-16 pb-mob-128 text-offwhite md:aspect-1512/913 md:px-main-40 md:pb-0"
+        class="relative flex h-auto w-full flex-col justify-start gap-0 bg-bronze px-page pb-mob-128 text-offwhite md:aspect-1512/913 md:max-h-frame-913 md:pb-0"
     >
         <div
             class="col-span-12 flex flex-row items-center justify-center gap-gutter border-b border-b-perle pt-mob-32 pb-mob-16 font-radio text-mob-section tracking-[3%] uppercase md:pt-main-40 md:pb-main-12 md:text-main-section"
@@ -229,7 +237,7 @@ const handsInnerPaths = handsSvgRaw
         </div>
     </div>
 
-    <div class="relative grid grid-cols-12 gap-gutter bg-perle px-mob-16 pt-mob-32 md:p-main-40">
+    <div class="relative grid grid-cols-12 gap-gutter bg-perle px-page pt-mob-32 md:py-main-40">
         <div
             class="relative col-span-12 flex flex-col items-center justify-start text-mob-md md:col-span-8 md:col-start-3 md:text-main-circle"
         >
@@ -256,7 +264,7 @@ const handsInnerPaths = handsSvgRaw
     </div>
 
     <div
-        class="grid grid-cols-12 gap-gutter bg-offwhite px-mob-16 py-mob-64 md:px-main-40 md:py-main-160"
+        class="grid grid-cols-12 gap-gutter bg-offwhite px-page py-mob-64 md:py-main-160"
     >
         <div class="col-span-12 flex flex-col md:col-span-7 md:col-start-2 md:hidden">
             <h1
@@ -319,7 +327,7 @@ const handsInnerPaths = handsSvgRaw
             </div>
         </div>
     </div>
-    <ContactFooter heading={t('contactFooterHeading')} lang={locale} />
+    <ContactFooterAlt heading={t('contactFooterHeading')} lang={locale} />
 </BaseLayout>
 
 <style>
@@ -367,20 +375,25 @@ const handsInnerPaths = handsSvgRaw
            the section actually needed — it is what keeps a title inside a circle
            and the line under it on screen together.
 
-           Ceiling: a flat maximum, so the circles stop growing on a display wide
-           and tall enough that neither of the other two ever bites. 36rem is just
-           above where the row stops being the binding constraint, around a 1600px
-           viewport, so on the 1512 design it never engages. */
+           There used to be a third limit here, a flat 36rem ceiling, to stop the
+           circles growing on a display wide enough that neither of the other two
+           ever bit. The page frame does that job now and does it better: the
+           content column stops at 1920 (see `--container-page`), so `100cqw` stops
+           with it and the width term self-caps at five twelfths of the frame. A
+           flat ceiling on top of that only prevented the circles from reaching
+           the width they are drawn at — at 2560 it was the binding limit, holding
+           them at 576px when the column allowed 744px. */
         --circle-fit-width: calc(0.4166667 * 100cqw - 0.5833333 * var(--spacing-gutter));
         --circle-fit-height: calc(100cqh - var(--circles-gap) - var(--lines-reserve));
-        --circle-max: 36rem;
 
-        --circle-size: min(var(--circle-fit-width), var(--circle-fit-height), var(--circle-max));
+        --circle-size: min(var(--circle-fit-width), var(--circle-fit-height));
 
         /* The inverse of the width formula: W = 2.4·D + 1.4·G. When the width is
            the binding limit this returns exactly 100cqw, so the row is flush to
            the page's 12-column grid and each circle lands on a column boundary.
-           When the height or the ceiling binds instead, the row narrows and
+           That is now what happens whenever the viewport is tall enough to allow
+           it, which it is from about 1440px of height up. When the height binds
+           instead, the row narrows and
            centres, keeping the same 12-column subdivision inside itself — the
            circles stay in proportion, they just no longer reach the margins.
            There is no way to have both: the diameter *is* five twelfths of the
@@ -400,7 +413,7 @@ const handsInnerPaths = handsSvgRaw
         .circles-group {
             container-type: inline-size;
             flex: 0 0 auto;
-            --circle-size: min(var(--circle-fit-width), var(--circle-max));
+            --circle-size: var(--circle-fit-width);
         }
     }
 

@@ -38,7 +38,7 @@ const labels =
                 className
             ]}
         >
-            <div class="grid grid-cols-8 gap-mob-16 px-mob-inset md:grid-cols-12 md:gap-gutter md:px-main-40">
+            <div class="grid grid-cols-8 gap-mob-16 px-mob-inset md:grid-cols-12 md:gap-gutter md:px-page">
                 {/* The column sizes the current film — 8 of 8 on mobile, the
                     middle 10 of 12 at md — but does not clip. The track spills
                     past it so the next film shows from column 12 onward, cut
@@ -49,7 +49,12 @@ const labels =
                     {/* Paged by translating the track, so the slides stay in flow
                         and keep their own height rather than being absolutely
                         positioned against a guessed one. */}
-                    <div class="vs-track flex w-full flex-row gap-mob-16 md:gap-gutter">
+                    {/* `relative` so the track is the slides' offsetParent — the
+                        paging below reads `offsetLeft`, which is measured from
+                        there. Without it the offsets are page coordinates and
+                        include the section's own padding, which drags the first
+                        film out of its column and flush against the page edge. */}
+                    <div class="vs-track relative flex w-full flex-row gap-mob-16 md:gap-gutter">
                         {videos.map((video, i) => (
                             <div class="vs-slide w-full shrink-0" data-index={i}>
                                 <MuxVideo

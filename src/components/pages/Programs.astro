@@ -64,7 +64,7 @@ const quoteAuthor = t('quoteAuthor');
 
 <BaseLayout title="Services">
     <div
-        class="relative grid grid-cols-8 gap-mob-16 bg-offwhite px-mob-16 pt-nav-bottom md:grid-cols-12 md:gap-gutter md:px-main-40"
+        class="relative grid grid-cols-8 gap-mob-16 bg-offwhite px-page pt-nav-bottom md:grid-cols-12 md:gap-gutter"
     >
         <div
             class="col-span-8 flex flex-col gap-mob-16 py-mob-64 md:col-start-3 md:gap-main-40 md:px-main-60 md:py-main-80"
@@ -96,7 +96,7 @@ const quoteAuthor = t('quoteAuthor');
                 pin over each other on a phone. */
             }
             <div
-                class="programs-card programs-card-1 z-10 grid h-fit grid-cols-8 gap-mob-16 bg-perle px-mob-16 pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-main-80"
+                class="programs-card programs-card-1 z-10 grid h-fit grid-cols-8 gap-mob-16 bg-perle px-page pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:py-main-80"
             >
                 <div
                     class="col-span-8 flex overflow-clip max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4"
@@ -147,7 +147,7 @@ const quoteAuthor = t('quoteAuthor');
             </div>
 
             <div
-                class="programs-card-2 z-20 grid h-fit grid-cols-8 gap-mob-16 bg-bronze px-mob-16 pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:px-main-40 md:py-main-80"
+                class="programs-card-2 z-20 grid h-fit grid-cols-8 gap-mob-16 bg-bronze px-page pb-mob-64 md:sticky md:top-0 md:grid-cols-12 md:gap-gutter md:py-main-80"
             >
                 <div
                     class="col-span-8 flex flex-col items-start gap-mob-32 md:gap-main-40 md:px-main-60"
@@ -213,7 +213,7 @@ const quoteAuthor = t('quoteAuthor');
          =================================================================== -->
     {
         quote && (
-            <div class="flex w-full flex-col justify-center bg-perle px-mob-16 py-mob-64 md:aspect-1512/902 md:px-main-40 md:py-main-40">
+            <div class="flex w-full flex-col justify-center bg-perle px-page py-mob-64 md:aspect-1512/902 md:max-h-frame-902 md:py-main-40">
                 <div class="grid grid-cols-8 gap-mob-16 md:grid-cols-12 md:gap-gutter">
                     <div class="col-span-8 flex flex-col gap-mob-32 border-y border-bronze py-mob-32 text-bronze md:col-span-10 md:col-start-2 md:gap-main-40 md:py-main-40">
                         <SplitReveal

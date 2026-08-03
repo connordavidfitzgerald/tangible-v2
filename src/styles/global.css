@@ -42,6 +42,17 @@
 :root {
     --unit-sm: 10px;
     --unit-md: 20px;
+
+    /* The page gutter: frame edge → content column. The two values the whole site
+       was already padded with, named once so `px-page` can be one class instead of
+       the `px-mob-16 md:px-main-40` pair repeated at every section. */
+    --page-gutter: var(--spacing-mob-16);
+}
+
+@media (min-width: 810px) {
+    :root {
+        --page-gutter: var(--spacing-main-40);
+    }
 }
 
 /* =============================================================================
@@ -77,8 +88,12 @@
        the design is merely *a bit* larger, only where it is a lot.
 
        So the slope is now sub-proportional — type grows more slowly than the
-       viewport — and the ceiling comes down from 2560 to 2240. Three response
-       rates, because they are answering to different things:
+       viewport — and the ceiling comes down from 2560 to 1920, which is where the
+       page frame stops (see `--container-page`). Past the frame the layout holds
+       still, so the type has to as well; a scale still climbing at 2560 inside a
+       column that stopped at 1920 is how a wide monitor gets copy that is both
+       too large and too narrow. Three response rates, because they are answering
+       to different things:
 
          ~0.85  display type (header, quote, num, slider). Nearly proportional,
                 because these are composed into the frame — the hero lines are
@@ -101,55 +116,56 @@
        drifts off the drawn design.
 
        And note which knob does what, because they are not interchangeable. The
-       *ceiling* buys headroom for free — pushing it out lifts the top of the
-       range and leaves everything below 1920 where it was, to within a fraction
-       of a pixel. The *rate* does not: the line is pinned at 1512, so steepening
-       it to gain size at the top takes the same size off the bottom. Going from
+       *ceiling* is now spoken for: it is the value each token reaches at 1920, so
+       that type freezes on the same width the frame does. Moving it means moving
+       the frame with it. The *rate* costs something either way: the line is
+       pinned at 1512, so steepening it to gain size at the top takes the same
+       size off the bottom. Going from
        0.45 to 0.6 on the reading rate would add ~0.8px at 1920 and cost ~0.9px at
        1024. If the design wants to be bigger everywhere, that is a third thing
        again — raise the size at 1512, which means redrawing the frame.  */
-    --text-main: clamp(1.7102rem, 1.1021rem + 0.9502vw, 2.4323rem);
+    --text-main: clamp(1.7102rem, 1.1021rem + 0.9502vw, 2.2423rem);
     /* 55px @1512 — the lead line that opens a band of copy: the services-page
        pull-quote and the "Vous souhaitez créer un changement" block on Home.
        Bigger than `main` but still read rather than composed, so it takes the
        same ~0.45 reading rate. */
-    --text-main-lead: clamp(2.9382rem, 1.8906rem + 1.6371vw, 4.1826rem);
+    --text-main-lead: clamp(2.9382rem, 1.8906rem + 1.6371vw, 3.8551rem);
     --text-main-body: clamp(0.875rem, 0.0179rem + 1.3393vw, 1.625rem);
-    --text-quote: clamp(3.625rem, 0.7398rem + 4.5082vw, 7.0512rem);
-    --text-main-header: clamp(4.9844rem, 1.0172rem + 6.1987vw, 9.6954rem);
-    --text-main-section: clamp(0.9099rem, 0.6684rem + 0.3773vw, 1.1967rem);
+    --text-quote: clamp(3.625rem, 0.7398rem + 4.5082vw, 6.1496rem);
+    --text-main-header: clamp(4.9844rem, 1.0172rem + 6.1987vw, 8.4556rem);
+    --text-main-section: clamp(0.9099rem, 0.6684rem + 0.3773vw, 1.1212rem);
     /* The labels inside the About page's three circles. Sized against the circles
        rather than against the page: a circle is five twelfths of the content
        width, and its neighbours cut into it from both sides, leaving only the
        middle 0.4·D + 1.4·G clear for type. This scale holds the longest label
        ("Confiance") inside that band with room to spare.
 
-       It takes the reading rate above, but its ceiling is 49px rather than the
-       ~52px that rate would reach at 1920 — the circles themselves stop growing
-       around a 1600px viewport, capped by the section's height and by a flat
-       maximum, and 49px is the largest size the resulting diameter still holds
-       clear of the yellow overlaps. About.astro caps it a second time against the
-       actual diameter, which is what catches the other case: a short viewport
-       making the circles smaller than the width alone would. */
+       In practice this token is rarely what decides the size. About.astro caps it
+       a second time against the actual diameter, at 0.085·D, and that is the term
+       that almost always wins: the circles are sized by the height the pinned
+       section has left, so on anything shorter than about 1440px they are smaller
+       than the width alone would make them and the label has to come down with
+       them. This ceiling is the backstop for the other case — a tall viewport
+       where the diameter is decided by the frame instead. */
     --text-main-circle: clamp(2.3281rem, 0.0003rem + 3.6373vw, 4.365rem);
-    --text-main-num: clamp(2.7188rem, 0.5548rem + 3.3811vw, 5.2884rem);
-    --text-main-sub: clamp(1.8705rem, 1.2054rem + 1.0393vw, 2.6604rem);
-    --text-main-slider: clamp(6.1172rem, 1.2483rem + 7.6076vw, 11.8989rem);
+    --text-main-num: clamp(2.7188rem, 0.5548rem + 3.3811vw, 4.6121rem);
+    --text-main-sub: clamp(1.8705rem, 1.2054rem + 1.0393vw, 2.4526rem);
+    --text-main-slider: clamp(6.1172rem, 1.2483rem + 7.6076vw, 10.3774rem);
 
-    --spacing-main-5: clamp(0.1875rem, 0.6042rem + -0.2604vw, 0.4375rem);
-    --spacing-main-10: clamp(0.4375rem, 0.0208rem + 0.651vw, 1.0625rem);
-    --spacing-main-12: clamp(0.5rem, -0.1667rem + 1.0417vw, 1.5rem);
-    --spacing-main-20: clamp(0.875rem, 0.0417rem + 1.3021vw, 2.125rem);
-    --spacing-main-40: clamp(1.6875rem, -0.0208rem + 2.6693vw, 4.25rem);
-    --spacing-main-59: clamp(2.4375rem, 0.0625rem + 3.7109vw, 6rem);
-    --spacing-main-60: clamp(2.5625rem, 0.0208rem + 3.9714vw, 6.375rem);
-    --spacing-main-80: clamp(3.375rem, 0rem + 5.2734vw, 8.4375rem);
-    --spacing-main-100: clamp(4.125rem, 0.0417rem + 6.3802vw, 10.25rem);
-    --spacing-main-160: clamp(6.7725rem, -3.4095rem + 15.9094vw, 16.875rem);
-    --spacing-main-270: clamp(10.1875rem, 0.0625rem + 15.8203vw, 25.375rem);
-    --spacing-main-213: clamp(9rem, 0rem + 14.0625vw, 22.5rem);
+    --spacing-main-5: clamp(0.2917rem, 0.6042rem + -0.2604vw, 0.4375rem);
+    --spacing-main-10: clamp(0.4375rem, 0.0208rem + 0.651vw, 0.802rem);
+    --spacing-main-12: clamp(0.5rem, -0.1667rem + 1.0417vw, 1.0833rem);
+    --spacing-main-20: clamp(0.875rem, 0.0417rem + 1.3021vw, 1.6042rem);
+    --spacing-main-40: clamp(1.6875rem, -0.0208rem + 2.6693vw, 3.1824rem);
+    --spacing-main-59: clamp(2.4375rem, 0.0625rem + 3.7109vw, 4.5156rem);
+    --spacing-main-60: clamp(2.5625rem, 0.0208rem + 3.9714vw, 4.7865rem);
+    --spacing-main-80: clamp(3.375rem, 0rem + 5.2734vw, 6.3281rem);
+    --spacing-main-100: clamp(4.125rem, 0.0417rem + 6.3802vw, 7.6979rem);
+    --spacing-main-160: clamp(6.7725rem, -3.4095rem + 15.9094vw, 15.6818rem);
+    --spacing-main-270: clamp(10.1875rem, 0.0625rem + 15.8203vw, 19.0469rem);
+    --spacing-main-213: clamp(9rem, 0rem + 14.0625vw, 16.875rem);
 
-    --spacing-main-logo: clamp(1.25rem, -0.0417rem + 2.0182vw, 3.1875rem);
+    --spacing-main-logo: clamp(1.25rem, -0.0417rem + 2.0182vw, 2.3801rem);
 
     /* Top of the page → bottom edge of the fixed navbar: its `top-main-40`
        offset, its `py-main-5` padding (×2) and the logo, which is the bar's
@@ -160,24 +176,24 @@
     );
 
     /* Type scale */
-    --text-heading-xl2: clamp(3.875rem, 3.2857rem + 2.9464vw, 8rem);
-    --text-heading-xl: clamp(3.75rem, 3.2143rem + 2.6786vw, 7.5rem);
-    --text-heading-lg: clamp(2.5rem, 2.0179rem + 2.4107vw, 5.875rem);
+    --text-heading-xl2: clamp(3.875rem, 3.2857rem + 2.9464vw, 6.8214rem);
+    --text-heading-xl: clamp(3.75rem, 3.2143rem + 2.6786vw, 6.4286rem);
+    --text-heading-lg: clamp(2.5rem, 2.0179rem + 2.4107vw, 4.9107rem);
 
     --text-body-sm: clamp(0.75rem, 0.5833rem + 0.5556vw, 1.25rem);
     --text-body-caption: clamp(0.875rem, 0.75rem + 0.4167vw, 1.25rem);
     --text-body-md: clamp(1.375rem, 1.1549rem + 0.7042vw, 2rem);
-    --text-body-lg: clamp(2rem, 1.9286rem + 0.3571vw, 2.5rem);
-    --text-circles-text: clamp(1.375rem, 0.7411rem + 3.1696vw, 5.8125rem);
-    --text-test: clamp(0.875rem, 0.5714rem + 1.5179vw, 3rem);
+    --text-body-lg: clamp(2rem, 1.9286rem + 0.3571vw, 2.3571rem);
+    --text-circles-text: clamp(1.375rem, 0.7411rem + 3.1696vw, 4.5446rem);
+    --text-test: clamp(0.875rem, 0.5714rem + 1.5179vw, 2.3929rem);
     --text-list-lg: clamp(2.1875rem, 1.7708rem + 1.3889vw, 3.4375rem);
     --text-list-num: clamp(1.7813rem, 1.1851rem + 2.9806vw, 4.7619rem);
     --text-header-two: clamp(1.5rem, 1.2708rem + 0.7639vw, 2.1875rem);
-    --text-button: clamp(0.875rem, 0.8571rem + 0.0893vw, 1rem);
-    --text-nav: clamp(0.875rem, 0.8571rem + 0.0893vw, 1rem);
+    --text-button: clamp(0.875rem, 0.8571rem + 0.0893vw, 0.9643rem);
+    --text-nav: clamp(0.875rem, 0.8571rem + 0.0893vw, 0.9643rem);
     --text-header-service2: clamp(2.7481rem, 1.6518rem + 5.9819vw, 8.73rem);
     --text-header-service: clamp(2.5444rem, 1.4866rem + 5.7888vw, 8.3331rem);
-    --text-footer-header: clamp(3.5rem, 3.1071rem + 1.9643vw, 6.25rem);
+    --text-footer-header: clamp(3.5rem, 3.1071rem + 1.9643vw, 5.4643rem);
     /* Mobile type. Authored against the 393px Figma frames and scaled 320→800px,
        so each value below is quoted at the width it was drawn at. */
     --text-mob-section: clamp(0.7125rem, -0.0208rem + 3.6667vw, 1.125rem);
@@ -240,23 +256,23 @@
     --spacing-mob-inset-inner: 2.9375rem;
 
     /* Spacing — fluid */
-    --spacing-fluid-twenty: clamp(0.625rem, 0.4196rem + 1.0268vw, 2.0625rem);
-    --spacing-fluid-thirty: clamp(1.5625rem, 1.4286rem + 0.6696vw, 2.5rem);
-    --spacing-fluid-forty: clamp(1.3125rem, 0.0057rem + 2.6136vw, 4.1875rem);
-    --spacing-fluid-sixty: clamp(1.25rem, 0.5357rem + 3.5714vw, 6.25rem);
-    --spacing-fluid-eighty: clamp(1.5625rem, 0.6696rem + 4.4643vw, 7.8125rem);
-    --spacing-fluid-160: clamp(2rem, -0.0714rem + 10.3571vw, 16.5rem);
-    --spacing-fluid-270: clamp(3.375rem, -0.1071rem + 17.4107vw, 27.75rem);
-    --spacing-fluid-nav: clamp(0.3125rem, 0.2679rem + 0.2232vw, 0.625rem);
-    --spacing-fluid-xs: clamp(0.5rem, 0.4821rem + 0.0893vw, 0.625rem);
-    --spacing-fluid-sm: clamp(1rem, 0.9286rem + 0.3571vw, 1.5rem);
-    --spacing-fluid-md: clamp(1.5rem, 1.4286rem + 0.3571vw, 2rem);
-    --spacing-fluid-lg: clamp(2rem, 1.9286rem + 0.3571vw, 2.5rem);
-    --spacing-fluid-xl: clamp(2.5rem, 2.3571rem + 0.7143vw, 3.5rem);
-    --spacing-fluid-2xl: clamp(3.5rem, 3.2857rem + 1.0714vw, 5rem);
-    --spacing-fluid-3xl: clamp(5rem, 4.5714rem + 2.1429vw, 8rem);
-    --spacing-fluid-4xl: clamp(8rem, 7.7143rem + 1.4286vw, 10rem);
-    --spacing-fluid-5xl: clamp(2.0625rem, -0.0536rem + 10.5804vw, 16.875rem);
+    --spacing-fluid-twenty: clamp(0.625rem, 0.4196rem + 1.0268vw, 1.6518rem);
+    --spacing-fluid-thirty: clamp(1.5625rem, 1.4286rem + 0.6696vw, 2.2321rem);
+    --spacing-fluid-forty: clamp(1.3125rem, 0.0057rem + 2.6136vw, 3.142rem);
+    --spacing-fluid-sixty: clamp(1.25rem, 0.5357rem + 3.5714vw, 4.8214rem);
+    --spacing-fluid-eighty: clamp(1.5625rem, 0.6696rem + 4.4643vw, 6.0268rem);
+    --spacing-fluid-160: clamp(2rem, -0.0714rem + 10.3571vw, 12.3571rem);
+    --spacing-fluid-270: clamp(3.375rem, -0.1071rem + 17.4107vw, 20.7857rem);
+    --spacing-fluid-nav: clamp(0.3125rem, 0.2679rem + 0.2232vw, 0.5357rem);
+    --spacing-fluid-xs: clamp(0.5rem, 0.4821rem + 0.0893vw, 0.5893rem);
+    --spacing-fluid-sm: clamp(1rem, 0.9286rem + 0.3571vw, 1.3571rem);
+    --spacing-fluid-md: clamp(1.5rem, 1.4286rem + 0.3571vw, 1.8571rem);
+    --spacing-fluid-lg: clamp(2rem, 1.9286rem + 0.3571vw, 2.3571rem);
+    --spacing-fluid-xl: clamp(2.5rem, 2.3571rem + 0.7143vw, 3.2143rem);
+    --spacing-fluid-2xl: clamp(3.5rem, 3.2857rem + 1.0714vw, 4.5714rem);
+    --spacing-fluid-3xl: clamp(5rem, 4.5714rem + 2.1429vw, 7.1429rem);
+    --spacing-fluid-4xl: clamp(8rem, 7.7143rem + 1.4286vw, 9.4286rem);
+    --spacing-fluid-5xl: clamp(2.0625rem, -0.0536rem + 10.5804vw, 12.6429rem);
 
     /* Spacing — buttons + units */
     --spacing-button-vert: 0.6rem;
@@ -265,7 +281,46 @@
     --spacing-button-hor-mob: 2.5rem;
     --spacing-unit-sm: var(--unit-sm);
     --spacing-unit-md: var(--unit-md);
-    --spacing-gutter: clamp(1rem, 0.4961rem + 0.7874vw, 1.5rem);
+    --spacing-gutter: clamp(1rem, 0.4961rem + 0.7874vw, 1.441rem);
+
+    /* ── The page frame ──────────────────────────────────────────────────────
+       The width the design stops growing at. Past it the layout holds still and
+       the surplus becomes background: sections stay full-bleed so their colour
+       bands still run edge to edge, but everything inside them — the 12-column
+       grid, the type, the media — is held to this frame and centred in the
+       viewport.
+
+       1920 is the frame, gutters included. The content column inside it is
+       therefore 1920 − 2 × 50.9 ≈ 1818px, which is the 1512 frame's 1432px
+       column scaled by the same damped rate the type scale uses.
+
+       Every fluid token above has its clamp frozen at this width — the ceilings
+       are the value each one reaches at 1920, so nothing below the frame moved
+       and nothing above it grows. Changing this number therefore means
+       regenerating those ceilings too; the two are one decision, not two.
+
+       Tailwind reads `--container-*` as the max-width scale, so this also spells
+       `max-w-page`, which is what the full-bleed media uses to cap itself.
+
+       In `rem`, not `px`, and that matters: the clamp ceilings above are rem, so
+       the width at which a token tops out scales with the root font size. A `px`
+       frame would stop at 1920 no matter what, and a reader who has set a 20px
+       root would get a column that froze while the type was still growing. */
+    --container-page: 120rem;
+
+    /* The frame's height at the two ratios the full-width bands are drawn to.
+       A band that paints its own colour cannot cap its *width* — that would stop
+       the colour mid-viewport — so it caps its height instead, at exactly the
+       height its aspect ratio gives it when the frame is full. The band then
+       widens past 1920 while its proportions stop growing, which is the whole
+       point: the container grows, the composition does not. */
+    --spacing-frame-902: calc(var(--container-page) * 902 / 1512);
+    --spacing-frame-913: calc(var(--container-page) * 913 / 1512);
+
+    /* Half the surplus, for the few absolutely-positioned children that have to
+       find the frame edge on their own. Resolves against the containing block at
+       the point of use, so it is only correct on a child of a full-bleed section. */
+    --spacing-frame-inset: max(0px, calc((100% - var(--container-page)) / 2));
 
     /* Breakpoints */
     --breakpoint-2xs: 340px;
@@ -294,9 +349,34 @@
 /* =============================================================================
    Custom utilities
    ========================================================================== */
-@utility container {
-    @apply mx-auto w-full px-unit-md;
-    @apply max-w-none;
+/* The page's horizontal padding, and the whole of how the frame is enforced.
+
+   Below the frame it is just the gutter, so every section is padded exactly as it
+   was. Past the frame the second term picks up half the surplus, which pushes the
+   content back to `--container-page` wide and centres it while the element itself
+   — and therefore its background — stays full-bleed.
+
+   `100%` and not `100vw`: `scrollbar-gutter: stable` reserves the scrollbar
+   outside the viewport width that `vw` reports, so `100vw` overstates the space by
+   the scrollbar and would sit the frame off-centre by half of it.
+
+   It goes on a child of `<main>`, or on something positioned against the viewport
+   like the navbar — never on anything narrower. Percentage padding resolves against
+   the *containing block*, not the element, so on a nested element `100%` is the
+   parent's width and the surplus is counted twice.
+
+   That includes anything wearing `max-w-page`: capping an element does not change
+   what its percentages resolve against, so a capped section would take the full
+   surplus as padding on top of already being 1920 wide. Those take `px-frame`. */
+@utility px-page {
+    padding-inline: calc(var(--page-gutter) + max(0px, (100% - var(--container-page)) / 2));
+}
+
+/* The gutter on its own, for elements that carry the frame themselves — the
+   aspect-ratio panels and media that cap with `max-w-page` rather than bleeding.
+   They are already the frame's width, so there is no surplus left to absorb. */
+@utility px-frame {
+    padding-inline: var(--page-gutter);
 }
 
 @utility heading-xl {

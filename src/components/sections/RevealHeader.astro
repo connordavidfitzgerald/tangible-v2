@@ -18,7 +18,13 @@ interface Props {
 // The cast is load-bearing: rendering the line through a variable tag below
 // stops Astro from inferring `Astro.props` from `Props` on its own, and every
 // prop silently becomes `any`.
-const { lines, color = '#F4E727', textColor = '#000000', delay = 0, as = 'h1' } = Astro.props as Props;
+const {
+    lines,
+    color = '#F4E727',
+    textColor = '#000000',
+    delay = 0,
+    as = 'h1'
+} = Astro.props as Props;
 const Line = as;
 const id = `reveal-${Math.random().toString(36).slice(2, 7)}`;
 const fontMap: Record<string, string> = {
@@ -31,22 +37,21 @@ const fontMap: Record<string, string> = {
 <reveal-header class="trigger relative block" id={id} data-color={color} data-delay={delay}>
     <div class="flex flex-col gap-0">
         {
+            /* `w-fit` because the reveal bar is sized off this box and has to hug
+               the line rather than the column. `max-w-full` is the floor under
+               that: a line longer than its column — a long word at display size on
+               a phone — otherwise widens this wrapper past the page and takes the
+               document's scroll width with it. WebKit then let the whole page
+               scroll 50px sideways even where an ancestor already clips the
+               subtree, which is the white band down the right on iOS; Blink
+               clipped it and reported no overflow. Capped, the wrapper stops at
+               the column and its own `overflow-hidden` trims the line. */
+        }
+        {
             lines.map(({ text, font }) => (
-                {/* `w-fit` because the reveal bar is sized off this box and has to
-                    hug the line rather than the column. `max-w-full` is the floor
-                    under that: a line longer than its column — a long word at
-                    display size on a phone — otherwise widens the wrapper past the
-                    page and takes the document's scroll width with it. WebKit then
-                    let the whole page scroll 50px sideways even though the hero
-                    already clips this subtree, which is the white band down the
-                    right on iOS; Blink clipped it and reported no overflow. Capped,
-                    the wrapper stops at the column and its own `overflow-hidden`
-                    trims the line, which is what the hero was doing anyway. */}
-                <div
-                    class="line-wrapper relative h-fit w-fit max-w-full overflow-hidden -mb-4 pb-4 pt-4 -mt-4"
-                >
+                <div class="line-wrapper relative -mt-4 -mb-4 h-fit w-fit max-w-full overflow-hidden pt-4 pb-4">
                     <Line
-                        class={`reveal-line font-formula text-mob-display md:text-main-header h-fit w-fit leading-[110%] tracking-[0.02em] uppercase`}
+                        class={`reveal-line h-fit w-fit font-formula text-mob-display leading-[110%] tracking-[0.02em] uppercase md:text-main-header`}
                         style={`color: ${textColor}`}
                     >
                         {text}

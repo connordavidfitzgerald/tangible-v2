@@ -429,49 +429,70 @@ const heroKeyframes = `
                         </div>
                     </div>
 
-                    <SanityPicture
-                        image={program.image}
-                        fallback={program.fallback}
-                        {locale}
-                        alt=""
-                        class:list={[
-                            /* No aspect-ratio at md, deliberately. `h-full` gives
-                               this a definite height — the row's, which the text
-                               column sets — and a box with a definite height and
-                               `width: auto` takes its *width* from the ratio, not
-                               from its grid track. So as the viewport narrowed
-                               and the copy wrapped taller, the image grew wider
-                               with it and overflowed the page: +102px at 810,
-                               tapering to 0 around 1280. `min-width: 0` does not
-                               help, because the width is computed rather than
-                               merely floored. Dropping the ratio lets the track
-                               set the width and `h-full` set the height; the
-                               `object-fit: cover` in Image.astro does the rest. */
-                            /* `box-content` so the mobile ratio governs the
-                               *image*, not the padded box. The inset lives on
-                               this same element, and `aspect-ratio` sizes
-                               whichever box `box-sizing` names — on the default
-                               border-box the 94px of inset came out of the width
-                               while the height still followed the full box, so
-                               the picture rendered at 267×497 (0.54) instead of
-                               the 264/363.3 (0.73) asked for here.
+                    {/* The inset and the grid placement live on this wrapper,
+                           and never on the picture itself — the same split the
+                           programs cards on `/services` use.
 
-                               The width has to be stated for the same reason.
-                               `SanityPicture` renders `display: contents`, so
-                               this `img` is itself the grid item and stretches to
-                               the track — and under `content-box` the track sizes
-                               the *content*, leaving the 94px of inset to hang
-                               off the end. That put the image 78px past the right
-                               edge of a 390px screen, which Chrome answered by
-                               widening the layout viewport to 469 and laying the
-                               whole page out against it: the white band down the
-                               right of every section on mobile. Taking the inset
-                               out of the width first is what fills the track
-                               exactly, and leaves the ratio the 264 it wants. */
-                            'box-content aspect-[264/363.3] h-fit max-md:order-2 max-md:mt-mob-32 max-md:w-[calc(100%_-_2_*_var(--spacing-mob-inset-inner))] max-md:px-mob-inset-inner md:col-span-4 md:row-start-1 md:box-border md:aspect-auto md:h-full md:w-auto md:overflow-clip',
+                           They were on the picture, with `box-content` to keep the
+                           94px of inset out of the ratio's way, and that is a
+                           construction the engines do not agree on. `SanityPicture`
+                           renders `display: contents`, so the `img` was itself the
+                           grid item; sizing it there put an explicit width, a
+                           padding, a height and an `aspect-ratio` on one replaced
+                           element at once. From that identical CSS, Blink laid out
+                           the 267×367 asked for and WebKit produced 267×238 — the
+                           height collapsing to less than the width, so the picture
+                           came out wider than it was tall. Reproduced on an iPhone
+                           14 Pro in both; the ratio is not the part they disagree
+                           about, the height is.
+
+                           A wrapper takes the question away: the div is a plain
+                           border-box that absorbs the inset, and the picture is
+                           left as a ratio and a width, which every engine computes
+                           the same way.
+
+                           On the picture itself, then:
+
+                           267×367.43 is the mobile frame's own pair, and the one
+                           the `/services` cards are cut to. It is literal rather
+                           than proportional — the frame is 393 wide, and 393 less
+                           the 16px page margin and the 47px inset on each side is
+                           exactly the 267 column every image on a phone sits in —
+                           so `w-full` is all it takes to hit it, and the ratio
+                           takes the height from there.
+
+                           No ratio at md, deliberately. `h-full` gives it a
+                           definite height, the row's, which the text column sets;
+                           and a box with a definite height and `width: auto` takes
+                           its *width* from the ratio rather than from its grid
+                           track, so as the viewport narrowed and the copy wrapped
+                           taller the image grew wider with it and overflowed the
+                           page: +102px at 810, tapering to 0 around 1280.
+                           `min-width: 0` does not help, because the width is
+                           computed rather than merely floored. Dropping the ratio
+                           lets the track set the width and `h-full` set the height.
+
+                           `object-cover` because both of those boxes are a shape
+                           this layout decides, and neither has any reason to match
+                           the photograph that lands in it. Without a fit the
+                           default `fill` stretches one to the other: the
+                           entreprises image is a 0.667 source, so it rendered 9%
+                           wide on a phone, and at md the distortion moved with the
+                           wrap of the copy beside it. */}
+                    <div
+                        class:list={[
+                            'max-md:order-2 max-md:mt-mob-32 max-md:px-mob-inset-inner md:col-span-4 md:row-start-1 md:h-full md:overflow-clip',
                             programSide[program.side].image
                         ]}
-                    />
+                    >
+                        <SanityPicture
+                            image={program.image}
+                            fallback={program.fallback}
+                            {locale}
+                            alt=""
+                            class="aspect-[267/367.43] w-full object-cover md:aspect-auto md:h-full"
+                        />
+                    </div>
                 </div>
             ))
         }

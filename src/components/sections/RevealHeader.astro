@@ -32,7 +32,19 @@ const fontMap: Record<string, string> = {
     <div class="flex flex-col gap-0">
         {
             lines.map(({ text, font }) => (
-                <div class="line-wrapper relative h-fit w-fit overflow-hidden -mb-4 pb-4 pt-4 -mt-4">
+                {/* `w-fit` because the reveal bar is sized off this box and has to
+                    hug the line rather than the column. `max-w-full` is the floor
+                    under that: a line longer than its column — a long word at
+                    display size on a phone — otherwise widens the wrapper past the
+                    page and takes the document's scroll width with it. WebKit then
+                    let the whole page scroll 50px sideways even though the hero
+                    already clips this subtree, which is the white band down the
+                    right on iOS; Blink clipped it and reported no overflow. Capped,
+                    the wrapper stops at the column and its own `overflow-hidden`
+                    trims the line, which is what the hero was doing anyway. */}
+                <div
+                    class="line-wrapper relative h-fit w-fit max-w-full overflow-hidden -mb-4 pb-4 pt-4 -mt-4"
+                >
                     <Line
                         class={`reveal-line font-formula text-mob-display md:text-main-header h-fit w-fit leading-[110%] tracking-[0.02em] uppercase`}
                         style={`color: ${textColor}`}

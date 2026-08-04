@@ -108,7 +108,7 @@ class CirclesAnimation extends HTMLElement {
                     scrub: 1,
                     pin: pin,
                     pinSpacing: true,
-                    anticipatePin: 1,
+
                     invalidateOnRefresh: true
                 }
             });

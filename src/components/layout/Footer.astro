@@ -34,7 +34,7 @@ const bookLead = bookWords.join(' ');
     >
         <div class="col-span-3 flex flex-col items-start justify-between">
             <Icon name="logo" class="h-fluid-thirty w-auto" />
-            <a href={localizedPath(path, other)} class="w-fit font-sans text-body-sm"
+            <a href={localizedPath(path, other)} class="hover-underline w-fit font-sans text-body-sm"
                 >{other.toUpperCase()}</a
             >
         </div>
@@ -44,8 +44,8 @@ const bookLead = bookWords.join(' ');
                 set:html={address.replace(/\n/g, '<br />')}
             />
             <h6 class="font-sans text-body-sm leading-[120%]">
-                {phone && <a href={telHref}>{phone}</a>}<br />
-                {email && <a href={`mailto:${email}`}>{email}</a>}
+                {phone && <a class="hover-underline" href={telHref}>{phone}</a>}<br />
+                {email && <a class="hover-underline" href={`mailto:${email}`}>{email}</a>}
             </h6>
         </div>
         <div class="col-span-2 flex flex-col justify-between font-sans text-body-sm uppercase">

@@ -475,13 +475,6 @@ body {
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
 }
-/* Wrapping variant: the underline only breaks per line if the box it paints is
-   an inline one, so this has to stay `inline` (and therefore can't be a flex
-   item — put it on a span inside the link, with `hover-parent` on the link). */
-.hover-underline-wrap {
-    display: inline;
-    padding-bottom: 0.12em;
-}
 .hover-underline.is-active {
     background-position: 0% 100%;
     background-size: 100% max(1px, 0.04em);

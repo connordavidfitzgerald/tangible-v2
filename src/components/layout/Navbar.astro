@@ -175,6 +175,30 @@ const menuLinks = [
         position: relative;
     }
 
+    /* The label's box is only as tall as its type, so the pointer leaves the
+       link well before it reaches the panel below the bar. This pad carries the
+       hit area from the link's centre down to the bar's bottom edge — the same
+       drop the panel is offset by — as a pseudo-element, so neither the text nor
+       its underline moves.
+
+       The z-index is what makes the label clickable at all: the panel's
+       transparent top padding starts halfway up the label and would otherwise
+       take every click below that line. Lifting the link above the panel keeps
+       those clicks on the link, and the pad stops at the bar's bottom edge, so
+       the panel's own items are never covered. */
+    .nav-dropdown-wrap > a {
+        position: relative;
+        z-index: 1;
+    }
+    .nav-dropdown-wrap > a::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 0;
+        left: 0;
+        height: calc((var(--spacing-main-logo) + 2 * var(--spacing-main-5)) / 2);
+    }
+
     /* The panel hangs off the bar's bottom edge, not the link's. The link is
        centred in the bar, so that drop is half the bar's height — the logo,
        which is its tallest child, plus the `py-main-5` band on each side. It is

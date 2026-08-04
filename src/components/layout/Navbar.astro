@@ -225,9 +225,9 @@ const menuLinks = [
 
         /* The parent stays underlined for as long as the panel is open, even
            once the pointer has left the link itself. */
-        .nav-dropdown-wrap:hover > .hover-underline::before {
-            transform: scaleX(1);
-            transform-origin: 0 0;
+        .nav-dropdown-wrap:hover > .hover-underline {
+            background-position: 0% 100%;
+            background-size: 100% max(1px, 0.04em);
         }
     }
 

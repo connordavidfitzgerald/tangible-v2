@@ -455,33 +455,42 @@ body {
     text-shadow: none;
 }
 
-/* Hover underline link */
+/* Hover underline link.
+
+   The bar is painted as a background gradient rather than an absolutely
+   positioned pseudo-element so that a link wrapping onto several lines gets one
+   underline per line, each fitted to that line's text — an absolute bar can only
+   span the whole box, which leaves the last line underlined edge to edge.
+
+   Only `background-size` transitions; the position flips instantly, so the bar
+   grows from the left on enter and retracts to the right on leave. */
 .hover-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 100% 100%;
+    background-repeat: no-repeat;
+    background-size: 0% max(1px, 0.04em);
     cursor: pointer;
     display: inline-block;
-    position: relative;
+    transition: background-size var(--transition-duration) var(--ease-power3-out);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
 }
-.hover-underline::before {
-    background-color: currentColor;
-    bottom: 0;
-    content: '';
-    height: max(1px, 0.04em);
-    left: 0;
-    position: absolute;
-    transform: scaleX(0);
-    transform-origin: 100% 0;
-    transition: transform var(--transition-duration) var(--ease-power3-out);
-    width: 100%;
+/* Wrapping variant: the underline only breaks per line if the box it paints is
+   an inline one, so this has to stay `inline` (and therefore can't be a flex
+   item — put it on a span inside the link, with `hover-parent` on the link). */
+.hover-underline-wrap {
+    display: inline;
+    padding-bottom: 0.12em;
 }
-.hover-underline.is-active::before {
-    transform: scaleX(1);
-    transform-origin: 0 0;
+.hover-underline.is-active {
+    background-position: 0% 100%;
+    background-size: 100% max(1px, 0.04em);
 }
 @media (hover: hover) {
-    .hover-parent:hover .hover-underline::before,
-    .hover-underline:hover::before {
-        transform: scaleX(1);
-        transform-origin: 0 0;
+    .hover-parent:hover .hover-underline,
+    .hover-underline:hover {
+        background-position: 0% 100%;
+        background-size: 100% max(1px, 0.04em);
     }
 }
 

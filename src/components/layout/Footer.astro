@@ -57,8 +57,10 @@ const telHref = `tel:${phone.replace(/[^0-9+]/g, '')}`;
             <a href={localizedPath('/centre-iam', locale)} class="hover-underline w-fit"
                 >{t('navIam')}</a
             >
-            <a href={bookingUrl} target="_blank" class="hover-underline w-fit whitespace-pre-line"
-                >{t('navBook')}</a
+            <!-- This label wraps onto two lines, so the underline lives on an
+                 inline span (see .hover-underline-wrap) to stay fitted to each. -->
+            <a href={bookingUrl} target="_blank" class="hover-parent w-fit whitespace-pre-line"
+                ><span class="hover-underline hover-underline-wrap">{t('navBook')}</span></a
             >
         </div>
     </div>

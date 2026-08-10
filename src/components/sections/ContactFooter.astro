@@ -56,7 +56,12 @@ const radioClass =
     data-btn-submit={t.submitText}
     data-btn-success={t.successText}
 >
+    {
+        /* Tagged on each panel rather than on `<contact-form>`, which is
+           `display: contents` and so has no box to measure. */
+    }
     <div
+        data-theme-color="#a29277"
         class="desktop-version grid aspect-1512/902 max-h-frame-902 w-full grid-cols-12 gap-gutter bg-bronze px-page pt-fluid-4xl pb-fluid-4xl"
     >
         <div
@@ -93,7 +98,10 @@ const radioClass =
             </div>
         </div>
     </div>
-    <div class="mob-version flex flex-col gap-mob-64 bg-bronze px-mob-16 py-mob-64">
+    <div
+        data-theme-color="#a29277"
+        class="mob-version flex flex-col gap-mob-64 bg-bronze px-mob-16 py-mob-64"
+    >
         <SplitReveal
             class="px-mob-inset font-radio text-mob-footer leading-[105%] font-normal text-perle"
         >

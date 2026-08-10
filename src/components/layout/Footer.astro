@@ -28,7 +28,9 @@ const bookLast = bookWords.pop() ?? '';
 const bookLead = bookWords.join(' ');
 ---
 
-<footer id="footer">
+<!-- `data-theme-color`: both panels are black edge to edge, so the tag sits on
+     the whole footer and carries Safari's bottom bar with it. -->
+<footer id="footer" data-theme-color="#000000">
     <div
         class="desktop-version grid grid-cols-12 gap-fluid-twenty bg-black px-page py-fluid-forty leading-[120%] tracking-[3%] text-offwhite [--page-gutter:var(--spacing-fluid-forty)]"
     >

@@ -9,18 +9,33 @@ import Navbar from '@components/layout/Navbar.astro';
 import Footer from '@components/layout/Footer.astro';
 import Preloader from '@components/layout/Preloader.astro';
 
-interface Props extends SeoProps {}
+interface Props extends SeoProps {
+    /**
+     * The colour of the two surfaces the page cannot lay content into while it
+     * is scrolled to the top — Safari's chrome (notch band, bottom bar) and the
+     * rubber-band overscroll gutters — which is to say the colour of this page's
+     * hero. Sections tagged `data-theme-color` take both over on scroll (see
+     * `@scripts/themeColor`); this is only the value the document ships with, so
+     * the first paint is already right rather than corrected a frame later.
+     */
+    themeColor?: string;
+}
 
 const locale = getLocale(Astro.url);
 const settings = await getSiteSettings();
 const seo = buildSeo(Astro.props, settings, locale);
+const { themeColor = '#ededed' } = Astro.props;
 ---
 
 <!doctype html>
-<html lang={locale}>
+<!-- `--page-edge` on the element itself, not in the stylesheet: it is per-page,
+     and it has to be in place for the first paint, before `themeColor.ts` takes
+     over on scroll. See global.css for what the canvas does with it. -->
+<html lang={locale} style={`--page-edge: ${themeColor}`}>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, viewport-fit=cover" />
+        <meta name="theme-color" content={themeColor} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="generator" content={Astro.generator} />
 
@@ -55,6 +70,7 @@ const seo = buildSeo(Astro.props, settings, locale);
 
         <script>
             import '@scripts/motion.ts';
+            import '@scripts/themeColor.ts';
         </script>
     </body>
 </html>

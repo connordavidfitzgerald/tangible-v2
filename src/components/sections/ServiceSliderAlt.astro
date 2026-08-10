@@ -59,7 +59,7 @@ const id = `slider-${Math.random().toString(36).slice(2, 7)}`;
                         style={i === 0 ? '' : 'position:absolute;left:100%;top:0;bottom:0;'}
                     >
                         <h2
-                            class="text-center font-formula text-mob-display leading-[1.1] tracking-[0.02em] whitespace-pre-line text-bronze uppercase md:text-main-header"
+                            class="text-center font-formula text-mob-display leading-none tracking-[0.02em] whitespace-pre-line text-bronze uppercase md:text-main-header md:leading-[1.1]"
                             set:html={slide.shapeTitle}
                         />
                     </div>

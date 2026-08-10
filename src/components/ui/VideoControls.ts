@@ -21,6 +21,9 @@ const SEEK_STEP_SECONDS = 5;
 /** How much of the frame, measured up from the bottom, reveals the controls. */
 const HOVER_BAND_RATIO = 1;
 
+/** How long a tap keeps the bar up on a touch screen before it puts itself away. */
+const TAP_REVEAL_MS = 3500;
+
 /** Fraction of the frame that has to be on screen before it plays itself. */
 const AUTOPLAY_VISIBILITY = 0.35;
 
@@ -36,6 +39,8 @@ class VideoControls extends HTMLElement {
     private scrubbing = false;
     /** A deliberate pause outranks autoplay: scrolling back will not override it. */
     private pausedByViewer = false;
+    /** Pending auto-hide of the bar after a tap. */
+    private tapTimer = 0;
 
     connectedCallback() {
         this.player = this.querySelector('mux-player');
@@ -82,6 +87,7 @@ class VideoControls extends HTMLElement {
         document.addEventListener('fullscreenchange', () => this.syncFullscreenState(), { signal });
 
         this.bindHoverReveal(signal);
+        this.bindTapReveal(signal);
         this.bindScrubbing(signal);
         this.bindViewportAutoplay();
 
@@ -94,26 +100,83 @@ class VideoControls extends HTMLElement {
     disconnectedCallback() {
         this.listeners?.abort();
         this.observer?.disconnect();
+        window.clearTimeout(this.tapTimer);
+    }
+
+    /** Mid-scrub the bar stays up whatever else says otherwise — you are using it. */
+    private reveal(visible: boolean) {
+        this.dataset.controlsVisible = String(visible || this.scrubbing);
     }
 
     /** The bar only surfaces while the pointer is down near the bottom edge. */
     private bindHoverReveal(signal: AbortSignal) {
-        const reveal = (visible: boolean) => {
-            this.dataset.controlsVisible = String(visible || this.scrubbing);
-        };
-
         this.addEventListener(
             'pointermove',
             (event: PointerEvent) => {
+                // A touch "move" is a drag, not a hover. Letting it through would
+                // flash the bar on every swipe that started over the video, and
+                // then strand it there — touch fires no `pointerleave` to
+                // put it away again. On touch the tap handler owns the bar.
+                if (event.pointerType === 'touch') return;
+
                 const bounds = this.getBoundingClientRect();
-                reveal(event.clientY >= bounds.bottom - bounds.height * HOVER_BAND_RATIO);
+                this.reveal(event.clientY >= bounds.bottom - bounds.height * HOVER_BAND_RATIO);
             },
             { signal }
         );
 
-        this.addEventListener('pointerleave', () => reveal(false), { signal });
+        this.addEventListener(
+            'pointerleave',
+            (event: PointerEvent) => {
+                if (event.pointerType === 'touch') return;
+                this.reveal(false);
+            },
+            { signal }
+        );
 
-        reveal(false);
+        this.reveal(false);
+    }
+
+    /**
+     * A touch screen has no pointer to hover the bottom edge with, so the frame
+     * is tapped instead: first tap brings the bar up, a second puts it away, and
+     * it leaves on its own after `TAP_REVEAL_MS` if neither happens.
+     *
+     * `pointerup` rather than `click` because the timeline calls
+     * `setPointerCapture` while scrubbing, which retargets the click to it — a
+     * scrub that ended over the video would otherwise read as a tap on the frame
+     * and dismiss the bar the moment you let go of the playhead.
+     */
+    private bindTapReveal(signal: AbortSignal) {
+        this.addEventListener(
+            'pointerup',
+            (event: PointerEvent) => {
+                if (event.pointerType !== 'touch') return;
+
+                // A tap that landed on a control belongs to that control; it only
+                // restarts the countdown, so the bar cannot go out from under a
+                // finger that is still working it.
+                if ((event.target as Element | null)?.closest?.('.c-video-controls')) {
+                    this.holdRevealed();
+                    return;
+                }
+
+                if (this.dataset.controlsVisible === 'true') {
+                    window.clearTimeout(this.tapTimer);
+                    this.reveal(false);
+                } else {
+                    this.holdRevealed();
+                }
+            },
+            { signal }
+        );
+    }
+
+    /** Show the bar and restart its countdown. */
+    private holdRevealed() {
+        this.reveal(true);
+        window.clearTimeout(this.tapTimer);
+        this.tapTimer = window.setTimeout(() => this.reveal(false), TAP_REVEAL_MS);
     }
 
     /** Play once the frame is properly on screen, pause when it leaves. */

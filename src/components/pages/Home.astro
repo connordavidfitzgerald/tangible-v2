@@ -192,7 +192,7 @@ const heroKeyframes = `
 
 <style is:inline set:html={heroKeyframes}></style>
 
-<BaseLayout title={t('metaTitle')} description={t('metaDescription')}>
+<BaseLayout title={t('metaTitle')} description={t('metaDescription')} themeColor="#000000">
     <!-- ===================================================================
          Hero
          =================================================================== -->
@@ -202,8 +202,14 @@ const heroKeyframes = `
            published as a variable and the keyframes below read it — otherwise
            adding a sixth photo would leave the whole rotation off its clock. */
     }
+    {
+        /* The hero is a photograph, so there is no background colour to sample —
+           `data-theme-color` states the one Safari should paint the notch with.
+           Black, because the slides run under `brightness-80` behind white type. */
+    }
     <div
-        class="hero-section relative flex aspect-393/852 w-full flex-col justify-end overflow-hidden px-page pb-mob-64 max-md:max-h-svh md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
+        data-theme-color="#000000"
+        class="hero-section relative flex aspect-393/852 w-full flex-col justify-end overflow-hidden px-page pb-mob-64 max-md:h-lvh md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
         style={`--hero-cycle: ${heroSlides.length * 4}s`}
     >
         <div class="hero-slideshow hidden brightness-80 md:flex">

@@ -435,10 +435,23 @@
 /* =============================================================================
    Base + global styles
    ========================================================================== */
+/* `--page-edge` is the colour of whatever section is currently against the top
+   of the viewport; `@scripts/themeColor` keeps it up to date, and BaseLayout
+   ships the first value inline so the first paint is already right.
+
+   It is set on `html` rather than `body` on purpose. iOS paints two things with
+   the *canvas* background — the rubber-band gutters above the top and below the
+   bottom of the document — and the canvas takes its colour from `html` if `html`
+   has one, and only falls back to `body` if it does not. With the white below on
+   `body` alone, bouncing past the hero or past the footer showed white. Given
+   `html` a colour, `body`'s white now paints the body box only (where nothing
+   sees it anyway, every section draws its own background) and the gutters follow
+   the section you are standing in. */
 html {
     font-family: var(--font-sans);
     font-weight: 500;
     scrollbar-gutter: stable;
+    background: var(--page-edge, var(--color-offwhite));
 }
 
 body {

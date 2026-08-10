@@ -188,7 +188,9 @@ const icons = {
         /* Inherited by every icon and by the timeline, which draw in currentColor. */
         color: var(--video-controls-color, #fff);
 
-        /* Revealed only as the pointer nears the bottom of the frame. */
+        /* Revealed as the pointer nears the bottom of the frame, or — on a touch
+           screen, where there is no pointer to near it with — by tapping the
+           frame. Both are `VideoControls`' doing; see `bindTapReveal` there. */
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.25s ease;
@@ -198,14 +200,6 @@ const icons = {
     .c-video-controls:focus-within {
         opacity: 1;
         pointer-events: auto;
-    }
-
-    /* Without a hovering pointer there is no way to summon them, so keep them out. */
-    @media (hover: none) {
-        .c-video-controls {
-            opacity: 1;
-            pointer-events: auto;
-        }
     }
 
     .c-video-button {

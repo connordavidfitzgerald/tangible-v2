@@ -24,6 +24,9 @@ const HOVER_BAND_RATIO = 1;
 /** How long a tap keeps the bar up on a touch screen before it puts itself away. */
 const TAP_REVEAL_MS = 3500;
 
+/** Fired when the viewer works the mute button. Bubbles; see `setCurrent`. */
+export const MUTE_CHANGE_EVENT = 'videocontrols:mutechange';
+
 /** Fraction of the frame that has to be on screen before it plays itself. */
 const AUTOPLAY_VISIBILITY = 0.35;
 
@@ -69,6 +72,18 @@ class VideoControls extends HTMLElement {
             'click',
             () => {
                 player.muted = !player.muted;
+
+                // Announced so an enclosing slider can carry the choice onto the
+                // next film rather than overriding it. Only the *viewer's* toggle
+                // is announced — `syncMuteState` runs for programmatic changes
+                // too, and reporting from there would feed the slider its own
+                // decisions back as if they had been made for it.
+                this.dispatchEvent(
+                    new CustomEvent(MUTE_CHANGE_EVENT, {
+                        bubbles: true,
+                        detail: { muted: player.muted }
+                    })
+                );
             },
             { signal }
         );
@@ -101,6 +116,52 @@ class VideoControls extends HTMLElement {
         this.listeners?.abort();
         this.observer?.disconnect();
         window.clearTimeout(this.tapTimer);
+    }
+
+    /**
+     * A slider telling this player it has become — or stopped being — the film
+     * on screen.
+     *
+     * This exists for `withSound`, and specifically for *when* it runs. Browsers
+     * only allow audio to start from a user gesture, and on iOS that means
+     * inside the handler for the gesture itself, not a tick later. So a slider
+     * calls this synchronously from its arrow's `click`; the IntersectionObserver
+     * in `bindViewportAutoplay` cannot do the same job, because it fires when the
+     * slide has finished travelling, by which point the gesture is long spent and
+     * the unmuted `play()` would be refused.
+     *
+     * That observer stays as it is and needs no coordination: by the time it runs
+     * this has already started or stopped the film, and playing something already
+     * playing is a no-op.
+     */
+    setCurrent(current: boolean, withSound = false) {
+        const player = this.player;
+        if (!player) return;
+
+        if (!current) {
+            player.pause();
+            return;
+        }
+
+        // A film the viewer stopped on purpose stays stopped, exactly as it does
+        // when it scrolls back into view.
+        if (this.pausedByViewer) return;
+
+        if (withSound) player.muted = false;
+
+        // The cast is because `play()` is typed as returning a promise *or*
+        // nothing, and `void` cannot be tested for truthiness — the optional call
+        // below is what actually handles the media element that returns neither.
+        const started = player.play() as Promise<void> | undefined;
+
+        // The gesture can still be refused — a player that has not loaded its
+        // source yet is the likely one here, since slides load on approach. A
+        // silent film is a far better landing than a stopped one, so fall back
+        // rather than leave a paused frame sitting in the column.
+        started?.catch(() => {
+            player.muted = true;
+            player.play();
+        });
     }
 
     /** Mid-scrub the bar stays up whatever else says otherwise — you are using it. */

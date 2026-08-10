@@ -6,14 +6,36 @@ import type { CircleParts, CirclesVariant } from './parts';
  * circles are sized in percentages of the grid, and a 90px push that reads as a
  * gentle spread at 1512 reads as a rout on a laptop.
  *
- * There is a ceiling on this. The composed layout overlaps each side circle with
- * the middle one by 30% of a circle's width, so at 30 they start exactly touching
+ * There is a ceiling on this. The composed row overlaps each side circle with the
+ * middle one by 30% of a circle's width, so at 30 they start exactly touching
  * and past it they start apart — at which point the section opens on three
  * separate circles and the whole premise, that these are overlapping fields being
  * brought into register, is gone before it is stated. Half of that is the most
  * that still reads as *spread* rather than *scattered*.
  */
 const PUSH = 15;
+
+/**
+ * The same thing for the stacked layout below `md`, where the convergence runs
+ * down the page instead of across it.
+ *
+ * Bigger than the row's, and not as a matter of taste. Two things differ there:
+ *
+ *   - The ceiling is its own number. Stacked, each circle sits `--circles-step`
+ *     (0.723) of a diameter below the one before it — see the `max-width: 809px`
+ *     block in About.astro — so adjacent circles overlap by the remaining 27.7%,
+ *     and that, not the row's 30%, is where they would start merely touching.
+ *   - The mobile timeline is *played*, once, on entry — the pin and the scrub are
+ *     desktop-only. So the whole move is over in `MOVE_DURATION` at real speed
+ *     rather than spread across a screen and a half of scroll, and a push that
+ *     reads as a deliberate close under the thumb reads as a twitch at 0.8s.
+ *
+ * 22 is most of the room there is: about four fifths of the way to the touching
+ * point, so the circles still open overlapping — by a twentieth of a diameter,
+ * enough to still be one field closing rather than three separate discs — and
+ * they travel half again as far as they used to.
+ */
+const PUSH_STACKED = 22;
 
 /**
  * The circles as a movement: already drawn, already overlapping, closing into
@@ -63,37 +85,40 @@ export const settle: CirclesVariant = {
         const [left, right] = sides;
 
         // ── 1. The move ──────────────────────────────────────────────────────
-        const MOVE_DURATION = 0.8;
+        const MOVE_DURATION = 0.7;
         const MOVE_EASE = 'power2.inOut';
 
         // Below `md` the three circles are stacked rather than rowed, so the same
-        // convergence has to run down the page instead of across it. Only the axis
-        // changes — the two outer discs still close on the middle one by the same
-        // share of their own size, and the lenses still cancel it exactly.
+        // convergence has to run down the page instead of across it. The two outer
+        // discs still close on the middle one by a share of their own size and the
+        // lenses still cancel it exactly; only the axis and how far out they wait
+        // differ, for the reasons on PUSH_STACKED.
         //
         // Read here rather than passed in because the layout it mirrors is a CSS
         // media query, and this is the one place that has to agree with it. It is
         // the same 809px the stylesheet switches on.
-        const axis = window.matchMedia('(max-width: 809px)').matches ? 'yPercent' : 'xPercent';
+        const stacked = window.matchMedia('(max-width: 809px)').matches;
+        const axis = stacked ? 'yPercent' : 'xPercent';
+        const push = stacked ? PUSH_STACKED : PUSH;
 
         /** A converge tween on whichever axis this layout uses. */
-        const converge = (el: HTMLElement, push: number) =>
+        const converge = (el: HTMLElement, from: number) =>
             tl.fromTo(
                 el,
-                { [axis]: push },
+                { [axis]: from },
                 { [axis]: 0, duration: MOVE_DURATION, ease: MOVE_EASE },
                 0
             );
 
-        if (left) converge(left, -PUSH);
-        if (right) converge(right, PUSH);
+        if (left) converge(left, -push);
+        if (right) converge(right, push);
 
         // Each lens holds still in the page while its parent moves under it. Same
         // duration and ease as the parent, opposite sign — anything else and the
         // cancellation is only exact at the two ends, with the lens drifting off
         // the real intersection everywhere in between.
-        if (y1) converge(y1, PUSH);
-        if (y3) converge(y3, -PUSH);
+        if (y1) converge(y1, push);
+        if (y3) converge(y3, -push);
 
         // ── 2. The paragraphs ────────────────────────────────────────────────
         // The titles are no longer a beat of their own. They belong to the
@@ -109,8 +134,8 @@ export const settle: CirclesVariant = {
         // circles are closing as the first line lifts. A scrubbed timeline with a
         // seam in it reads as broken rather than as two beats. They keep the
         // gentler lift and fade `FadeUp.astro` uses for body copy.
-        const TEXT_START = MOVE_DURATION * 0.72;
-        const TEXT_STAGGER = 0.22;
+        const TEXT_START = MOVE_DURATION * 1.5;
+        const TEXT_STAGGER = 0.6;
         const LINE_DURATION = 0.66;
 
         lines.forEach((line, i) => {

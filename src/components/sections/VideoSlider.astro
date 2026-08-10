@@ -59,12 +59,33 @@ const labels = {
                         include the section's own padding, which drags the first
                         film out of its column and flush against the page edge. */}
                     <div class="vs-track relative flex w-full flex-row gap-mob-16 md:gap-gutter">
+                        {/* Every film plays while it is the current one, which
+                            `autoplayInView` gives for free rather than needing
+                            the paging below to drive play/pause itself.
+
+                            The observer it turns on watches each slide's own box
+                            against the section's `overflow-hidden`, and this
+                            slider pages by translating slides through a clipped
+                            column — so "enough of it is on screen" and "it is the
+                            current one" are the same question here. The margin is
+                            comfortable: the next film peeks about 12% of itself
+                            past the column at 1512 and essentially nothing on
+                            mobile, both well under the 35% the observer wants.
+                            So arriving at the section starts the current film,
+                            paging starts the one you land on, and the one you
+                            left falls under the threshold and pauses.
+
+                            They play muted, which is not a choice — browsers
+                            block sound-on autoplay outright, so `MuxVideo` folds
+                            `autoplayInView` into `muted` rather than letting the
+                            play attempt fail and leave a stopped film. */}
                         {videos.map((video, i) => (
                             <div class="vs-slide w-full shrink-0" data-index={i}>
                                 <MuxVideo
                                     playbackId={video.playbackId}
                                     title={video.title}
                                     class="aspect-video w-full"
+                                    autoplayInView
                                 />
                             </div>
                         ))}

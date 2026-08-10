@@ -166,7 +166,25 @@
     --text-main-sub: clamp(1.8705rem, 1.2054rem + 1.0393vw, 2.4526rem);
     --text-main-slider: clamp(6.1172rem, 1.2483rem + 7.6076vw, 10.3774rem);
 
-    --spacing-main-5: clamp(0.2917rem, 0.6042rem + -0.2604vw, 0.4375rem);
+    /* The navbar's vertical padding — and nothing else uses it, so it is written
+       as what it actually is: a share of the logo it is padding, not a size in
+       its own right.
+
+       The bar has no height of its own. It is `h-fit` around the logo, which is
+       its tallest child at every width, plus this band above and below. So the
+       logo's share of the bar is decided here and nowhere else, and it was
+       drifting badly: this was a clamp like the others but with a *negative* vw
+       coefficient, growing as the viewport narrowed while the logo shrank. The
+       two clamps bound at the same pair of widths, and across them the logo went
+       from 59% of the bar at 1024 to 80% at 1920 — the logo scaling down harder
+       than the bar around it, which is the thing this is fixing.
+
+       0.192 is the drawn pair at 1512, the Figma frame: 5.73px of padding to a
+       29.85px logo. Tying one to the other holds that proportion at every width,
+       so 1512 renders exactly as it did and the bar now grows and shrinks with
+       its logo instead of against it. `--spacing-nav-bottom` below is built from
+       this, so everything clearing the bar follows on its own. */
+    --spacing-main-5: calc(0.192 * var(--spacing-main-logo));
     --spacing-main-10: clamp(0.4375rem, 0.0208rem + 0.651vw, 0.802rem);
     --spacing-main-12: clamp(0.5rem, -0.1667rem + 1.0417vw, 1.0833rem);
     --spacing-main-20: clamp(0.875rem, 0.0417rem + 1.3021vw, 1.6042rem);
@@ -179,7 +197,17 @@
     --spacing-main-270: clamp(10.1875rem, 0.0625rem + 15.8203vw, 19.0469rem);
     --spacing-main-213: clamp(9rem, 0rem + 14.0625vw, 16.875rem);
 
-    --spacing-main-logo: clamp(1.25rem, -0.0417rem + 2.0182vw, 2.3801rem);
+    /* The navbar's logo, and through `--spacing-main-5` above, the whole bar's
+       height — the two are one proportion now, so this floor is the bar's floor.
+
+       The min is 1.5rem rather than the 1.25rem the scale was derived with. At
+       1.25 the padding derived from it came out so tight that the bar bottomed
+       out at 33px shorter than it used to below `md`; 1.5 puts it back to the
+       34px it was at the low end, which is what the frame is drawn against.
+       Raising the floor also moves where it binds — the logo now stops shrinking
+       at about 1222px instead of 1024, so the lowest stretch of the desktop
+       range holds still rather than carrying on down. The ceiling is untouched. */
+    --spacing-main-logo: clamp(1.5rem, -0.0417rem + 2.0182vw, 2.3801rem);
 
     /* Top of the page → bottom edge of the fixed navbar: its `top-main-40`
        offset, its `py-main-5` padding (×2) and the logo, which is the bar's

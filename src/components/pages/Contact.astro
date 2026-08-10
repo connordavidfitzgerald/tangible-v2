@@ -140,7 +140,13 @@ const radioClass =
                     {t('formHeading')}
                 </div>
 
-                <form class="contact-form-inner flex flex-col gap-gutter pt-gutter">
+                {
+                    /* `data-stagger`: this copy of the form shows every field at
+                    once, so its rows are walked in one after another rather than
+                    arriving as a block. Opt-in, because the contact footer's copy
+                    pages sideways and has motion of its own. See `@scripts/contactForm`. */
+                }
+                <form class="contact-form-inner flex flex-col gap-gutter pt-gutter" data-stagger>
                     <input type="hidden" name="access_key" value={f.accessKey} />
 
                     {

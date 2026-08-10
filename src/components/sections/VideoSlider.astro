@@ -117,12 +117,6 @@ const labels = {
 
 <script>
     import gsap from 'gsap';
-    import { MUTE_CHANGE_EVENT } from '@components/ui/VideoControls';
-
-    /** The slice of `<video-controls>` this slider drives. See `setCurrent` there. */
-    type VideoControlsElement = HTMLElement & {
-        setCurrent?: (current: boolean, withSound?: boolean) => void;
-    };
 
     class VideoSlider extends HTMLElement {
         private ctx: gsap.Context | undefined;
@@ -144,59 +138,17 @@ const labels = {
                  */
                 const offsetFor = (i: number) => -slides[i].offsetLeft;
 
-                const controlsFor = (i: number) =>
-                    slides[i]?.querySelector<VideoControlsElement>('video-controls');
-
-                /**
-                 * Whether the films may play with sound.
-                 *
-                 * False on arrival, because nothing else is possible: the first
-                 * film starts from an IntersectionObserver rather than a gesture,
-                 * and browsers only ever grant muted autoplay to that. Working an
-                 * arrow *is* a gesture, so from the first page onwards sound is
-                 * allowed, and the viewer's own mute button then has the last word
-                 * — see the listener below.
-                 */
-                let soundArmed = false;
-
                 const goTo = (i: number, animate = true) => {
-                    const from = index;
                     index = (i + slides.length) % slides.length;
                     gsap.to(track, {
                         x: offsetFor(index),
                         duration: animate ? 0.75 : 0,
                         ease: 'power3.inOut'
                     });
-
-                    // A resize re-pins the same slide; nothing has changed hands.
-                    if (index === from) return;
-
-                    /* Both calls are deliberately synchronous with the click that
-                       got here, and deliberately ahead of the slide travelling.
-                       The incoming film's unmuted `play()` only counts while the
-                       gesture is live, so it cannot wait for the 0.75s translate
-                       to land — and the outgoing one has to stop on the same frame
-                       rather than when it clears the column, or the two would be
-                       audible over each other for most of the transition. */
-                    controlsFor(from)?.setCurrent?.(false);
-                    controlsFor(index)?.setCurrent?.(true, soundArmed);
                 };
 
-                const page = (to: number) => {
-                    soundArmed = true;
-                    goTo(to);
-                };
-
-                prev?.addEventListener('click', () => page(index - 1));
-                next?.addEventListener('click', () => page(index + 1));
-
-                // The mute button outranks the arming above, in both directions:
-                // muting a film keeps the next one silent too, and unmuting turns
-                // sound back on for the rest of the run. Whatever the viewer last
-                // said about sound is what the film they page to does.
-                this.addEventListener(MUTE_CHANGE_EVENT, (event) => {
-                    soundArmed = !(event as CustomEvent<{ muted: boolean }>).detail.muted;
-                });
+                prev?.addEventListener('click', () => goTo(index - 1));
+                next?.addEventListener('click', () => goTo(index + 1));
 
                 // Slide widths are viewport-derived, so a resize invalidates the
                 // current translation. Re-pin without animating.

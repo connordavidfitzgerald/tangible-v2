@@ -109,6 +109,31 @@ class CirclesAnimation extends HTMLElement {
                     pin: pin,
                     pinSpacing: true,
 
+                    /* This is the only pin on the site, and `pinSpacing` makes it
+                       the only thing that changes how far down the page every
+                       section after it sits — by the pin's own scroll distance,
+                       1080px at a 1512-wide frame.
+
+                       ScrollTrigger measures triggers in creation order, and it
+                       measures them with pin spacing *reverted*, restoring each
+                       pin's spacing when that pin's own turn comes round. This
+                       one is built last: the element waits on `document.fonts
+                       .ready` before it pins, by which time every SplitReveal
+                       below it has already recorded a start position for a
+                       document 1080px shorter than the one it ends up in. So the
+                       vision quote and the promise list both fired while still a
+                       screen and a half below the fold, and by the time you
+                       scrolled to them they had long since finished — on desktop
+                       only, because the mobile branch below does not pin.
+
+                       A higher `refreshPriority` puts this trigger at the front
+                       of that order, so the spacing is in place before anything
+                       below it is measured. It only takes effect on a *refresh*,
+                       though — the pass that creates this trigger has already
+                       measured the others — hence the `ScrollTrigger.refresh()`
+                       at the end of `build()`. */
+                    refreshPriority: 1,
+
                     invalidateOnRefresh: true
                 }
             });
@@ -128,7 +153,12 @@ class CirclesAnimation extends HTMLElement {
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: wrapper,
-                    start: 'top 75%',
+                    // The group is taller than a phone viewport, so its top edge
+                    // crosses the fold well before enough of it is on screen to
+                    // be worth watching. Holding off until the top is 60% down
+                    // the frame gets the assembly under the thumb rather than
+                    // half of it playing off the bottom.
+                    start: 'top 45%',
                     once: true
                 }
             });
@@ -140,6 +170,11 @@ class CirclesAnimation extends HTMLElement {
                 tl.kill();
             };
         });
+
+        // The pin has just changed the height of the document, and everything
+        // below it was measured against the old one. See `refreshPriority` above
+        // for why this has to come after the pin exists rather than before.
+        ScrollTrigger.refresh();
     }
 
     connectedCallback() {

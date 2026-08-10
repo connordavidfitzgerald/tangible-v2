@@ -12,8 +12,8 @@
  * Three buttons rather than one whose label changes: `ButtonHover` splits each
  * label into characters at connect time and animates those nodes, so rewriting
  * the text would leave it animating elements that are no longer in the tree.
- * Toggling visibility between three prepared buttons keeps each one's hover
- * intact.
+ * Each step carries its own, so they are only ever shown or hidden, never
+ * relabelled, and each one's hover stays intact.
  */
 import Button from '@components/ui/Button.astro';
 import type { FormCopy } from '@lib/content/siteCopy';
@@ -37,91 +37,131 @@ const textFields = [
     { name: 'phone', type: 'text', label: t.phoneLabel, required: true },
     { name: 'site', type: 'text', label: t.siteLabel, required: false }
 ] as const;
+
+/** Fields → buttons, on both steps. The one gap the layout below states twice. */
+const buttonRowClass = 'flex flex-row items-center pt-main-40';
 ---
 
-<form class="contact-form-inner flex flex-col gap-gutter pt-gutter" data-step="1">
+{
+    /* The form is the grid, and both steps sit in its single cell rather than
+       following one another, so the cell is as tall as the taller of them — step
+       two — whichever one is showing. The band then holds one height for its
+       whole life instead of growing by the difference the moment "Suivant" is
+       pressed and shunting everything below it down the page mid-interaction.
+
+       Which is why the inactive step is hidden with `invisible` and never
+       `hidden`: `display: none` would take it out of the grid and collapse the
+       cell back to whatever is showing, undoing the whole arrangement.
+       `visibility: hidden` keeps the box, and still takes the fields out of the
+       tab order and out of reach of the pointer. They post either way — only
+       `disabled` controls are left out of a submission.
+
+       Each step owns its own buttons, and that is what keeps them under the
+       fields they belong to. Sharing one row after the stack would have pinned
+       it below the *reserved* height, which is step two's — so on step one it
+       would sit a whole step-two's-worth down the page, marooned under four
+       fields with nothing between. Inside the panel it is just the last child of
+       whichever step is showing.
+
+       `overflow-hidden` because the steps page sideways (`setStep` in
+       `@scripts/contactForm`): each one travels a full panel width in or out, and
+       without a clip here that reaches past the page and takes the document's
+       scroll width with it — the same sideways scroll on iOS that the hero
+       headers had to be capped for. */
+}
+<form class="contact-form-inner grid overflow-hidden pt-gutter" data-step="1">
     <input type="hidden" name="access_key" value={t.accessKey} />
 
     <!-- Step 1 — identity -->
-    <div class="form-step flex flex-col gap-gutter" data-step-panel="1">
-        {
-            textFields.map((field) => (
-                <div class="flex flex-col gap-0">
-                    <label for={`${field.name}-${uid}`} class={labelClass}>
-                        {field.label}
-                    </label>
-                    <input
-                        type={field.type}
-                        id={`${field.name}-${uid}`}
-                        name={field.name}
-                        class={inputClass}
-                        data-required={field.required ? 'true' : undefined}
-                        required={field.required}
-                    />
-                </div>
-            ))
-        }
-    </div>
-
-    <!-- Step 2 — qualification. Hidden until "Suivant". -->
-    <div class="form-step hidden flex-col gap-gutter" data-step-panel="2">
-        {
-            groups.map((group) => (
-                <div class="flex flex-col gap-0 border-b border-b-perle pb-gutter">
-                    <span class={labelClass}>{group.label}</span>
-                    <div class="flex flex-col gap-main-12 pt-main-12">
-                        {group.options.map((option, i) => (
-                            <label for={`${group.name}-${uid}-${i}`} class={optionClass}>
-                                <input
-                                    type="radio"
-                                    id={`${group.name}-${uid}-${i}`}
-                                    name={group.name}
-                                    value={option}
-                                    class={radioClass}
-                                    data-required="true"
-                                />
-                                {option}
-                            </label>
-                        ))}
+    <div class="form-step col-start-1 row-start-1 flex flex-col" data-step-panel="1">
+        <div class="flex flex-col gap-gutter">
+            {
+                textFields.map((field) => (
+                    <div class="flex flex-col gap-0">
+                        <label for={`${field.name}-${uid}`} class={labelClass}>
+                            {field.label}
+                        </label>
+                        <input
+                            type={field.type}
+                            id={`${field.name}-${uid}`}
+                            name={field.name}
+                            class={inputClass}
+                            data-required={field.required ? 'true' : undefined}
+                            required={field.required}
+                        />
                     </div>
-                </div>
-            ))
-        }
+                ))
+            }
+        </div>
 
-        <label
-            for={`consultation-${uid}`}
-            class="w-full cursor-pointer text-mob-caption leading-[1.2] font-light tracking-[0.02em] text-perle md:text-main-body"
-        >
-            <div class="flex h-full w-full items-center gap-gutter">
-                <input
-                    type="checkbox"
-                    id={`consultation-${uid}`}
-                    name="consultation"
-                    value="Oui"
-                    class="h-[calc(1.2em-9px)] w-[calc(1.2em-9px)] shrink-0 appearance-none border border-perle bg-transparent outline-0 checked:bg-perle"
-                    data-required="true"
-                />
-                {t.consultationLabel}
-            </div>
-        </label>
+        {
+            /* Alone, so it holds the right edge — which is where "Soumettre" lands
+            on step two as well, so the two read as the same button moving down
+            rather than a new one appearing somewhere else. */
+        }
+        <div class:list={[buttonRowClass, 'justify-end']}>
+            <Button class="form-next whitespace-nowrap" type="button">{t.nextText}</Button>
+        </div>
     </div>
 
-    {/* Step one holds "Suivant" against the right edge; step two spreads, so
-        "Précédent" takes the left and "Soumettre" stays exactly where "Suivant"
-        was. The script flips `justify-end` to `justify-between` — the hidden
-        buttons are `display: none` and so drop out of the flex line entirely,
-        which is what lets one rule cover both states.
+    <!-- Step 2 — qualification. Hidden until "Suivant", but still measured. -->
+    <div class="form-step invisible col-start-1 row-start-1 flex flex-col" data-step-panel="2">
+        <div class="flex flex-col gap-gutter">
+            {
+                groups.map((group) => (
+                    <div class="flex flex-col gap-0 border-b border-b-perle pb-gutter">
+                        <span class={labelClass}>{group.label}</span>
+                        <div class="flex flex-col gap-main-12 pt-main-12">
+                            {group.options.map((option, i) => (
+                                <label for={`${group.name}-${uid}-${i}`} class={optionClass}>
+                                    <input
+                                        type="radio"
+                                        id={`${group.name}-${uid}-${i}`}
+                                        name={group.name}
+                                        value={option}
+                                        class={radioClass}
+                                        data-required="true"
+                                    />
+                                    {option}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                ))
+            }
 
-        `whitespace-nowrap` keeps a long label on one line; without it the two
-        buttons can end up different heights and stop reading as a pair. */}
-    <div class="form-buttons flex flex-row items-center justify-end pt-mob-32 md:pt-main-40">
-        <Button
-            class="form-prev hidden whitespace-nowrap [--button-background:var(--color-perle)]"
-            type="button"
-        >
-            {t.prevText}
-        </Button>
-        <Button class="form-next whitespace-nowrap" type="button">{t.nextText}</Button>
-        <Button class="submit-btn hidden whitespace-nowrap" type="submit">{t.submitText}</Button>
+            <label
+                for={`consultation-${uid}`}
+                class="w-full cursor-pointer text-mob-caption leading-[1.2] font-light tracking-[0.02em] text-perle md:text-main-body"
+            >
+                <div class="flex h-full w-full items-center gap-gutter">
+                    <input
+                        type="checkbox"
+                        id={`consultation-${uid}`}
+                        name="consultation"
+                        value="Oui"
+                        class="h-[calc(1.2em-9px)] w-[calc(1.2em-9px)] shrink-0 appearance-none border border-perle bg-transparent outline-0 checked:bg-perle"
+                        data-required="true"
+                    />
+                    {t.consultationLabel}
+                </div>
+            </label>
+        </div>
+
+        {
+            /* Two, so they take an edge each and "Soumettre" stays on the right
+            where "Suivant" was. `whitespace-nowrap` keeps a long label on one
+            line; without it the two can end up different heights and stop
+            reading as a pair. */
+        }
+        <div class:list={[buttonRowClass, 'justify-between']}>
+            <Button
+                class="form-prev whitespace-nowrap [--button-background:var(--color-perle)]"
+                type="button"
+            >
+                {t.prevText}
+            </Button>
+            <Button class="submit-btn whitespace-nowrap" type="submit">{t.submitText}</Button>
+        </div>
     </div>
 </form>

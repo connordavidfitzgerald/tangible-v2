@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import SanityPicture from '@components/ui/SanityPicture.astro';
-import FadeUp from '@components/ui/FadeUp.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooterAlt from '@components/sections/ContactFooterAlt.astro';
 import ServiceSliderAlt from '@components/sections/ServiceSliderAlt.astro';
@@ -121,15 +120,16 @@ const inputClass = 'w-full border-b border-b-perle text-main outline-0';
         <div
             class="w-full px-mob-inset-inner pt-mob-64 md:col-span-4 md:flex md:px-0 md:pt-0 md:pr-gutter"
         >
-            <FadeUp>
+            <div>
                 <SanityPicture
                     image={data?.aboutImage}
                     fallback={about}
                     {locale}
                     alt="Ron Cherilus"
                     class="aspect-267/343 w-full object-cover md:aspect-444/668"
+                    data-reveal
                 />
-            </FadeUp>
+            </div>
         </div>
 
         <div
@@ -192,6 +192,7 @@ const inputClass = 'w-full border-b border-b-perle text-main outline-0';
                         {locale}
                         alt="I AM Center"
                         class="aspect-square w-full object-cover"
+                        data-reveal
                     />
                 </div>
             </div>

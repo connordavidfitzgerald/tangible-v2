@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Button from '@components/ui/Button.astro';
-import FadeUp from '@components/ui/FadeUp.astro';
 import SanityPicture from '@components/ui/SanityPicture.astro';
 import DashList from '@components/ui/DashList.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
@@ -311,7 +310,7 @@ const heroKeyframes = `
         <div
             class="about-media px-mob-inset-inner pt-mob-64 md:col-span-4 md:h-full md:px-0 md:pt-0 md:pr-gutter"
         >
-            <FadeUp class="md:h-full">
+            <div class="md:h-full">
                 <SanityPicture
                     image={data?.aboutImage}
                     fallback={chalkboard}
@@ -320,8 +319,9 @@ const heroKeyframes = `
                     class="aspect-267/343 object-cover md:aspect-auto"
                     layout="full-width"
                     loading="lazy"
+                    data-reveal
                 />
-            </FadeUp>
+            </div>
         </div>
 
         <div class="flex h-full flex-col md:col-span-8">
@@ -505,6 +505,7 @@ const heroKeyframes = `
                             {locale}
                             alt=""
                             class="aspect-[267/367.43] w-full object-cover md:aspect-auto md:h-full"
+                            data-reveal
                         />
                     </div>
                 </div>

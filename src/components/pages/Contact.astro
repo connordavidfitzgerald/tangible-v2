@@ -49,7 +49,10 @@ const radioGroups = [
 
 const labelClass =
     'block font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section';
-const inputClass = 'w-full border-b border-b-black text-main outline-0';
+/* No `border-b` here: the rule under each field is drawn by the row's `::after`
+   in the style block below, so that the reveal can sweep it in from the left.
+   See `buildFormReveal` in `@scripts/contactForm`. */
+const inputClass = 'w-full text-main outline-0';
 const optionClass =
     'flex cursor-pointer items-center gap-main-12 font-radio text-mob-section leading-[1.2] tracking-[0.02em] uppercase opacity-75 md:text-main-section';
 const radioClass =
@@ -151,8 +154,8 @@ const radioClass =
 
                     {
                         textFields.map((field) => (
-                            <div class="flex flex-col gap-0">
-                                <label for={field.name} class={labelClass}>
+                            <div class="flex flex-col gap-0" data-field>
+                                <label for={field.name} class={labelClass} data-field-label>
                                     {field.label}
                                 </label>
                                 <input
@@ -168,9 +171,11 @@ const radioClass =
 
                     {
                         radioGroups.map((group) => (
-                            <div class="flex flex-col gap-0 border-b border-b-black pb-gutter">
-                                <span class={labelClass}>{group.label}</span>
-                                <div class="flex flex-col gap-main-12 pt-main-12">
+                            <div class="flex flex-col gap-0 pb-gutter" data-field>
+                                <span class={labelClass} data-field-label>
+                                    {group.label}
+                                </span>
+                                <div class="flex flex-col gap-main-12 pt-main-12" data-field-body>
                                     {group.options.map((option, i) => (
                                         <label for={`${group.name}-${i}`} class={optionClass}>
                                             <input
@@ -214,6 +219,34 @@ const radioClass =
         </div>
     </contact-form>
 </BaseLayout>
+
+<style>
+    /* The rule under every field, taken off the input's `border-bottom` so the
+       reveal can draw it. A border has no length to animate and scaling the
+       input itself would squash the text typed into it, so the line is the
+       row's own pseudo-element and the animation only moves `--line-scale`.
+
+       Absolute rather than a border of the row's: the row is a flex column and
+       a border would take part in its sizing, moving every field below it by a
+       pixel. This sits on the bottom edge and costs the layout nothing.
+
+       Defaulting to 1 is what keeps the resting page the one the markup
+       describes — under reduced motion, or if the script never runs, the form
+       is a set of fully drawn lines rather than a set of missing ones. */
+    [data-field] {
+        position: relative;
+    }
+
+    [data-field]::after {
+        content: '';
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 1px;
+        background-color: currentColor;
+        transform: scaleX(var(--line-scale, 1));
+        transform-origin: left center;
+    }
+</style>
 
 <script>
     import '@scripts/contactForm';

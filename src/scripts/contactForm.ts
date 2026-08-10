@@ -60,6 +60,115 @@ function dissolveInputs(form: Element) {
     return inputs;
 }
 
+/** How far apart consecutive rows of the form start, in seconds. */
+const ROW_STEP = 0.08;
+
+/**
+ * The staggered arrival on a form marked `data-stagger`.
+ *
+ * A form shown all at once is a tall column of near-identical rows, and arriving
+ * together it lands as a wall. One trigger on the form walks them down it
+ * instead — the trigger is on the form and not on each row, so the stagger stays
+ * a stagger rather than becoming ten separate reveals that re-time themselves to
+ * how fast you scroll.
+ *
+ * Each row arrives as its two parts, a beat apart:
+ *
+ *   - the label rises into place from under a mask, the site's own reveal (see
+ *     `SplitReveal`), split per line so a label that wraps on a phone comes in as
+ *     two rather than as one tall block;
+ *   - the rule under the field draws itself left to right.
+ *
+ * The rule is the row's `::after`, not the input's `border-bottom`, precisely so
+ * it can be drawn: a border has no length to animate, and scaling the input to
+ * fake one would squash the text typed into it. The row publishes `--line-scale`
+ * and the stylesheet points the pseudo-element's `scaleX` at it, which keeps the
+ * line's colour and thickness in CSS where the rest of the field's styling is.
+ * It defaults to 1, so a row that is never animated — reduced motion, a failed
+ * script — is a fully drawn line rather than a missing one.
+ *
+ * Rows with no label of their own (the consent line, the submit button) have
+ * nothing to mask or to draw, so they keep the plain lift-and-fade.
+ *
+ * The rows are the form's own children; the hidden `access_key` is the one thing
+ * kept out, because it has no box and would spend a beat of the stagger on
+ * nothing.
+ */
+function buildFormReveal(form: HTMLElement) {
+    const rows = form.querySelectorAll<HTMLElement>(':scope > *:not(input[type="hidden"])');
+    if (!rows.length) return;
+
+    const tl = gsap.timeline({
+        scrollTrigger: {
+            trigger: form,
+            start: 'top 80%',
+            once: true
+        }
+    });
+
+    rows.forEach((row, i) => {
+        const at = i * ROW_STEP;
+        const label = row.querySelector<HTMLElement>('[data-field-label]');
+
+        if (label) {
+            const split = new SplitText(label, { type: 'lines', mask: 'lines' });
+
+            tl.from(
+                split.lines,
+                {
+                    yPercent: 110,
+                    duration: 0.8,
+                    ease: 'power3.out',
+                    stagger: 0.06,
+                    // Put the label back to plain text once it is up. Without
+                    // `autoSplit` the line breaks it was cut at are frozen, and a
+                    // rotated phone would keep them.
+                    onComplete: () => split.revert()
+                },
+                at
+            );
+        }
+
+        if (row.hasAttribute('data-field')) {
+            tl.fromTo(
+                row,
+                { '--line-scale': 0 },
+                {
+                    '--line-scale': 1,
+                    duration: 0.9,
+                    ease: 'power2.out',
+                    // Back to the stylesheet's default of a whole line, rather
+                    // than an inline 1 that outlives the animation.
+                    onComplete: () => row.style.removeProperty('--line-scale')
+                },
+                at + 0.1
+            );
+        }
+
+        /* Whatever the label does not cover: the options under a radio group's
+           label, or — for a row with no label at all — the row itself. `y` in
+           pixels rather than `yPercent`, because these are wildly different
+           heights and a percentage would give each a different distance to
+           travel, which reads as several animations instead of one. */
+        const fade = row.querySelector<HTMLElement>('[data-field-body]') ?? (label ? null : row);
+
+        if (fade) {
+            tl.from(
+                fade,
+                {
+                    y: 20,
+                    opacity: 0,
+                    duration: 0.9,
+                    ease: 'power3.out',
+                    force3D: true,
+                    onComplete: () => gsap.set(fade, { clearProps: 'transform,opacity' })
+                },
+                at + 0.15
+            );
+        }
+    });
+}
+
 class ContactForm extends HTMLElement {
     private ctx: gsap.Context | undefined;
 
@@ -67,7 +176,7 @@ class ContactForm extends HTMLElement {
         const submitText = this.dataset.btnSubmit || 'Soumettre';
         const successText = this.dataset.btnSuccess || 'Succès';
 
-        this.ctx = gsap.context(() => {
+        this.ctx = gsap.context((self) => {
             this.querySelectorAll('form.contact-form-inner').forEach((form) => {
                 const btn = form.querySelector('.submit-btn');
                 if (!btn) return;
@@ -164,57 +273,40 @@ class ContactForm extends HTMLElement {
                 prevBtn?.addEventListener('click', () => setStep(1));
 
                 /* ---- Optional staggered entry ---------------------------
-                   A form shown all at once is a tall column of near-identical
-                   rows, and arriving together it lands as a wall. One trigger on
-                   the form walks them in instead, so the eye is led down it.
-
                    Opt-in via `data-stagger`, because the same form is drawn in
                    the contact footer, where it is paged in two steps and already
                    has motion of its own — staggering the panels there would fight
-                   the slide rather than add to it.
+                   the slide rather than add to it. See `buildFormReveal`.
 
-                   The rows are the form's own children: each label-and-input
-                   pair, each radio group, the consent line, the button. Nothing
-                   to mark up, and the hidden `access_key` is the one thing that
-                   has to be kept out — it has no box, so it would spend a beat of
-                   the stagger on nothing.
+                   Deferred to the frame after the fonts land, for two reasons.
 
-                   `y` in pixels, not `yPercent`: the rows are wildly different
-                   heights — a text field against a three-option radio group — and
-                   a percentage would make each one travel a different distance,
-                   which reads as several animations rather than one. The lift and
-                   fade are otherwise `FadeUp`'s, the site's vocabulary for body
-                   copy. */
+                   The fonts are SplitText's: it measures where the lines break,
+                   and a label measured in the fallback face keeps those breaks
+                   once the real one loads.
+
+                   The frame is the router's. `connectedCallback` runs *during*
+                   the view-transition swap, while `window.scrollY` is still the
+                   outgoing page's — Astro resets it immediately after, and
+                   `motion.ts` sends Lenis back to the top on `astro:page-load`.
+                   A `once: true` ScrollTrigger built in that window is measured
+                   against the wrong scroll offset: arriving here from anywhere
+                   below ~1000px on the previous page, the form counted as long
+                   passed, fired instantly, and was over before the new page was
+                   drawn. That is why this animated on a refresh and only
+                   sometimes on a click — it depended on how far down the page you
+                   had been standing when you left it. One frame is all it takes;
+                   by then the swap is done and the scroll is back at zero. */
                 if (form.hasAttribute('data-stagger')) {
-                    const rows = form.querySelectorAll<HTMLElement>(
-                        ':scope > *:not(input[type="hidden"])'
-                    );
+                    document.fonts.ready.then(() => {
+                        requestAnimationFrame(() => {
+                            // Gone again already — a fast second navigation.
+                            if (!this.isConnected) return;
 
-                    if (rows.length) {
-                        gsap.set(rows, { willChange: 'transform, opacity' });
-
-                        gsap.from(rows, {
-                            y: 20,
-                            opacity: 0,
-                            duration: 0.9,
-                            stagger: 0.08,
-                            ease: 'power3.out',
-                            force3D: true,
-                            onComplete: () =>
-                                gsap.set(rows, {
-                                    clearProps: 'transform,opacity,willChange'
-                                }),
-                            scrollTrigger: {
-                                // The form, not each row: one arrival for the
-                                // whole thing, so the stagger stays a stagger
-                                // instead of becoming ten separate reveals that
-                                // re-time themselves to how fast you scroll.
-                                trigger: form,
-                                start: 'top 80%',
-                                once: true
-                            }
+                            // Registered with the context so `disconnectedCallback`
+                            // still takes the whole thing back down.
+                            self.add(() => buildFormReveal(form as HTMLElement));
                         });
-                    }
+                    });
                 }
 
                 form.addEventListener('submit', async (e) => {

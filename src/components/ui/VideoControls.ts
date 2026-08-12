@@ -11,10 +11,40 @@ type MuxPlayerElement = HTMLElement & {
     muted: boolean;
     currentTime: number;
     duration: number;
+    videoWidth: number;
+    videoHeight: number;
     play: () => Promise<void> | void;
     pause: () => void;
-    webkitEnterFullscreen?: () => void;
+    /**
+     * `<mux-player>` exposes a curated subset of `HTMLVideoElement`, not the
+     * whole thing — anything outside it (`webkitEnterFullscreen`, notably) has
+     * to be reached on the real `<video>` underneath.
+     */
+    media?: { nativeEl?: HTMLVideoElement | null } | null;
 };
+
+/** iOS' own fullscreen, which lives on the video element rather than the API. */
+type NativeVideoElement = HTMLVideoElement & {
+    webkitEnterFullscreen?: () => void;
+    webkitSupportsFullscreen?: boolean;
+};
+
+/** The vendor-prefixed halves of the Fullscreen API, still needed for WebKit. */
+type WebkitFullscreenDocument = Document & {
+    webkitFullscreenElement?: Element | null;
+    webkitFullscreenEnabled?: boolean;
+    webkitExitFullscreen?: () => void;
+};
+
+type WebkitFullscreenElement = HTMLElement & {
+    webkitRequestFullscreen?: () => void;
+};
+
+const fullscreenDocument = document as WebkitFullscreenDocument;
+
+/** Whichever spelling of the fullscreen element this browser answers to. */
+const fullscreenElement = () =>
+    document.fullscreenElement ?? fullscreenDocument.webkitFullscreenElement ?? null;
 
 const SEEK_STEP_SECONDS = 5;
 
@@ -41,6 +71,8 @@ class VideoControls extends HTMLElement {
     private pausedByViewer = false;
     /** Pending auto-hide of the bar after a tap. */
     private tapTimer = 0;
+    /** Whether the landscape rotation on screen is ours to release. */
+    private orientationLocked = false;
 
     connectedCallback() {
         this.player = this.querySelector('mux-player');
@@ -84,7 +116,9 @@ class VideoControls extends HTMLElement {
         for (const event of ['timeupdate', 'durationchange', 'loadedmetadata', 'seeking']) {
             player.addEventListener(event, () => this.syncProgress(), { signal });
         }
-        document.addEventListener('fullscreenchange', () => this.syncFullscreenState(), { signal });
+        for (const event of ['fullscreenchange', 'webkitfullscreenchange']) {
+            document.addEventListener(event, () => this.syncFullscreenState(), { signal });
+        }
 
         this.bindHoverReveal(signal);
         this.bindTapReveal(signal);
@@ -101,6 +135,9 @@ class VideoControls extends HTMLElement {
         this.listeners?.abort();
         this.observer?.disconnect();
         window.clearTimeout(this.tapTimer);
+        // A view transition away mid-fullscreen would otherwise leave the next
+        // page pinned to landscape.
+        this.unlockOrientation();
     }
 
     /** Mid-scrub the bar stays up whatever else says otherwise — you are using it. */
@@ -268,22 +305,89 @@ class VideoControls extends HTMLElement {
     }
 
     private async toggleFullscreen() {
-        if (document.fullscreenElement) {
-            await document.exitFullscreen();
+        if (fullscreenElement()) {
+            if (document.exitFullscreen) await document.exitFullscreen().catch(() => {});
+            else fullscreenDocument.webkitExitFullscreen?.();
             return;
         }
 
-        // Fullscreen the host, not the player, so the control bar comes along.
-        if (this.requestFullscreen) {
-            await this.requestFullscreen().catch(() => {
-                // Denied (or gesture-less) — leave the player windowed.
+        const host = this as WebkitFullscreenElement;
+
+        // `fullscreenEnabled` is the honest answer to "can any element go
+        // fullscreen here": iPhone Safari reports false, and it is the reason
+        // the native path below exists at all.
+        const canFullscreenElement =
+            (document.fullscreenEnabled || fullscreenDocument.webkitFullscreenEnabled) &&
+            Boolean(host.requestFullscreen || host.webkitRequestFullscreen);
+
+        if (canFullscreenElement) {
+            try {
+                // Fullscreen the host, not the player, so the bar comes along.
+                if (host.requestFullscreen) await host.requestFullscreen();
+                else host.webkitRequestFullscreen?.();
+                return;
+            } catch {
+                // Denied — fall through and let the video try on its own.
+            }
+        }
+
+        this.enterNativeFullscreen();
+    }
+
+    /**
+     * iPhone Safari has no element fullscreen, but the video element itself
+     * still has iOS' own — which rotates to the film's aspect and brings up the
+     * system controls, the best available there. It lives on the real `<video>`
+     * rather than on `<mux-player>`, whose public API does not carry it.
+     */
+    private enterNativeFullscreen() {
+        const video = this.player?.media?.nativeEl as NativeVideoElement | null | undefined;
+        if (!video?.webkitEnterFullscreen) return;
+
+        // iOS refuses until it knows the film's dimensions. `loading="viewport"`
+        // means a tap can land before that, so wait it out rather than no-op.
+        if (video.webkitSupportsFullscreen === false) {
+            video.addEventListener('loadedmetadata', () => video.webkitEnterFullscreen?.(), {
+                once: true,
+                signal: this.listeners?.signal
             });
             return;
         }
 
-        // iOS Safari has no element fullscreen; the video handles it natively,
-        // with its own controls, which is the best available there.
-        this.player?.webkitEnterFullscreen?.();
+        video.webkitEnterFullscreen();
+    }
+
+    /**
+     * A phone's screen is portrait and a film is not, so element fullscreen
+     * alone leaves a 16:9 frame letterboxed into a 9:16 hole. Asking for
+     * landscape turns the screen to the film instead. Only Android honours it;
+     * everywhere else it throws and the CSS letterboxing stands as written.
+     */
+    private lockLandscape() {
+        const orientation = screen.orientation as ScreenOrientation & {
+            lock?: (orientation: string) => Promise<void>;
+        };
+        const player = this.player;
+        if (!orientation?.lock || !player) return;
+
+        // Portrait films exist; do not turn the screen away from one.
+        if (!player.videoWidth || player.videoWidth <= player.videoHeight) return;
+
+        orientation.lock('landscape').then(
+            () => {
+                this.orientationLocked = true;
+            },
+            () => {
+                // Desktop, iOS, or a browser that will not rotate on request.
+            }
+        );
+    }
+
+    /** Release only a rotation we asked for ourselves. */
+    private unlockOrientation() {
+        if (!this.orientationLocked) return;
+        this.orientationLocked = false;
+        screen.orientation?.unlock?.();
     }
 
     private syncPlayState() {
@@ -299,12 +403,18 @@ class VideoControls extends HTMLElement {
     }
 
     private syncFullscreenState() {
-        const isFullscreen = document.fullscreenElement === this;
+        const isFullscreen = fullscreenElement() === this;
         this.dataset.fullscreen = String(isFullscreen);
         this.fullscreenButton?.setAttribute(
             'aria-label',
             isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'
         );
+
+        // Rotating is only allowed once fullscreen is actually on, so it waits
+        // for the event rather than for `requestFullscreen` to return — the
+        // prefixed spelling returns nothing to wait on in the first place.
+        if (isFullscreen) this.lockLandscape();
+        else this.unlockOrientation();
     }
 
     private syncProgress() {

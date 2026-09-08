@@ -5,10 +5,24 @@ interface Props {
     /**
      * Indents every line but the first, as a CSS length.
      *
-     * Not a plain `text-indent`: SplitText turns each line into its own block,
-     * and `text-indent` inherits, so it would land on all of them and cancel
-     * out. Applied to the split lines instead, which also means it re-applies
-     * on the re-splits `autoSplit` runs at each resize.
+     * Drawn on the source element the ordinary way — `padding-left` with a
+     * matching negative `text-indent` — so the browser wraps against the
+     * indented width *before* SplitText measures where the lines fall.
+     *
+     * It cannot be left to the split lines alone. SplitText hands back one
+     * block per line, `box-sizing` is border-box site-wide, and so padding
+     * added to a line after the split narrows it below the width it was
+     * measured at and re-wraps its last word or two onto rows of their own
+     * inside the mask. That is the stray "et" / "l'impact." on the quote.
+     *
+     * What the split then has to undo is the negative indent, which inherits
+     * into every line: each is its own first line, so all of them would hang.
+     * Zeroing it lands lines 2+ on the padding edge, and the first line's mask
+     * is pulled back out by the same amount. The mask is `overflow: clip`, so
+     * the first line has to be given the room rather than made to overhang it.
+     *
+     * The words have to be undone too, and before the lines are measured --
+     * see `.split-word` below.
      */
     hangingIndent?: string;
 }
@@ -17,7 +31,13 @@ const { tag: Tag = 'p', class: className = '', hangingIndent } = Astro.props;
 ---
 
 <split-reveal style="display: contents;" data-hanging-indent={hangingIndent}>
-    <Tag data-split class={className}>
+    <Tag
+        data-split
+        class={className}
+        style={hangingIndent
+            ? `padding-left: ${hangingIndent}; text-indent: calc(-1 * ${hangingIndent});`
+            : undefined}
+    >
         <slot />
     </Tag>
 </split-reveal>
@@ -28,12 +48,29 @@ const { tag: Tag = 'p', class: className = '', hangingIndent } = Astro.props;
         font-kerning: none;
         text-rendering: optimizeSpeed;
     }
+
+    /* SplitText wraps each word in an inline-block, and `text-indent` inherits
+       into it. An inline-block is shrink-to-fit, and the indent is counted in
+       that fit, so under the hanging indent every word measured exactly one
+       indent narrower than its own glyphs -- short words clamped to zero. The
+       browser then packed far too many words onto the first line, and that
+       wrong line is what SplitText recorded, so a line's worth of words spilled
+       into a second row inside a mask sized for one.
+
+       This has to be a class rather than a style set in `onSplit`: the words
+       are measured to find the lines, so the indent must already be off them
+       by the time SplitText looks. Global because GSAP builds these elements
+       at runtime, outside Astro's scoping. */
+    :global(.split-word) {
+        text-indent: 0;
+    }
 </style>
 
 <script>
     import gsap from 'gsap';
     import { ScrollTrigger } from 'gsap/ScrollTrigger';
     import { SplitText } from 'gsap/SplitText';
+    import { frenchSpacing } from '@lib/i18n/utils';
 
     gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -64,12 +101,36 @@ const { tag: Tag = 'p', class: className = '', hangingIndent } = Astro.props;
                             type: 'words, lines',
                             mask: 'lines',
                             autoSplit: true,
+                            wordsClass: 'split-word',
+
+                            // SplitText collapses runs of whitespace before it
+                            // splits, and JS `\s` covers the no-break space, so
+                            // the ones the copy carries around `« »` and before
+                            // `:` would be gone by the time lines are measured
+                            // — and a colon could start a line of its own.
+                            // `prepareText` runs after that collapse, so this
+                            // puts them back.
+                            prepareText: frenchSpacing,
 
                             onSplit(self) {
                                 if (hangingIndent) {
                                     self.lines.forEach((line, i) => {
-                                        (line as HTMLElement).style.paddingLeft =
-                                            i === 0 ? '' : hangingIndent;
+                                        const lineEl = line as HTMLElement;
+                                        // `mask: 'lines'` wraps each line in a
+                                        // clone of itself; that wrapper is the
+                                        // box to move, and only when it exists.
+                                        const box =
+                                            lineEl.parentElement && lineEl.parentElement !== el
+                                                ? lineEl.parentElement
+                                                : lineEl;
+
+                                        lineEl.style.textIndent = '0px';
+                                        // A negative margin widens the box by
+                                        // the indent instead of overhanging it,
+                                        // so the first line keeps the full
+                                        // column it was measured against.
+                                        box.style.marginLeft =
+                                            i === 0 ? `calc(-1 * ${hangingIndent})` : '';
                                     });
                                 }
 

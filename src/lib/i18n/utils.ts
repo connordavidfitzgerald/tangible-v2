@@ -27,3 +27,23 @@ export function localizedPath(path: string, locale: LocaleId): string {
 export function otherLocale(locale: LocaleId): LocaleId {
     return locale === 'en' ? 'fr' : 'en';
 }
+
+/**
+ * Tie French punctuation to the word it belongs to.
+ *
+ * The copy comes out of Sanity with ordinary spaces around `« »` and before
+ * `: ; ! ?`, which the browser is free to break at — so a colon or a closing
+ * guillemet can start a line on its own. Swapping those single spaces for
+ * no-break spaces removes exactly those break points and nothing else; the
+ * glyph is the same width, so nothing about the setting changes otherwise.
+ *
+ * U+00A0 rather than the narrow U+202F French typography calls for: not every
+ * face on the site carries the narrow one, and a missing glyph is a worse
+ * outcome than a slightly wide space.
+ */
+export function frenchSpacing(text: string): string {
+    return text
+        .replace(/«\s+/g, '« ')
+        .replace(/\s+»/g, ' »')
+        .replace(/\s+([:;!?])/g, ' $1');
+}

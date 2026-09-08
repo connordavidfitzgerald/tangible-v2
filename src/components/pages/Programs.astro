@@ -11,7 +11,7 @@ import VideoSlider from '@components/sections/VideoSlider.astro';
 import img6 from '@images/Tangible0797.jpg';
 import img7 from '@images/LEADER.jpg';
 
-import { localizedPath } from '@lib/i18n/utils';
+import { frenchSpacing, localizedPath } from '@lib/i18n/utils';
 import { pick, type I18nField } from '@lib/sanity/i18n';
 import { getSiteSettings } from '@lib/sanity/queries';
 import { muxSliderVideos } from '@lib/sanity/video';
@@ -35,7 +35,10 @@ const sliderVideos = muxSliderVideos(settings).map((video) => ({
 const entreprisesFonts = ['formula', 'editorial'] as const;
 const leadersFonts = ['formula', 'editorial'] as const;
 
-const quote = t('quote');
+/* French punctuation must not be left to start a line of its own — see
+   `frenchSpacing`. The quote is the one place it shows, since it is the only
+   copy set at display size inside guillemets. */
+const quote = locale === 'fr' ? frenchSpacing(t('quote')) : t('quote');
 const quoteAuthor = t('quoteAuthor');
 ---
 
@@ -191,10 +194,11 @@ const quoteAuthor = t('quoteAuthor');
     </programs-animation>
 
     <!-- ===================================================================
-         Quote — bronze on perle, ruled top and bottom. The lines after the
-         first hang 40px in, and the attribution starts just under halfway
-         across the column; both are drawn that way in the frame, so they are
-         expressed against the column rather than the page.
+         Quote — bronze on perle, ruled top and bottom. In French the lines
+         after the first hang 40px in; the English setting is flush left. The
+         attribution starts just under halfway across the column. All of it is
+         drawn that way in the frame, so it is expressed against the column
+         rather than the page.
          =================================================================== -->
     {
         quote && (
@@ -202,7 +206,7 @@ const quoteAuthor = t('quoteAuthor');
                 <div class="grid grid-cols-8 gap-mob-16 md:grid-cols-12 md:gap-gutter">
                     <div class="col-span-8 flex flex-col gap-mob-32 border-y border-bronze py-mob-32 text-bronze md:col-span-10 md:col-start-2 md:gap-main-40 md:py-main-40">
                         <SplitReveal
-                            hangingIndent="var(--hanging-indent)"
+                            hangingIndent={locale === 'fr' ? 'var(--hanging-indent)' : undefined}
                             class="font-radio text-mob-md leading-[110%] font-normal [--hanging-indent:1.5rem] md:text-main-lead md:leading-[120%] md:[--hanging-indent:var(--spacing-main-40)]"
                         >
                             {quote}

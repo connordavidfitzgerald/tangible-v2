@@ -105,7 +105,8 @@ const menuLinks = [
             class="desktop-nav flex flex-row items-center gap-main-40 font-sans text-main-section tracking-[2%] uppercase"
         >
             <a href={localizedPath(path, other)} class="hover-underline">{other.toUpperCase()}</a>
-            <a class="hover-underline" href={localizedPath('/contact', locale)}>{t('navContact')}</a>
+            <a class="hover-underline" href={localizedPath('/contact', locale)}>{t('navContact')}</a
+            >
         </div>
 
         <!-- Hamburger button (mobile only) -->
@@ -127,14 +128,14 @@ const menuLinks = [
                             href={link.href}
                             target={link.external ? '_blank' : undefined}
                             class:list={[
-                                'w-full px-mob-inset pt-[1.5rem] text-mob-md leading-[1.2]',
+                                'w-full px-mob-inset text-mob-md leading-[1.2]',
                                 /* The sub-links sit tight under their parent, so
                                     that space is the wrapper's gap alone — the
                                    link gives up its own bottom padding or the
                                    two would stack. Items without children keep
                                    the full 32px, and the gap does nothing to
                                    them. */
-                                link.children ? 'pb-0' : 'pb-[1.25rem]'
+                                link.children ? 'pt-[1.25rem] pb-0' : 'pt-[3.4rem] pb-[3.25rem]'
                             ]}
                         >
                             {link.label}

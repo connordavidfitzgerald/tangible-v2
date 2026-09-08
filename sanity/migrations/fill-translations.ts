@@ -136,7 +136,7 @@ function seeded(field: unknown, copy: { fr: string; en: string }, text: boolean)
 }
 
 /** Which member type a seeded field takes, per its schema definition. */
-const TEXT_FIELDS = new Set(['pageIntro', 'venueBody']);
+const TEXT_FIELDS = new Set(['pageIntro', 'venueBody', 'address']);
 
 // ── Run ─────────────────────────────────────────────────────────────────────
 

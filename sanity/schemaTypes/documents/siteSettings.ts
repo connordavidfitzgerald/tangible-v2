@@ -27,13 +27,14 @@ export const siteSettings = defineType({
         // The two service pages hang under "Nos services" in both menus.
         { ...i18nString('navServicesEntreprises', 'Nav — Services (Entreprises)'), group: 'nav' },
         { ...i18nString('navServicesLeaders', 'Nav — Services (Leaders)'), group: 'nav' },
-        defineField({
-            name: 'address',
-            title: 'Address',
-            type: 'text',
-            rows: 3,
+        {
+            ...i18nText(
+                'address',
+                'Address',
+                'One line per line of the address — the footer keeps the breaks as written.'
+            ),
             group: 'contact'
-        }),
+        },
         defineField({ name: 'phone', title: 'Phone', type: 'string', group: 'contact' }),
         defineField({ name: 'email', title: 'Email', type: 'string', group: 'contact' }),
         defineField({

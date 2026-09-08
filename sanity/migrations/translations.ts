@@ -38,6 +38,17 @@
  * I AM page and had been copied across.
  */
 export const SEEDS: Record<string, Record<string, { fr: string; en: string }>> = {
+    // The address was a plain, untranslated `text` field, so the footer showed
+    // the French postal form to English readers. It is an internationalized
+    // field now, and this is the copy for both sides — line breaks included,
+    // since the footer renders them as written.
+    siteSettings: {
+        address: {
+            fr: '1179, rue de Bleury, 5e \u00e9tage\nMontr\u00e9al (Qu\u00e9bec) H3B 3H9\nCANADA',
+            en: '1179 De Bleury Street, 5th Floor\nMontreal, Quebec H3B 3H9\nCANADA'
+        }
+    },
+
     home: {
         // The field existed but had never been filled in either language — the
         // button's label was the string in the markup. Matched to

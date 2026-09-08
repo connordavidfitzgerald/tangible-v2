@@ -13,7 +13,7 @@ const other = otherLocale(locale);
 const path = Astro.url.pathname;
 
 const t = (key: string) => pick(settings?.[key] as I18nField, locale);
-const address = (settings?.address as string) || '';
+const address = pick(settings?.address as I18nField, locale);
 const phone = (settings?.phone as string) || '';
 const email = (settings?.email as string) || '';
 const membersUrl = (settings?.membersUrl as string) || '#';

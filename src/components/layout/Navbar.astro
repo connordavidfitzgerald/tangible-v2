@@ -14,8 +14,6 @@ const other = otherLocale(locale);
 const path = Astro.url.pathname;
 
 const t = (key: string) => pick(settings?.[key] as I18nField, locale);
-const membersUrl = (settings?.membersUrl as string) || '#';
-const bookingUrl = (settings?.bookingUrl as string) || '#';
 
 /** The two service pages, hung under "Nos services" in both menus. */
 const serviceChildren = [
@@ -36,15 +34,13 @@ const links = [
         href: localizedPath('/services', locale),
         children: serviceChildren
     },
-    { label: t('navMembers'), href: membersUrl, external: true },
-    { label: t('navContact'), href: localizedPath('/contact', locale) },
     { label: t('navIam'), href: localizedPath('/centre-iam', locale) }
 ];
 
 /**
  * The mobile menu is its own running order, not the desktop bar restacked: it
  * hangs the two service pages under "Nos services" as indented sub-links and
- * ends on the booking CTA, then the language toggle. Matches MOB-Header_Menu.
+ * ends on the contact link, then the language toggle. Matches MOB-Header_Menu.
  */
 const menuLinks = [
     { label: t('navAbout'), href: localizedPath('/about', locale) },
@@ -54,9 +50,7 @@ const menuLinks = [
         children: serviceChildren
     },
     { label: t('navIam'), href: localizedPath('/centre-iam', locale) },
-    { label: t('navMembers'), href: membersUrl, external: true },
-    { label: t('navContact'), href: localizedPath('/contact', locale) },
-    { label: t('navBook'), href: bookingUrl, external: true }
+    { label: t('navContact'), href: localizedPath('/contact', locale) }
 ];
 ---
 
@@ -65,10 +59,10 @@ const menuLinks = [
          the desktop offset takes over at `md`. -->
     <div
         id="navbar"
-        class="fixed top-16 z-50 flex h-fit w-full flex-row items-center justify-between bg-yellow px-page py-[0.3125rem] md:top-main-40 md:py-main-5"
+        class="fixed top-16 z-50 flex h-fit w-full flex-row items-center justify-between bg-yellow px-page py-[0.375rem] md:top-main-40 md:py-main-5"
     >
         <a href={localizedPath('/', locale)} class="relative z-10">
-            <Icon name="logo" class="h-[1.875rem] w-auto md:h-main-logo" />
+            <Icon name="logo" class="h-[2rem] w-auto md:h-main-logo" />
         </a>
 
         <!-- Desktop nav items -->
@@ -111,7 +105,7 @@ const menuLinks = [
             class="desktop-nav flex flex-row items-center gap-main-40 font-sans text-main-section tracking-[2%] uppercase"
         >
             <a href={localizedPath(path, other)} class="hover-underline">{other.toUpperCase()}</a>
-            <a class="hover-underline" href={bookingUrl} target="_blank">{t('navBook')}</a>
+            <a class="hover-underline" href={localizedPath('/contact', locale)}>{t('navContact')}</a>
         </div>
 
         <!-- Hamburger button (mobile only) -->
@@ -300,9 +294,9 @@ const menuLinks = [
         display: flex;
         align-items: start;
         justify-content: start;
-        /* Clears the bar: it floats 64px down and is 40px tall, so nothing can
-           start above 104px. The nav's own `pt-mob-64` opens the gap below it. */
-        padding-top: 6.5rem;
+        /* Clears the bar: it floats 64px down and is 44px tall, so nothing can
+           start above 108px. The nav's own `pt-mob-64` opens the gap below it. */
+        padding-top: 6.75rem;
         overflow-x: hidden;
         overflow-y: auto;
         opacity: 0;
@@ -336,7 +330,7 @@ const menuLinks = [
     }
 
     /* Deliberately *not* the 810px the rest of the site switches at: the bar
-       carries seven links plus the language toggle, and they crowd well before
+       carries its links plus the language toggle, and they crowd well before
        the layout does. The nav is the one thing allowed its own threshold. */
     @media (max-width: 1024px) {
         .desktop-nav {

@@ -145,7 +145,7 @@
        same ~0.45 reading rate. */
     --text-main-lead: clamp(2.9382rem, 1.8906rem + 1.6371vw, 3.8551rem);
     --text-main-body: clamp(1rem, 0.0179rem + 1.3393vw, 1.625rem);
-    --text-quote: clamp(3.625rem, 0.7398rem + 4.5082vw, 6.1496rem);
+    --text-quote: clamp(3.625rem, 0.7398rem + 4vw, 6rem);
     --text-main-header: clamp(4.9844rem, 1.0172rem + 6.1987vw, 8.4556rem);
     --text-main-section: clamp(0.9099rem, 0.6684rem + 0.3773vw, 1.1212rem);
     /* The labels inside the About page's three circles. Sized against the circles
@@ -200,14 +200,15 @@
     /* The navbar's logo, and through `--spacing-main-5` above, the whole bar's
        height — the two are one proportion now, so this floor is the bar's floor.
 
-       The min is 1.5rem rather than the 1.25rem the scale was derived with. At
+       The min is 1.75rem rather than the 1.25rem the scale was derived with. At
        1.25 the padding derived from it came out so tight that the bar bottomed
-       out at 33px shorter than it used to below `md`; 1.5 puts it back to the
-       34px it was at the low end, which is what the frame is drawn against.
-       Raising the floor also moves where it binds — the logo now stops shrinking
-       at about 1222px instead of 1024, so the lowest stretch of the desktop
-       range holds still rather than carrying on down. The ceiling is untouched. */
-    --spacing-main-logo: clamp(1.5rem, -0.0417rem + 2.0182vw, 2.3801rem);
+       out at 33px shorter than it used to below `md`; 1.75 gives the low end a
+       little more room than the 34px the frame was drawn against, which is what
+       the bar wanted.
+       Raising the floor also moves where it binds — the logo stops shrinking
+       further up the range, so the lowest stretch of the desktop range holds
+       still rather than carrying on down. The ceiling is untouched. */
+    --spacing-main-logo: clamp(1.75rem, -0.0417rem + 2.0182vw, 2.3801rem);
 
     /* Top of the page → bottom edge of the fixed navbar: its `top-main-40`
        offset, its `py-main-5` padding (×2) and the logo, which is the bar's

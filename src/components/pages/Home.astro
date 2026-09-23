@@ -158,14 +158,14 @@ const programSide = {
  *
  * They cannot live in the stylesheet with the rest: a keyframe *stop* is a
  * percentage of the cycle, and the cycle is now however many photos have been
- * authored. At five slides these compute to exactly the 15/20/95 the block used
- * to hardcode, so a five-photo hero is unchanged.
+ * authored. At five slides these compute to the same stops the block below
+ * hardcodes as its fallback.
  *
  * `is:inline` keeps Astro's hand off it — the names have to survive verbatim
  * for the scoped `animation` declarations below to reach them, and scoping
  * would rewrite one side of that pair and not the other.
  */
-const SLIDE_SECONDS = 4;
+const SLIDE_SECONDS = 5;
 const FADE_SECONDS = 1;
 const cycle = heroSlides.length * SLIDE_SECONDS;
 const pct = (seconds: number) => +((seconds / cycle) * 100).toFixed(4);
@@ -180,9 +180,13 @@ const heroKeyframes = `
     ${100 - fade}% { opacity: 0 }
     100% { opacity: 1 }
 }
+@keyframes hero-title-cycle {
+    0% { opacity: 1 }
+    ${hold + fade}% { opacity: 1; animation-timing-function: step-start }
+    100% { opacity: 0 }
+}
 @keyframes hero-title-fade {
-    0% { opacity: 0 }
-    ${fade}% { opacity: 1 }
+    0% { opacity: 1 }
     ${hold}% { opacity: 1 }
     ${hold + fade}% { opacity: 0 }
     100% { opacity: 0 }
@@ -196,7 +200,7 @@ const heroKeyframes = `
          Hero
          =================================================================== -->
     {
-        /* Four seconds a slide. The cycle used to be a flat 20s because there
+        /* `SLIDE_SECONDS` a slide. The cycle used to be a flat 20s because there
            were always five of them; the count now comes from Sanity, so it is
            published as a variable and the keyframes below read it — otherwise
            adding a sixth photo would leave the whole rotation off its clock. */
@@ -209,14 +213,14 @@ const heroKeyframes = `
     <div
         data-theme-color="#000000"
         class="hero-section relative flex aspect-393/852 w-full flex-col justify-end overflow-hidden px-page pb-mob-64 max-md:h-lvh md:aspect-auto md:min-h-200 md:pb-fluid-270 lg:aspect-1512/913 lg:min-h-0 lg:justify-center lg:pb-0"
-        style={`--hero-cycle: ${heroSlides.length * 4}s`}
+        style={`--hero-cycle: ${cycle}s`}
     >
         <div class="hero-slideshow hidden brightness-80 md:flex">
             {
                 heroSlides.map(({ image, fallback }, i) => (
                     <div
                         class="hero-slide"
-                        style={`z-index: ${heroSlides.length - i}; animation-delay: ${i * 4}s`}
+                        style={`z-index: ${heroSlides.length - i}; animation-delay: ${i * SLIDE_SECONDS}s`}
                         aria-hidden="true"
                     >
                         <SanityPicture
@@ -236,7 +240,7 @@ const heroKeyframes = `
                 heroSlides.map(({ imageMobile, fallbackMobile }, i) => (
                     <div
                         class="hero-slide"
-                        style={`z-index: ${heroSlides.length - i}; animation-delay: ${i * 4}s`}
+                        style={`z-index: ${heroSlides.length - i}; animation-delay: ${i * SLIDE_SECONDS}s`}
                         aria-hidden="true"
                     >
                         <SanityPicture
@@ -268,12 +272,16 @@ const heroKeyframes = `
                open; without it the cell is the column's width and
                `RevealHeader`'s own mask trims the line. */
         }
-        <div class="relative z-10 grid items-end">
+        <hero-titles
+            class="relative z-10 grid items-end"
+            data-slide={SLIDE_SECONDS}
+            data-fade={FADE_SECONDS}
+        >
             {
                 heroSlides.map(({ lines }, i) => (
                     <div
                         class="hero-title col-start-1 row-start-1 min-w-0"
-                        style={`animation-delay: ${i * 4 - 1}s`}
+                        style={`animation-delay: ${i * SLIDE_SECONDS - FADE_SECONDS}s`}
                         aria-hidden={i > 0 ? 'true' : undefined}
                     >
                         <RevealHeader
@@ -285,7 +293,7 @@ const heroKeyframes = `
                     </div>
                 ))
             }
-        </div>
+        </hero-titles>
     </div>
 
     <!-- ===================================================================
@@ -539,7 +547,7 @@ const heroKeyframes = `
         z-index: 0;
     }
 
-    /* Five photos, four seconds each: a 20s cycle offset by 4s per slide. The
+    /* Five photos, five seconds each: a 25s cycle offset by 5s per slide. The
        photos are opaque and stacked, so each one only has to fade *out* to
        reveal the next; between the fades it sits at full opacity, which is why
        a slide waiting its turn stays visible under the ones above it. */
@@ -547,24 +555,37 @@ const heroKeyframes = `
         position: absolute;
         inset: 0;
         opacity: 1;
-        animation: hero-fade var(--hero-cycle, 20s) ease-out infinite;
+        animation: hero-fade var(--hero-cycle, 25s) ease-out infinite;
     }
 
-    /* The titles run the same 20s cycle so each one is on screen exactly while
+    /* The titles run the same 25s cycle so each one is on screen exactly while
        its photo is. They cannot borrow the photos' trick, though — text is
        transparent, so a title waiting its turn would be legible over the title
        above it. It stays at `opacity: 0` until its turn (no fill mode, so the
-       delay leaves this declaration standing) and fades in and out on its own.
+       delay leaves this declaration standing), and otherwise is simply on
+       until it switches off.
 
-       The `-1s` in the delay is what lines the two up: the fade-in occupies the
-       first second of the animation, so starting a second early puts a title at
-       full opacity for the same window its photo holds — and crossfades it with
-       the outgoing title over the same second the photos crossfade. It also
-       means the first title, at `-1s`, is already opaque on the first frame,
-       leaving its entrance to the reveal bars. */
+       It never fades because the entrance and exit both belong to its words:
+       `hero-titles` hears each cycle start and raises them out of their masks,
+       over the same second the outgoing photo fades — once the outgoing title's
+       words have left through the tops of theirs, so the two never overlap.
+       The title only switches off once they are gone. The `-1s` in the delay starts that second a second early,
+       so the title is fully set for the window its photo holds. It also means
+       the first title, at `-1s`, is already on screen on the first frame,
+       leaving its first entrance to the reveal bars.
+
+       With reduced motion there are no words moving, so the titles fall back
+       to switching on and fading out — otherwise the outgoing one would sit on
+       top of the incoming one for that second. */
     .hero-title {
         opacity: 0;
-        animation: hero-title-fade var(--hero-cycle, 20s) ease-out infinite;
+        animation: hero-title-cycle var(--hero-cycle, 25s) ease-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .hero-title {
+            animation-name: hero-title-fade;
+        }
     }
 
     :global(.hero-slide picture),
@@ -580,13 +601,13 @@ const heroKeyframes = `
         0% {
             opacity: 1;
         }
-        15% {
+        16% {
             opacity: 1;
         }
         20% {
             opacity: 0;
         }
-        95% {
+        96% {
             opacity: 0;
         }
         100% {
@@ -594,18 +615,30 @@ const heroKeyframes = `
         }
     }
 
-    /* 0-1s in, 1-4s held, 4-5s out, hidden for the remaining 15s. */
-    @keyframes hero-title-fade {
+    /* On at 0s (the words rise over 0-1s), held through 6s (they leave over
+       5-6s), then off for the remaining 19s. */
+    @keyframes hero-title-cycle {
         0% {
+            opacity: 1;
+        }
+        24% {
+            opacity: 1;
+            animation-timing-function: step-start;
+        }
+        100% {
             opacity: 0;
         }
-        5% {
+    }
+
+    /* Reduced motion: on at 0s, held to 5s, 5-6s out, hidden for the rest. */
+    @keyframes hero-title-fade {
+        0% {
             opacity: 1;
         }
         20% {
             opacity: 1;
         }
-        25% {
+        24% {
             opacity: 0;
         }
         100% {
@@ -613,3 +646,161 @@ const heroKeyframes = `
         }
     }
 </style>
+
+<script>
+    import gsap from 'gsap';
+    import { SplitText } from 'gsap/SplitText';
+
+    gsap.registerPlugin(SplitText);
+
+    /**
+     * Raises each hero title's words out of their baselines as its slide comes
+     * round, and sends them out through the tops of their masks as it goes.
+     *
+     * The clock stays in CSS — the photos and titles already share it, and a
+     * second clock in JS would drift off it. So this only listens: each title's
+     * `hero-title-cycle` fires `animationiteration` (and, the first time, for
+     * all but the first title, `animationstart`) at the moment it switches on,
+     * and that is when its words go up. They leave over the second the next
+     * title rises, and once the title has switched off they are dropped back
+     * under their masks, ready for the next time round.
+     *
+     * The first title's opening is the reveal bars in `RevealHeader`; its words
+     * only take over from its second showing.
+     */
+    /** Room above each word's mask for accents, in ems of the title. */
+    const MASK_HEADROOM = 0.2;
+
+    /** Below the mask, and — past the headroom — above it. */
+    const LOWERED = 110;
+    const RAISED = -130;
+
+    /**
+     * Share of the changeover the outgoing words take to leave. The incoming
+     * words wait for it, so the two titles are never on screen together.
+     */
+    const EXIT_SHARE = 0.45;
+
+    class HeroTitles extends HTMLElement {
+        private ctx: gsap.Context | undefined;
+        private onCycle = (e: AnimationEvent) => this.cycle(e);
+        private words = new Map<Element, Element[]>();
+        private timelines = new Map<Element, gsap.core.Timeline>();
+
+        connectedCallback() {
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            document.fonts.ready.then(() => {
+                if (!this.isConnected) return;
+                this.ctx = gsap.context(() => {
+                    const { slide, fade } = this.timing();
+                    const titles = this.querySelectorAll('.hero-title');
+
+                    titles.forEach((title) => {
+                        const split = new SplitText(title.querySelectorAll('.reveal-line'), {
+                            type: 'words',
+                            mask: 'words'
+                        });
+                        this.words.set(title, split.words);
+
+                        // A mask is only as tall as the line, which crops the
+                        // accents French puts over capitals (É, À, Ê). Headroom
+                        // on top, taken back out of the margin, so the words
+                        // sit exactly where they did.
+                        gsap.set(split.masks, {
+                            paddingTop: `${MASK_HEADROOM}em`,
+                            marginTop: `-${MASK_HEADROOM}em`
+                        });
+
+                        // Pick the rotation up wherever it is. A title on screen
+                        // right now — the first, under its reveal bars — keeps
+                        // its words and joins its cycle where it stands, so they
+                        // still leave on time; every other title waits for its
+                        // next turn with them lowered.
+                        const timing = title.getAnimations()[0]?.effect?.getComputedTiming();
+                        const cycle = timing?.duration as number | undefined;
+                        const elapsed =
+                            timing?.progress != null && cycle
+                                ? (timing.progress * cycle) / 1000
+                                : null;
+
+                        if (elapsed != null && elapsed < slide + fade) {
+                            this.play(title, false).seek(elapsed);
+                        } else {
+                            gsap.set(split.words, { yPercent: LOWERED });
+                        }
+                    });
+                }, this);
+
+                this.addEventListener('animationstart', this.onCycle);
+                this.addEventListener('animationiteration', this.onCycle);
+            });
+        }
+
+        private cycle(e: AnimationEvent) {
+            if (e.animationName !== 'hero-title-cycle') return;
+            // A start with time already elapsed is the first title's negative
+            // delay, which is the reveal bars' turn, not ours.
+            if (e.type === 'animationstart' && e.elapsedTime > 0) return;
+
+            const title = e.target as Element;
+            this.ctx?.add(() => this.play(title));
+        }
+
+        /**
+         * One showing of a title, timed from the moment it switches on. The
+         * changeover second is split: first the outgoing title's words leave
+         * upward, then this one's rise (unless the reveal bars are handling
+         * the entrance). They hold while the photo does, leave upward at the
+         * next changeover, and are lowered again once the title is off.
+         */
+        private play(title: Element, rise = true) {
+            const words = this.words.get(title) ?? [];
+            const { slide, fade } = this.timing();
+
+            this.timelines.get(title)?.kill();
+            const exit = fade * EXIT_SHARE;
+            const tl = gsap.timeline();
+            if (rise) {
+                tl.fromTo(
+                    words,
+                    { yPercent: LOWERED },
+                    { yPercent: 0, duration: 1, ease: 'expo.out', stagger: 0.06 },
+                    exit
+                );
+            }
+            tl.to(
+                words,
+                {
+                    yPercent: RAISED,
+                    duration: exit * 0.75,
+                    ease: 'power3.in',
+                    stagger: { amount: exit * 0.25 }
+                },
+                slide
+            ).set(words, { yPercent: LOWERED }, slide + fade);
+
+            this.timelines.set(title, tl);
+            return tl;
+        }
+
+        private timing() {
+            return {
+                slide: parseFloat(this.dataset.slide || '4'),
+                fade: parseFloat(this.dataset.fade || '1')
+            };
+        }
+
+        disconnectedCallback() {
+            this.removeEventListener('animationstart', this.onCycle);
+            this.removeEventListener('animationiteration', this.onCycle);
+            this.ctx?.revert();
+            this.words.clear();
+            this.timelines.clear();
+        }
+    }
+
+    if (!customElements.get('hero-titles')) {
+        customElements.define('hero-titles', HeroTitles);
+    }
+</script>

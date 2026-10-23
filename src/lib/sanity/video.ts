@@ -24,6 +24,14 @@ export interface MuxVideoField {
  */
 const FALLBACK_PLAYBACK_ID = 'AqIGdBkVFxJBaRMBlCxOvyZ9AAGDLtAgvy7JQZFyTTc';
 
+/** The slider's reels, likewise uploaded directly on mux.com, in slider order. */
+const FALLBACK_SLIDER_PLAYBACK_IDS = [
+    'qA00vzHyoCYjcMlmpeRyQp01YKPzZEgn4DPOHFq3gaxt8',
+    '89SZ000202SVhhYnoB3THcEVxOTmVLwyIswAB88a5QH028g',
+    '9AQA5TEtFezp1rhAkB02M16BZOQiLuelxwuTLAEuFubE',
+    'glOI4xBb9bLJUc6TteOvJPQKc1REEMWSHqWAX7SA6Jo'
+];
+
 /**
  * Playback id for the site video, or null when none is configured — callers
  * skip rendering in that case. A video uploaded through the Studio wins;
@@ -44,14 +52,11 @@ export function muxPlaybackId(settings: Record<string, any> | null | undefined):
  * The films behind the services slider, in Studio order. Each entry keeps its
  * own title so the player reports something meaningful to Mux Data.
  *
- * The array is optional content: until the reels are uploaded it comes back
- * empty, and the slider would render nothing at all. So an empty array falls
- * back to the single site film repeated `fallbackCount` times — the page keeps
- * its shape, and the first upload replaces the placeholders wholesale.
+ * The array is optional content: until the reels are uploaded through the
+ * Studio it comes back empty, so an empty array falls back to the reels above.
  */
 export function muxSliderVideos(
-    settings: Record<string, any> | null | undefined,
-    fallbackCount = 3
+    settings: Record<string, any> | null | undefined
 ): { playbackId: string; title: unknown }[] {
     const entries = Array.isArray(settings?.videos) ? settings.videos : [];
 
@@ -65,10 +70,8 @@ export function muxSliderVideos(
 
     if (resolved.length > 0) return resolved;
 
-    const fallback = muxPlaybackId(settings);
-    if (!fallback) return [];
-    return Array.from({ length: fallbackCount }, () => ({
-        playbackId: fallback,
+    return FALLBACK_SLIDER_PLAYBACK_IDS.map((playbackId) => ({
+        playbackId,
         title: settings?.videoTitle ?? ''
     }));
 }

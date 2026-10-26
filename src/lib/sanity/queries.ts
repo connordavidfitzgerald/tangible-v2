@@ -7,8 +7,30 @@ import { defineQuery } from 'groq';
  * active locale on the frontend with `pick()` from `./i18n` — no per-field
  * GROQ coalescing needed, and output is static so shipping both languages is
  * free.
+ *
+ * Mux uploads are stored as a reference to a `mux.videoAsset` document, so
+ * every query dereferences them and the frontend gets a playback id instead.
  */
-const singletonQuery = (type: string) => defineQuery(`*[_type == "${type}"][0]`);
+const MUX_ASSET = `asset->{
+        playbackId,
+        assetId,
+        status,
+        thumbTime,
+        "aspectRatio": data.aspect_ratio,
+        "duration": data.duration
+    }`;
+
+/**
+ * Pages embed their film as a `pageVideo` — `video` for a single film,
+ * `videos` for the Home slider — whose upload is unwrapped as above.
+ * Documents without either field are unaffected.
+ */
+const singletonQuery = (type: string) =>
+    defineQuery(`*[_type == "${type}"][0]{
+    ...,
+    video{ ..., video{ ${MUX_ASSET} } },
+    videos[]{ ..., video{ ${MUX_ASSET} } }
+}`);
 
 /**
  * Fetch a single document, tolerating an unreachable/empty dataset so the site
@@ -31,20 +53,6 @@ export const CONTACT_QUERY = singletonQuery('contact');
 export const SERVICES_ENTREPRISES_QUERY = singletonQuery('servicesEntreprises');
 export const SERVICES_LEADERS_QUERY = singletonQuery('servicesLeaders');
 export const CENTRE_IAM_QUERY = singletonQuery('centreIam');
-/**
- * Site settings additionally dereference the Mux asset behind the `video`
- * field, so the frontend gets a playback id instead of a reference. The
- * `videos` array feeding the services slider is unwrapped the same way.
- */
-const MUX_ASSET = `asset->{
-        playbackId,
-        assetId,
-        status,
-        thumbTime,
-        "aspectRatio": data.aspect_ratio,
-        "duration": data.duration
-    }`;
-
 export const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings"][0]{
     ...,
     video{ ${MUX_ASSET} },

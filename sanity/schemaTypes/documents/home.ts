@@ -1,4 +1,4 @@
-import { defineField, defineType } from 'sanity';
+import { defineArrayMember, defineField, defineType } from 'sanity';
 import { HomeIcon } from '@sanity/icons';
 import { i18nImage, i18nString, i18nText } from '../lib/fields';
 import { contactFooterFields } from '../lib/contactFooter';
@@ -15,6 +15,7 @@ export const home = defineType({
         { name: 'about', title: 'About' },
         { name: 'programs', title: 'Programs' },
         { name: 'intro', title: 'Intro Band' },
+        { name: 'video', title: 'Video Slider' },
         { name: 'footer', title: 'Footer' }
     ],
     fields: [
@@ -62,7 +63,18 @@ export const home = defineType({
         { ...i18nString('leadersTitle2', 'Leaders — Title Line 2'), group: 'programs' },
         { ...i18nText('leadersBody', 'Leaders — Body'), group: 'programs' },
         { ...i18nString('leadersButton', 'Leaders — Button'), group: 'programs' },
-        // The perle band between the film and the contact form. Same shape as
+        // Drag the handle on each entry to reorder — the slider plays them in
+        // the order listed here.
+        defineField({
+            name: 'videos',
+            title: 'Video Slider — Films',
+            type: 'array',
+            description:
+                'Drag to reorder. Leave empty to fall back to the films in Site Settings.',
+            of: [defineArrayMember({ type: 'pageVideo' })],
+            group: 'video'
+        }),
+        // The perle band between the films and the contact form. Same shape as
         // the contact page's intro, but its own copy — the two are edited
         // independently even where they currently read the same.
         {

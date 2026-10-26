@@ -17,6 +17,7 @@ export const about = defineType({
         { name: 'vision', title: 'Vision' },
         { name: 'promise', title: 'Promise' },
         { name: 'founder', title: 'Founder' },
+        { name: 'video', title: 'Video' },
         { name: 'footer', title: 'Footer' }
     ],
     fields: [
@@ -35,6 +36,13 @@ export const about = defineType({
             group: 'intro'
         },
         { ...i18nText('introParagraph2', 'Intro — Paragraph 2'), group: 'intro' },
+        defineField({
+            name: 'video',
+            title: 'Video',
+            type: 'pageVideo',
+            description: 'Leave empty to play the default film from Site Settings.',
+            group: 'video'
+        }),
         { ...i18nString('approachSectionLabel', 'Approach — Section Label'), group: 'approach' },
         { ...i18nString('circleLabel1', 'Circle 1 Label'), group: 'approach' },
         { ...i18nString('circleLabel2', 'Circle 2 Label'), group: 'approach' },

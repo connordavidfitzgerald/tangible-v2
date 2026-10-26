@@ -49,24 +49,26 @@ export const siteSettings = defineType({
             type: 'url',
             group: 'links'
         }),
-        // One film, uploaded to Mux once and reused wherever a video appears —
-        // hence it lives in Site Settings rather than on a single page document.
+        // The default film. Each page has its own video field and plays this
+        // one whenever that field is left empty.
         defineField({
             name: 'video',
-            title: 'Video',
+            title: 'Default Video',
             type: 'mux.video',
-            description: 'Uploaded to Mux. Shown on the home page and any other page that embeds it.',
+            description:
+                'Played on any page whose own Video field is empty. Each page can set its own under its Video tab.',
             group: 'video'
         }),
-        // The services landing page runs a three-up slider rather than the single
-        // film above. Leave it empty and the slider falls back to repeating the
-        // film, so the page is never blank while the reels are being cut.
+        // Superseded by the Programs page's own slider field. Still read as a
+        // fallback so existing entries keep playing; hidden once it is empty.
         defineField({
             name: 'videos',
-            title: 'Video Slider — Films',
+            title: 'Video Slider — Films (moved)',
             type: 'array',
             description:
-                'Shown as a slider on the services landing page. Empty falls back to the single film above.',
+                'Moved to Programs Page → Video Slider. Still used until that list is filled in.',
+            deprecated: { reason: 'Edit the slider on the Programs page instead.' },
+            hidden: ({ value }) => !value?.length,
             group: 'video',
             of: [
                 defineArrayMember({
@@ -89,7 +91,7 @@ export const siteSettings = defineType({
         }),
         defineField({
             name: 'videoPlaybackId',
-            title: 'Video — Mux Playback ID',
+            title: 'Default Video — Mux Playback ID',
             type: 'string',
             description:
                 'For a film uploaded directly on mux.com instead of through the Studio. Ignored when a video is uploaded above.',
@@ -98,8 +100,8 @@ export const siteSettings = defineType({
         {
             ...i18nString(
                 'videoTitle',
-                'Video — Title',
-                'Used as the accessible label and reported to Mux Data.'
+                'Default Video — Title',
+                'Used as the accessible label and reported to Mux Data, wherever a page does not title its own film.'
             ),
             group: 'video'
         },

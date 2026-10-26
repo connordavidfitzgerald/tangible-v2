@@ -6,7 +6,7 @@ import SanityPicture from '@components/ui/SanityPicture.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooter from '@components/sections/ContactFooter.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
-import VideoSlider from '@components/sections/VideoSlider.astro';
+import MuxVideo from '@components/ui/MuxVideo.astro';
 
 import img6 from '@images/Tangible0797.jpg';
 import img7 from '@images/LEADER.jpg';
@@ -14,7 +14,7 @@ import img7 from '@images/LEADER.jpg';
 import { frenchSpacing, localizedPath } from '@lib/i18n/utils';
 import { pick, type I18nField } from '@lib/sanity/i18n';
 import { getSiteSettings } from '@lib/sanity/queries';
-import { muxSliderVideos } from '@lib/sanity/video';
+import { pageFilm } from '@lib/sanity/video';
 import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
@@ -25,12 +25,11 @@ interface Props {
 const { data, locale } = Astro.props;
 const t = (key: string) => pick(data?.[key] as I18nField, locale);
 
-/** The films are global (Site Settings), not page content. */
+/** The page's own film, or the default one from Site Settings. */
 const settings = await getSiteSettings();
-const sliderVideos = muxSliderVideos(settings).map((video) => ({
-    playbackId: video.playbackId,
-    title: pick(video.title as I18nField, locale)
-}));
+const film = pageFilm(data, settings);
+const videoPlaybackId = film.playbackId;
+const videoTitle = pick(film.title as I18nField, locale);
 
 const entreprisesFonts = ['formula', 'editorial'] as const;
 const leadersFonts = ['formula', 'editorial'] as const;
@@ -177,19 +176,28 @@ const quoteAuthor = t('quoteAuthor');
             </div>
 
             <!-- ===============================================================
-                 Films — a three-up slider, and the last floor of the stack. It
+                 Video — full-bleed, and the last floor of the stack. It
                  sits inside the wrapper rather than after it so that card 2 has
                  something to stay stuck against: a sticky element is released at
                  its container's bottom edge, so as the wrapper's final child card
                  2 had nowhere to travel and its `sticky` never took effect. With
-                 the slider below it inside the same box, card 2 holds at the top
-                 for the slider's whole height while it climbs over it — the same
+                 the film below it inside the same box, card 2 holds at the top
+                 for the film's whole height while it climbs over it — the same
                  exchange card 1 and card 2 already make one floor down.
 
                  `z-30` continues that ladder (intro 0, card 1 10, card 2 20), and
-                 the section's own `bg-offwhite` is what does the covering.
+                 the player itself is opaque, so it does the covering.
                  =============================================================== -->
-            <VideoSlider videos={sliderVideos} lang={locale} class="programs-video relative z-30" />
+            {
+                videoPlaybackId && (
+                    <MuxVideo
+                        playbackId={videoPlaybackId}
+                        title={videoTitle}
+                        autoplayInView
+                        class="programs-video relative z-30 aspect-1512/902 w-full"
+                    />
+                )
+            }
         </div>
     </programs-animation>
 
@@ -270,9 +278,9 @@ const quoteAuthor = t('quoteAuthor');
                         recede(card1, card2);
 
                         /* Card 2 makes the same exchange one floor up, with the
-                           films as the climber. Guarded because the slider only
-                           renders when Site Settings has films in it — with no
-                           slider there is nothing to be covered by, so card 2
+                           film as the climber. Guarded because the film only
+                           renders when a playback id resolves — with no film
+                           there is nothing to be covered by, so card 2
                            simply stays at full size as it always did. */
                         if (video) recede(card2, video);
                     });

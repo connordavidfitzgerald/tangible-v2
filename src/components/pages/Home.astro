@@ -6,7 +6,7 @@ import DashList from '@components/ui/DashList.astro';
 import RevealHeader from '@components/sections/RevealHeader.astro';
 import ContactFooter from '@components/sections/ContactFooter.astro';
 import SplitReveal from '@components/sections/SplitReveal.astro';
-import MuxVideo from '@components/ui/MuxVideo.astro';
+import VideoSlider from '@components/sections/VideoSlider.astro';
 import LottieAnimation from 'astro-integration-lottie/Lottie.astro';
 import plantAnimationUrl from '@images/plant.json?url';
 
@@ -27,7 +27,7 @@ import mob5 from '@images/mob_tang5.jpg';
 import { localizedPath } from '@lib/i18n/utils';
 import { pick, type I18nField } from '@lib/sanity/i18n';
 import { getSiteSettings } from '@lib/sanity/queries';
-import { muxPlaybackId } from '@lib/sanity/video';
+import { muxSliderVideos } from '@lib/sanity/video';
 import { HERO_TITLES, INTRO_BOLD, INTRO_BODY } from '@lib/content/homeFallbacks';
 import type { LocaleId } from '@lib/i18n/locales';
 
@@ -39,10 +39,12 @@ interface Props {
 const { data, locale } = Astro.props;
 const t = (key: string) => pick(data?.[key] as I18nField, locale);
 
-/** The film is global (Site Settings), not home-page content. */
+/** The page's own reels, falling back to those in Site Settings. */
 const settings = await getSiteSettings();
-const videoPlaybackId = muxPlaybackId(settings);
-const videoTitle = pick(settings?.videoTitle, locale);
+const sliderVideos = muxSliderVideos(data, settings).map((video) => ({
+    playbackId: video.playbackId,
+    title: pick(video.title as I18nField, locale)
+}));
 
 const heroFonts = ['formula', 'editorial', 'editorial'] as const;
 const entreprisesTitleFonts = ['formula', 'editorial'] as const;
@@ -472,17 +474,12 @@ const heroKeyframes = `
     </div>
 
     <!-- ===================================================================
-         Video — full-bleed, sits between the programs and the contact footer.
+         Films — a three-up slider, between the programs and the intro band.
          =================================================================== -->
-    <MuxVideo
-        playbackId={videoPlaybackId}
-        title={videoTitle}
-        autoplayInView
-        class="aspect-1512/902 w-full"
-    />
+    <VideoSlider videos={sliderVideos} lang={locale} />
 
     <!-- ===================================================================
-         Intro band — perle, between the film and the contact form. Its 948px
+         Intro band — perle, between the films and the contact form. Its 948px
          column is `col-start-3 col-span-8` of the page grid, which lands its
          left edge on 282px at 1512, exactly as drawn.
          =================================================================== -->

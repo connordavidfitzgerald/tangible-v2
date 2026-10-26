@@ -15,6 +15,7 @@ export const servicesEntreprises = defineType({
         { name: 'hero', title: 'Hero' },
         { name: 'intro', title: 'Intro' },
         { name: 'slides', title: 'Slides' },
+        { name: 'video', title: 'Video' },
         { name: 'footer', title: 'Footer' }
     ],
     fields: [
@@ -37,6 +38,13 @@ export const servicesEntreprises = defineType({
             type: 'array',
             of: [{ type: 'serviceSlide' }],
             group: 'slides'
+        }),
+        defineField({
+            name: 'video',
+            title: 'Video',
+            type: 'pageVideo',
+            description: 'Leave empty to play the default film from Site Settings.',
+            group: 'video'
         }),
         ...contactFooterFields().map((field) => ({ ...field, group: 'footer' }))
     ],

@@ -5,6 +5,7 @@ import { bulletItem } from './objects/bulletItem';
 import { serviceSlide } from './objects/serviceSlide';
 import { centreIamSlide } from './objects/centreIamSlide';
 import { heroSlide } from './objects/heroSlide';
+import { pageVideo } from './objects/pageVideo';
 
 // Documents (singletons)
 import { home } from './documents/home';
@@ -34,6 +35,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     serviceSlide,
     centreIamSlide,
     heroSlide,
+    pageVideo,
     // documents
     home,
     about,

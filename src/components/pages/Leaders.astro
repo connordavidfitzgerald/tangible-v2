@@ -12,7 +12,7 @@ import mob from '@images/leaders-mob.jpg';
 
 import { pick, type I18nField } from '@lib/sanity/i18n';
 import { getSiteSettings } from '@lib/sanity/queries';
-import { muxPlaybackId } from '@lib/sanity/video';
+import { pageFilm } from '@lib/sanity/video';
 import { splitLead } from '@lib/content/phrase';
 import type { LocaleId } from '@lib/i18n/locales';
 
@@ -41,10 +41,11 @@ const slides = (data?.slides ?? []).map((slide: Slide, i: number) => ({
     result: pick(slide.result, locale)
 }));
 
-/** The film is global (Site Settings), not page content. */
+/** The page's own film, or the default one from Site Settings. */
 const settings = await getSiteSettings();
-const videoPlaybackId = muxPlaybackId(settings);
-const videoTitle = pick(settings?.videoTitle, locale);
+const film = pageFilm(data, settings);
+const videoPlaybackId = film.playbackId;
+const videoTitle = pick(film.title as I18nField, locale);
 
 const introParagraph = t('introParagraph');
 const introResult = splitLead(t('introResult'));

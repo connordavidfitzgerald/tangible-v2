@@ -1,4 +1,4 @@
-import { defineType } from 'sanity';
+import { defineField, defineType } from 'sanity';
 import { ThLargeIcon } from '@sanity/icons';
 import { i18nImage, i18nString, i18nText } from '../lib/fields';
 import { contactFooterFields } from '../lib/contactFooter';
@@ -14,6 +14,7 @@ export const programs = defineType({
         { name: 'intro', title: 'Intro' },
         { name: 'entreprises', title: 'Entreprises' },
         { name: 'leaders', title: 'Leaders' },
+        { name: 'video', title: 'Video' },
         { name: 'quote', title: 'Quote' },
         { name: 'footer', title: 'Footer' }
     ],
@@ -48,6 +49,13 @@ export const programs = defineType({
             group: 'leaders'
         },
         { ...i18nString('leadersButton', 'Leaders — Button'), group: 'leaders' },
+        defineField({
+            name: 'video',
+            title: 'Video',
+            type: 'pageVideo',
+            description: 'Leave empty to play the default film from Site Settings.',
+            group: 'video'
+        }),
         { ...i18nText('quote', 'Quote'), group: 'quote' },
         { ...i18nString('quoteAuthor', 'Quote Author'), group: 'quote' },
         ...contactFooterFields().map((field) => ({ ...field, group: 'footer' }))

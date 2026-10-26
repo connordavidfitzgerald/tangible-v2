@@ -12,7 +12,7 @@ import handsSvgRaw from '@assets/svgs/HandsNew.svg?raw';
 
 import { pick, type I18nField } from '@lib/sanity/i18n';
 import { getSiteSettings } from '@lib/sanity/queries';
-import { muxPlaybackId } from '@lib/sanity/video';
+import { pageFilm } from '@lib/sanity/video';
 import type { LocaleId } from '@lib/i18n/locales';
 
 interface Props {
@@ -23,10 +23,11 @@ interface Props {
 const { data, locale } = Astro.props;
 const t = (key: string) => pick(data?.[key] as I18nField, locale);
 
-/** The film is global (Site Settings), not about-page content. */
+/** The page's own film, or the default one from Site Settings. */
 const settings = await getSiteSettings();
-const videoPlaybackId = muxPlaybackId(settings);
-const videoTitle = pick(settings?.videoTitle, locale);
+const film = pageFilm(data, settings);
+const videoPlaybackId = film.playbackId;
+const videoTitle = pick(film.title as I18nField, locale);
 
 const heroFonts = ['formula', 'formula', 'formula', 'formula'] as const;
 
